@@ -1,0 +1,21 @@
+@startuml
+title UC-05 Matchmaking Screen Flow
+start
+:Match List;
+if (Create match?) then (yes)
+  :Create Match Form;
+  :Save Open Match;
+else (join)
+  :Open Match Detail;
+  :Send Join Request;
+endif
+:Owner Notification;
+if (Owner approves?) then (yes)
+  :Requester Approved Notification;
+  :Participants can communicate;
+else (no)
+  :Requester Rejected Notification;
+endif
+stop
+@enduml
+

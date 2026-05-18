@@ -1,0 +1,16 @@
+@startuml
+title UC-03 Submit Venue Listing
+actor "Venue Owner" as Owner
+participant "Web Frontend" as Web
+participant "Venue API" as API
+database "Database" as DB
+
+Owner -> Web : Submit venue form
+Web -> API : POST /venues
+API -> API : Validate owner and fields
+API -> DB : Insert venue pending approval
+DB -->> API : Saved
+API -->> Web : Pending approval
+Web -->> Owner : Show status
+@enduml
+

@@ -1,0 +1,135 @@
+@startuml
+skinparam entityStyle ascii
+skinparam linetype ortho
+title SportLife Entity Relationship
+
+entity "User" as user {
+  * id : UUID
+  --
+  * email : String
+  * password_hash : String
+  * role : Enum
+  * email_verified : Boolean
+  * status : Enum
+}
+
+entity "PlayerProfile" as player {
+  * user_id : UUID
+  --
+  * display_name : String
+  avatar_url : String
+  area_id : UUID
+  introduction : Text
+  availability : Text
+  contact_info : Text
+}
+
+entity "VenueOwnerProfile" as owner {
+  * user_id : UUID
+  --
+  business_name : String
+  contact_info : Text
+}
+
+entity "Sport" as sport {
+  * id : UUID
+  --
+  * name : String
+  * status : Enum
+}
+
+entity "SkillLevel" as level {
+  * id : UUID
+  --
+  * sport_id : UUID
+  * name : String
+  sort_order : Integer
+}
+
+entity "Area" as area {
+  * id : UUID
+  --
+  * name : String
+  * type : String
+  * city : String
+}
+
+entity "Venue" as venue {
+  * id : UUID
+  --
+  * owner_id : UUID
+  * name : String
+  * area_id : UUID
+  address : Text
+  opening_hours : Text
+  reference_price : String
+  approval_status : Enum
+  visibility_status : Enum
+}
+
+entity "Match" as match {
+  * id : UUID
+  --
+  * owner_id : UUID
+  * sport_id : UUID
+  * area_id : UUID
+  play_time : DateTime
+  required_players : Integer
+  expected_level_id : UUID
+  status : Enum
+}
+
+entity "MatchJoinRequest" as request {
+  * id : UUID
+  --
+  * match_id : UUID
+  * requester_id : UUID
+  * status : Enum
+}
+
+entity "CommunityPost" as post {
+  * id : UUID
+  --
+  * author_id : UUID
+  sport_id : UUID
+  area_id : UUID
+  content : Text
+  desired_play_time : DateTime
+  status : Enum
+}
+
+entity "Comment" as comment {
+  * id : UUID
+  --
+  * post_id : UUID
+  * author_id : UUID
+  content : Text
+  status : Enum
+}
+
+entity "Notification" as notif {
+  * id : UUID
+  --
+  * recipient_id : UUID
+  * type : Enum
+  reference_id : UUID
+  read_at : DateTime
+}
+
+user ||--o| player : has
+user ||--o| owner : has
+owner ||--o{ venue : owns
+area ||--o{ player : locates
+area ||--o{ venue : locates
+sport ||--o{ level : defines
+user ||--o{ match : creates
+sport ||--o{ match : categorizes
+area ||--o{ match : locates
+match ||--o{ request : receives
+user ||--o{ request : submits
+user ||--o{ post : writes
+post ||--o{ comment : contains
+user ||--o{ comment : writes
+user ||--o{ notif : receives
+@enduml
+

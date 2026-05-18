@@ -1,0 +1,16 @@
+@startuml
+title UC-01 Backend Classes
+class AuthController
+class AuthService
+class UserRepository
+class VerificationTokenRepository
+class EmailService
+class PasswordService
+
+AuthController --> AuthService
+AuthService --> UserRepository
+AuthService --> VerificationTokenRepository
+AuthService --> EmailService
+AuthService --> PasswordService
+@enduml
+

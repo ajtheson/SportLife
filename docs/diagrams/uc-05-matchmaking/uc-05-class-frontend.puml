@@ -1,0 +1,14 @@
+@startuml
+title UC-05 Frontend Classes
+class MatchListPage
+class MatchDetailPage
+class MatchFormPage
+class JoinRequestPanel
+class MatchApiClient
+
+MatchListPage --> MatchApiClient
+MatchDetailPage --> JoinRequestPanel
+MatchDetailPage --> MatchApiClient
+MatchFormPage --> MatchApiClient
+@enduml
+

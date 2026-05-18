@@ -1,0 +1,16 @@
+@startuml
+title UC-03 Venue Management Screen Flow
+start
+:Venue Owner Dashboard;
+:Open Venue Form;
+:Enter venue information;
+:Upload images;
+if (Required data valid?) then (yes)
+  :Save as Pending Approval;
+  :Show status;
+else (no)
+  :Show validation errors;
+endif
+stop
+@enduml
+

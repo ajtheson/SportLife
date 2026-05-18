@@ -1,0 +1,14 @@
+@startuml
+title UC-03 Frontend Classes
+class VenueOwnerDashboard
+class VenueFormPage
+class ImageUploader
+class SportMultiSelect
+class VenueApiClient
+
+VenueOwnerDashboard --> VenueApiClient
+VenueFormPage --> ImageUploader
+VenueFormPage --> SportMultiSelect
+VenueFormPage --> VenueApiClient
+@enduml
+

@@ -1,0 +1,12 @@
+@startuml
+title UC-06 Community Post State
+[*] --> Draft
+Draft --> Published : Publish
+Published --> Edited : Author edits
+Edited --> Published
+Published --> Deleted : Author deletes
+Published --> Hidden : Admin hides
+Hidden --> Published : Admin restores
+Deleted --> [*]
+@enduml
+

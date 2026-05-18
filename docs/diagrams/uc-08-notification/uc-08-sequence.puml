@@ -1,0 +1,19 @@
+@startuml
+title UC-08 Create and Read Notification
+participant "Match Service" as Match
+participant "Notification Service" as Notify
+database "Database" as DB
+actor Player
+participant "Web Frontend" as Web
+
+Match -> Notify : Create event notification
+Notify -> DB : Insert notification
+Player -> Web : Open notifications
+Web -> Notify : GET /notifications
+Notify -> DB : Query recipient notifications
+DB -->> Notify : Notifications
+Notify -->> Web : Notification list
+Web -> Notify : POST /notifications/{id}/read
+Notify -> DB : Mark read
+@enduml
+

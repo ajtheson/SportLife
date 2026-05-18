@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+actor "Venue Owner" as Owner
+actor Admin
+rectangle "UC-03 Venue Management" {
+  Owner -- (Create venue)
+  Owner -- (Edit venue)
+  Owner -- (Upload images)
+  Owner -- (Submit for approval)
+  Owner -- (View approval status)
+  Admin -- (Review venue)
+}
+@enduml
+

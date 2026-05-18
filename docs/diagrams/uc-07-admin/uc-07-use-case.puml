@@ -1,0 +1,15 @@
+@startuml
+left to right direction
+actor Admin
+rectangle "UC-07 Admin" {
+  Admin -- (Manage player accounts)
+  Admin -- (Manage venue owner accounts)
+  Admin -- (Approve/reject venues)
+  Admin -- (Lock/hide venues)
+  Admin -- (Moderate posts)
+  Admin -- (Handle reports)
+  Admin -- (Configure sports, levels, areas)
+  Admin -- (View dashboard statistics)
+}
+@enduml
+

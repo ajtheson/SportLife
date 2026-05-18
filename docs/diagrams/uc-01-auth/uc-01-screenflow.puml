@@ -1,0 +1,18 @@
+@startuml
+title UC-01 Authentication Screen Flow
+start
+:Register Page;
+:Enter email/password and role;
+:Submit registration;
+:Show verify email notice;
+:Open verification link;
+if (Link valid?) then (yes)
+  :Account activated;
+  :Login Page;
+  :Authenticated Dashboard;
+else (no)
+  :Show invalid or expired link;
+endif
+stop
+@enduml
+

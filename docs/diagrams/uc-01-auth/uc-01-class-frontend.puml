@@ -1,0 +1,18 @@
+@startuml
+title UC-01 Frontend Classes
+class RegisterPage
+class LoginPage
+class VerifyEmailPage
+class ForgotPasswordPage
+class ResetPasswordPage
+class AuthApiClient
+class SessionStore
+
+RegisterPage --> AuthApiClient
+LoginPage --> AuthApiClient
+VerifyEmailPage --> AuthApiClient
+ForgotPasswordPage --> AuthApiClient
+ResetPasswordPage --> AuthApiClient
+LoginPage --> SessionStore
+@enduml
+

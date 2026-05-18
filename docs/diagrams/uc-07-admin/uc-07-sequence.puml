@@ -1,0 +1,21 @@
+@startuml
+title UC-07 Admin Approves Venue
+actor Admin
+participant "Admin Web" as Web
+participant "Admin API" as AdminApi
+participant "Venue Service" as Venue
+database "Database" as DB
+
+Admin -> Web : Open approval queue
+Web -> AdminApi : GET /admin/venues/pending
+AdminApi -> DB : Query pending venues
+DB -->> AdminApi : Pending list
+AdminApi -->> Web : List
+Admin -> Web : Approve venue
+Web -> AdminApi : POST /admin/venues/{id}/approve
+AdminApi -> Venue : Approve venue
+Venue -> DB : Update status
+DB -->> Venue : Updated
+AdminApi -->> Web : Approved
+@enduml
+

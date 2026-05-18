@@ -1,0 +1,21 @@
+@startuml
+title UC-01 Registration and Verification
+actor Guest
+participant "Web Frontend" as Web
+participant "Auth API" as Auth
+participant "User Store" as DB
+participant "Email Service" as Email
+
+Guest -> Web : Submit registration
+Web -> Auth : POST /auth/register
+Auth -> DB : Create user pending verification
+DB -->> Auth : User created
+Auth -> Email : Send verification link
+Email -->> Auth : Accepted
+Auth -->> Web : Registration pending
+Guest -> Web : Open verification link
+Web -> Auth : POST /auth/verify
+Auth -> DB : Mark email verified
+Auth -->> Web : Account active
+@enduml
+

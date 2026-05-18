@@ -1,0 +1,14 @@
+@startuml
+title UC-06 Frontend Classes
+class CommunityFeedPage
+class PostForm
+class PostDetailPage
+class CommentList
+class CommunityApiClient
+
+CommunityFeedPage --> CommunityApiClient
+CommunityFeedPage --> PostForm
+PostDetailPage --> CommentList
+PostDetailPage --> CommunityApiClient
+@enduml
+

@@ -1,0 +1,15 @@
+@startuml
+title UC-06 Community Screen Flow
+start
+:Community Feed;
+:Filter by sport or area;
+if (Create post?) then (yes)
+  :Post Form;
+  :Publish Post;
+else (browse)
+  :Open Post Detail;
+  :Read or Comment;
+endif
+stop
+@enduml
+

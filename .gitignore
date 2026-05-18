@@ -1,0 +1,47 @@
+# --- SportLife repo ---
+# Keep: docs/, backend/, frontend/
+
+# Codex/agent skill packs (local tooling)
+.codex/
+
+# Skill router (local tooling)
+/skill-navigator.md
+
+# Repo-level agent/instructions files (keep local if preferred)
+/AGENTS.md
+
+# Editor / OS
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files (do not commit secrets)
+.env
+.env.*
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+
+# Java / Spring
+**/target/
+.classpath
+.project
+.settings/
+
+# Misc
+*.swp
+*.tmp

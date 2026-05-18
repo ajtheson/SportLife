@@ -1,0 +1,11 @@
+@startuml
+title UC-04 Search Session State
+[*] --> EmptyFilters
+EmptyFilters --> Filtering : Select filters
+Filtering --> ResultsFound : Matching venues exist
+Filtering --> NoResults : No venues
+ResultsFound --> DetailViewed : Open venue
+DetailViewed --> Contacted : Contact owner
+NoResults --> Filtering : Change filters
+@enduml
+

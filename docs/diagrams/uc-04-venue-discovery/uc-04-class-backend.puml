@@ -1,0 +1,14 @@
+@startuml
+title UC-04 Backend Classes
+class VenueSearchController
+class VenueSearchService
+class VenueRepository
+class VenueFilter
+class ContactVisibilityPolicy
+
+VenueSearchController --> VenueSearchService
+VenueSearchService --> VenueRepository
+VenueSearchService --> VenueFilter
+VenueSearchService --> ContactVisibilityPolicy
+@enduml
+

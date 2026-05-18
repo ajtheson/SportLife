@@ -1,0 +1,18 @@
+@startuml
+title UC-04 Search Venue and Contact Owner
+actor Player
+participant "Web Frontend" as Web
+participant "Venue API" as Venue
+database "Database" as DB
+
+Player -> Web : Search venues
+Web -> Venue : GET /venues?sport&area
+Venue -> DB : Query approved active venues
+DB -->> Venue : Venue list
+Venue -->> Web : Results
+Player -> Web : Open detail
+Web -> Venue : GET /venues/{id}
+Venue -->> Web : Venue detail and contact
+Web -->> Player : Show direct contact options
+@enduml
+

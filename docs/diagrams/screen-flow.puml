@@ -1,0 +1,29 @@
+@startuml
+title SportLife System Screen Flow
+start
+:Public Home;
+if (Authenticated?) then (no)
+  :Register / Login / Forgot Password;
+  :Email Verification or Password Reset;
+endif
+:Role-based Dashboard;
+if (Role?) then (Player)
+  :Player Profile;
+  :Venue Search;
+  :Match List / Detail / Create;
+  :Community Feed / Post Detail;
+  :Notification Center;
+elseif (Venue Owner)
+  :Venue Owner Dashboard;
+  :Venue Form;
+  :Venue Approval Status;
+else (Admin)
+  :Admin Dashboard;
+  :User Management;
+  :Venue Approval;
+  :Community Moderation;
+  :Configuration;
+endif
+stop
+@enduml
+

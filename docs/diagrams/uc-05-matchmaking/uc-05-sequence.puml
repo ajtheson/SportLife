@@ -1,0 +1,21 @@
+@startuml
+title UC-05 Join Match Request
+actor Requester
+actor "Match Owner" as Owner
+participant "Web Frontend" as Web
+participant "Match API" as Match
+participant "Notification Service" as Notify
+database "Database" as DB
+
+Requester -> Web : Request to join
+Web -> Match : POST /matches/{id}/requests
+Match -> DB : Create pending request
+Match -> Notify : Notify owner
+Notify -> DB : Save notification
+Owner -> Web : Approve request
+Web -> Match : POST /requests/{id}/approve
+Match -> DB : Mark approved
+Match -> Notify : Notify requester
+Notify -> DB : Save notification
+@enduml
+

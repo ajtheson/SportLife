@@ -1,0 +1,12 @@
+@startuml
+left to right direction
+actor Player
+rectangle "UC-08 In-App Notifications" {
+  Player -- (Receive join request notification)
+  Player -- (Receive approval notification)
+  Player -- (Receive rejection notification)
+  Player -- (View notifications)
+  Player -- (Mark notification as read)
+}
+@enduml
+

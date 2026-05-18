@@ -1,0 +1,14 @@
+@startuml
+title UC-02 Frontend Classes
+class PlayerProfilePage
+class ProfileForm
+class SportLevelSelector
+class AreaSelector
+class ProfileApiClient
+
+PlayerProfilePage --> ProfileForm
+ProfileForm --> SportLevelSelector
+ProfileForm --> AreaSelector
+ProfileForm --> ProfileApiClient
+@enduml
+

@@ -1,0 +1,13 @@
+@startuml
+left to right direction
+actor Player
+actor "Venue Owner" as Owner
+rectangle "UC-04 Venue Discovery" {
+  Player -- (Search approved venues)
+  Player -- (Filter by sport and area)
+  Player -- (View venue detail)
+  Player -- (Contact venue owner directly)
+  Owner -- (Receive direct contact)
+}
+@enduml
+

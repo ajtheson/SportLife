@@ -1,0 +1,16 @@
+@startuml
+title UC-07 Backend Classes
+class AdminController
+class AdminUserService
+class AdminVenueService
+class AdminCommunityService
+class ConfigService
+class DashboardService
+
+AdminController --> AdminUserService
+AdminController --> AdminVenueService
+AdminController --> AdminCommunityService
+AdminController --> ConfigService
+AdminController --> DashboardService
+@enduml
+

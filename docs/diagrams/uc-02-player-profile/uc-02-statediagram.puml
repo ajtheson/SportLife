@@ -1,0 +1,10 @@
+@startuml
+title UC-02 Profile State
+[*] --> Incomplete
+Incomplete --> Complete : Required fields saved
+Complete --> Incomplete : Required data removed
+Complete --> Updated : Save changes
+Updated --> Complete
+Complete --> Hidden : Account inactive
+@enduml
+

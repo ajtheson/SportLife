@@ -1,0 +1,33 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor Guest
+actor Player
+actor "Venue Owner" as VenueOwner
+actor Admin
+actor "Email Service" as Email
+
+rectangle "SportLife Web Application" {
+  usecase "Register/Login" as UCAuth
+  usecase "Manage Player Profile" as UCProfile
+  usecase "Discover Venues" as UCVenueSearch
+  usecase "Manage Venue Listings" as UCVenueManage
+  usecase "Create/Join Matches" as UCMatch
+  usecase "Community Posts" as UCCommunity
+  usecase "Admin Management" as UCAdmin
+  usecase "In-App Notifications" as UCNotify
+}
+
+Guest --> UCAuth
+Player --> UCProfile
+Player --> UCVenueSearch
+Player --> UCMatch
+Player --> UCCommunity
+Player --> UCNotify
+VenueOwner --> UCVenueManage
+VenueOwner --> UCVenueSearch
+Admin --> UCAdmin
+Email --> UCAuth
+@enduml
+

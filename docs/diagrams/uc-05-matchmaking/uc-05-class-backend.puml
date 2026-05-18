@@ -1,0 +1,16 @@
+@startuml
+title UC-05 Backend Classes
+class MatchController
+class MatchService
+class MatchRepository
+class JoinRequestRepository
+class MatchPolicy
+class NotificationService
+
+MatchController --> MatchService
+MatchService --> MatchRepository
+MatchService --> JoinRequestRepository
+MatchService --> MatchPolicy
+MatchService --> NotificationService
+@enduml
+

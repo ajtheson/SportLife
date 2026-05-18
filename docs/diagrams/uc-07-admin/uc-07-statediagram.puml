@@ -1,0 +1,11 @@
+@startuml
+title UC-07 Admin Managed Record State
+[*] --> Active
+Active --> Suspended : Suspend user
+Suspended --> Active : Restore user
+Active --> Hidden : Hide content or venue
+Hidden --> Active : Restore
+Active --> Deleted : Delete content
+Deleted --> [*]
+@enduml
+

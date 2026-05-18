@@ -1,0 +1,17 @@
+@startuml
+title UC-02 Player Profile Screen Flow
+start
+:Open Profile Page;
+:Load sports, levels, and areas;
+:Enter basic profile;
+:Select sports and levels;
+:Set area and availability;
+if (Valid?) then (yes)
+  :Save profile;
+  :Show profile summary;
+else (no)
+  :Show validation errors;
+endif
+stop
+@enduml
+

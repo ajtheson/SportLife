@@ -1,0 +1,15 @@
+@startuml
+title UC-04 Frontend Classes
+class VenueSearchPage
+class VenueFilterPanel
+class VenueList
+class VenueDetailPage
+class VenueApiClient
+
+VenueSearchPage --> VenueFilterPanel
+VenueSearchPage --> VenueList
+VenueList --> VenueDetailPage
+VenueSearchPage --> VenueApiClient
+VenueDetailPage --> VenueApiClient
+@enduml
+

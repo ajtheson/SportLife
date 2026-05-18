@@ -1,0 +1,16 @@
+@startuml
+title UC-03 Backend Classes
+class VenueController
+class VenueService
+class VenueRepository
+class VenueImageRepository
+class VenueSportRepository
+class ApprovalPolicy
+
+VenueController --> VenueService
+VenueService --> VenueRepository
+VenueService --> VenueImageRepository
+VenueService --> VenueSportRepository
+VenueService --> ApprovalPolicy
+@enduml
+

@@ -1,0 +1,13 @@
+@startuml
+left to right direction
+actor Player
+rectangle "UC-02 Player Profile" {
+  Player -- (Edit display name and avatar)
+  Player -- (Select ward/commune)
+  Player -- (Select sports)
+  Player -- (Select skill level per sport)
+  Player -- (Set availability)
+  Player -- (Save contact information)
+}
+@enduml
+

@@ -1,0 +1,16 @@
+@startuml
+left to right direction
+actor Guest
+actor User
+actor "Email Service" as Email
+rectangle "UC-01 Authentication" {
+  Guest -- (Register with email/password)
+  Guest -- (Select Player or Venue Owner role)
+  Guest -- (Verify email by link)
+  Guest -- (Login)
+  Guest -- (Request password reset)
+  User -- (Logout)
+  Email -- (Deliver verification/reset email)
+}
+@enduml
+

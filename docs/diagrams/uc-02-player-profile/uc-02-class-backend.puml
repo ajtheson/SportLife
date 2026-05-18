@@ -1,0 +1,16 @@
+@startuml
+title UC-02 Backend Classes
+class PlayerProfileController
+class PlayerProfileService
+class PlayerProfileRepository
+class PlayerSportLevelRepository
+class SportConfigService
+class AreaService
+
+PlayerProfileController --> PlayerProfileService
+PlayerProfileService --> PlayerProfileRepository
+PlayerProfileService --> PlayerSportLevelRepository
+PlayerProfileService --> SportConfigService
+PlayerProfileService --> AreaService
+@enduml
+

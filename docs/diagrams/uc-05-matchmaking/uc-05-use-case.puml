@@ -1,0 +1,13 @@
+@startuml
+left to right direction
+actor Player
+rectangle "UC-05 Matchmaking" {
+  Player -- (Create match)
+  Player -- (Browse open matches)
+  Player -- (Request to join)
+  Player -- (Approve join request)
+  Player -- (Reject join request)
+  Player -- (Chat with approved participants)
+}
+@enduml
+

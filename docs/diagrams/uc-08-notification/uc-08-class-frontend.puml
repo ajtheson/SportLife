@@ -1,0 +1,12 @@
+@startuml
+title UC-08 Frontend Classes
+class NotificationCenterPage
+class NotificationBell
+class NotificationList
+class NotificationApiClient
+
+NotificationBell --> NotificationApiClient
+NotificationCenterPage --> NotificationList
+NotificationList --> NotificationApiClient
+@enduml
+

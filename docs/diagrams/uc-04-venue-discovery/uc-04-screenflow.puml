@@ -1,0 +1,15 @@
+@startuml
+title UC-04 Venue Discovery Screen Flow
+start
+:Open Venue Search;
+:Select sport and ward/commune;
+:View approved venue list;
+if (Venue selected?) then (yes)
+  :Open Venue Detail;
+  :Use contact info or chat;
+else (no)
+  :Adjust filters;
+endif
+stop
+@enduml
+

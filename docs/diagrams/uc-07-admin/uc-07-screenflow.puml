@@ -1,0 +1,19 @@
+@startuml
+title UC-07 Admin Screen Flow
+start
+:Admin Dashboard;
+if (Task?) then (Users)
+  :User Management;
+elseif (Venues)
+  :Venue Approval Queue;
+  :Approve / Reject / Lock;
+elseif (Community)
+  :Moderation Queue;
+  :Hide or Delete Content;
+else (Configuration)
+  :Sports / Levels / Areas Config;
+  :Save Configuration;
+endif
+stop
+@enduml
+

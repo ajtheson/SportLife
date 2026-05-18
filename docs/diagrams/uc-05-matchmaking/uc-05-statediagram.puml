@@ -1,0 +1,16 @@
+@startuml
+title UC-05 Match and Request State
+[*] --> Open
+Open --> Full : Required players reached
+Open --> Cancelled : Owner cancels
+Open --> Closed : Owner closes
+
+state "Join Request" as JR {
+  [*] --> Pending
+  Pending --> Approved : Owner approves
+  Pending --> Rejected : Owner rejects
+  Approved --> [*]
+  Rejected --> [*]
+}
+@enduml
+

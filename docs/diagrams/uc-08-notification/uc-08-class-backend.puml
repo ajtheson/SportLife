@@ -1,0 +1,12 @@
+@startuml
+title UC-08 Backend Classes
+class NotificationController
+class NotificationService
+class NotificationRepository
+class MatchEventHandler
+
+MatchEventHandler --> NotificationService
+NotificationController --> NotificationService
+NotificationService --> NotificationRepository
+@enduml
+

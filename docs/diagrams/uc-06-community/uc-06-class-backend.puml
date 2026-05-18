@@ -1,0 +1,14 @@
+@startuml
+title UC-06 Backend Classes
+class CommunityController
+class CommunityService
+class PostRepository
+class CommentRepository
+class ModerationPolicy
+
+CommunityController --> CommunityService
+CommunityService --> PostRepository
+CommunityService --> CommentRepository
+CommunityService --> ModerationPolicy
+@enduml
+

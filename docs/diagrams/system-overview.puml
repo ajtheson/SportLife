@@ -1,0 +1,34 @@
+@startuml
+skinparam componentStyle rectangle
+title SportLife System Overview
+
+[Web Browser] as Browser
+[SportLife Frontend] as Frontend
+[SportLife Backend API] as Backend
+database "Application Database" as DB
+[Email Service] as Email
+
+Browser --> Frontend : HTTPS
+Frontend --> Backend : HTTPS/JSON
+Backend --> DB : Read/Write
+Backend --> Email : Verification and reset links
+
+package "Backend Modules" {
+  [Auth Module]
+  [Profile Module]
+  [Venue Module]
+  [Match Module]
+  [Community Module]
+  [Notification Module]
+  [Admin Module]
+}
+
+Backend --> [Auth Module]
+Backend --> [Profile Module]
+Backend --> [Venue Module]
+Backend --> [Match Module]
+Backend --> [Community Module]
+Backend --> [Notification Module]
+Backend --> [Admin Module]
+@enduml
+

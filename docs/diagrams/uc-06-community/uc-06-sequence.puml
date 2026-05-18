@@ -1,0 +1,16 @@
+@startuml
+title UC-06 Create Community Post
+actor Player
+participant "Web Frontend" as Web
+participant "Community API" as API
+database "Database" as DB
+
+Player -> Web : Submit post
+Web -> API : POST /community/posts
+API -> API : Validate content and metadata
+API -> DB : Insert post
+DB -->> API : Saved
+API -->> Web : Published post
+Web -->> Player : Show post detail
+@enduml
+

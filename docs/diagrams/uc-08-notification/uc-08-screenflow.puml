@@ -1,0 +1,11 @@
+@startuml
+title UC-08 Notification Screen Flow
+start
+:Match event occurs;
+:Create in-app notification;
+:Recipient opens Notification Center;
+:View notification details;
+:Mark as read;
+stop
+@enduml
+

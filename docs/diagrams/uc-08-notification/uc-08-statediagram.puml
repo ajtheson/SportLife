@@ -1,0 +1,8 @@
+@startuml
+title UC-08 Notification State
+[*] --> Unread
+Unread --> Read : Recipient views
+Read --> Archived : Optional cleanup
+Archived --> [*]
+@enduml
+

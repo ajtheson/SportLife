@@ -1,0 +1,12 @@
+@startuml
+title UC-01 Account State
+[*] --> DraftRegistration
+DraftRegistration --> PendingVerification : Register
+PendingVerification --> Active : Verify Email
+PendingVerification --> ExpiredVerification : Link Expired
+Active --> PasswordResetPending : Request Reset
+PasswordResetPending --> Active : Reset Password
+Active --> Suspended : Admin Suspend
+Suspended --> Active : Admin Restore
+@enduml
+

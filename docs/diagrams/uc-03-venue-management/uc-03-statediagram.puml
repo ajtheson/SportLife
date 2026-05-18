@@ -1,0 +1,12 @@
+@startuml
+title UC-03 Venue Approval State
+[*] --> Draft
+Draft --> PendingApproval : Submit
+PendingApproval --> Approved : Admin Approves
+PendingApproval --> Rejected : Admin Rejects
+Rejected --> PendingApproval : Owner Resubmits
+Approved --> Hidden : Admin Hides
+Approved --> Locked : Admin Locks
+Hidden --> Approved : Admin Restores
+@enduml
+

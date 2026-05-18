@@ -1,0 +1,16 @@
+@startuml
+title UC-07 Frontend Classes
+class AdminDashboardPage
+class UserManagementPage
+class VenueApprovalPage
+class CommunityModerationPage
+class ConfigPage
+class AdminApiClient
+
+AdminDashboardPage --> AdminApiClient
+UserManagementPage --> AdminApiClient
+VenueApprovalPage --> AdminApiClient
+CommunityModerationPage --> AdminApiClient
+ConfigPage --> AdminApiClient
+@enduml
+

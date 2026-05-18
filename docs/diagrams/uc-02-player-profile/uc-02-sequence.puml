@@ -1,0 +1,20 @@
+@startuml
+title UC-02 Save Player Profile
+actor Player
+participant "Web Frontend" as Web
+participant "Profile API" as API
+participant "Config API" as Config
+database "Database" as DB
+
+Player -> Web : Open profile
+Web -> Config : GET sports/levels/areas
+Config -> DB : Query active config
+DB -->> Config : Config data
+Config -->> Web : Options
+Player -> Web : Submit profile
+Web -> API : PUT /player-profile
+API -> DB : Upsert profile and sport levels
+DB -->> API : Saved
+API -->> Web : Profile saved
+@enduml
+

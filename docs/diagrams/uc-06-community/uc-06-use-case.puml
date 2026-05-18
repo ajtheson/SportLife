@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+actor Player
+actor Admin
+rectangle "UC-06 Community Posts" {
+  Player -- (Create post)
+  Player -- (Browse posts)
+  Player -- (Comment on post)
+  Player -- (Edit own post)
+  Player -- (Delete own post)
+  Admin -- (Hide/delete violating post)
+}
+@enduml
+
