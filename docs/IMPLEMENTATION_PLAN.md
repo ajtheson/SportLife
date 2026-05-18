@@ -1,8 +1,8 @@
 # SportLife Implementation Plan
 
-**Version:** 0.5.0  
-**Date:** 2026-05-18  
-**Status:** Phase 3 complete  
+**Version:** 1.0.0  
+**Date:** 2026-05-19  
+**Status:** Phase 5 complete  
 **Source Requirements:** [SRS_SportLife_v1.0.0.md](./SRS_SportLife_v1.0.0.md)
 
 ---
@@ -112,7 +112,7 @@ docker compose up --build
 
 - Apply the shell to venue discovery, Player workspace, Venue Owner workspace, and Admin workspace routes.
 - Keep the public home/auth pages simple.
-- Show future tabs such as matches, community, chat, and notifications as disabled placeholders until their phases are implemented.
+- Show future tabs such as chat as disabled placeholders until their phases are implemented.
 - Render role-specific workspace entries only for the current role.
 
 **Rationale:** This gives users a stable app navigation model now and lets later phases attach real screens without redesigning every page.
@@ -223,40 +223,54 @@ Exit criteria:
 
 Outcome: Players can create matches, request to join, and receive in-app notifications.
 
+Status: complete. Player-only match creation is implemented with sport, area, optional detailed address, future time, required players, optional expected levels for the selected sport, and description. Required players means additional players beyond the owner. Players can browse matches, request to join, and match owners can approve or reject pending requests. Approved requests count toward required players and automatically move the match to Full when enough players are approved. Match owners can close their own Full matches or matches after the scheduled time, and can cancel their own matches before the scheduled time. Close/cancel clears pending requests by marking them Canceled. In-app notifications are created for requested, approved, and rejected join request events. Editing an existing match is deferred as an optional follow-up because the core SRS flow is complete and manually tested.
+
 Tasks:
 
-- Implement Match and MatchJoinRequest models.
-- Build match list, detail, create, and edit screens.
-- Implement join request creation.
-- Enforce no self-join and no duplicate request rules.
-- Implement approve/reject join request.
-- Create notifications for request, approval, and rejection events.
-- Build notification center.
+- [x] Implement Match and MatchJoinRequest models.
+- [x] Build match list, detail, and create screens.
+- [x] Implement join request creation.
+- [x] Enforce no self-join and no duplicate request rules.
+- [x] Implement approve/reject join request.
+- [x] Create notifications for request, approval, and rejection events.
+- [x] Build notification center.
+- [x] Add close/cancel actions for match owners.
+- [ ] Add optional match edit screen if product testing needs it.
 
 Exit criteria:
 
-- Player can create and browse matches.
-- Another Player can request to join.
-- Match owner can approve or reject.
-- Required in-app notifications are created and visible.
+- [x] Player can create and browse matches.
+- [x] Another Player can request to join.
+- [x] Match owner can approve or reject.
+- [x] Required in-app notifications are created and visible.
 
 ### Phase 5 - Community and Moderation
 
-Outcome: Players can create posts/comments; Admin can moderate content and reports.
+Outcome: Players can create sport-tagged discussion posts/comments; Admin can approve or delete posts.
+
+Scope note: Community is a Facebook-like discussion feed for advice, equipment questions, event announcements, venue experiences, and general sport topics. It is not used for finding matches by time/location because that workflow belongs to Phase 4 Matchmaking.
+
+Status: complete. Community feed, post create/edit/delete, comments, and admin approval/deletion screens are implemented. Community posts require a title capped at 80 characters, a sport tag, and a post type; area context is optional. New or edited posts are Pending until approved by Admin. Public feed shows only approved posts, while Player users can view their own pending/approved posts in a separate My posts tab. Admin moderation is grouped by post status, and each post shows its comments inline for easier review.
 
 Tasks:
 
-- Implement CommunityPost, Comment, and Report models.
-- Build community feed, post detail, create/edit/delete flows.
-- Build comment flow.
-- Build admin moderation/report screens.
-- Add post/comment visibility statuses.
+- [x] Implement CommunityPost and Comment models.
+- [x] Add CommunityPost post type values such as `DISCUSSION`, `ADVICE`, `EVENT`, and `GENERAL`.
+- [x] Add required post title capped at 80 characters.
+- [x] Add Pending approval workflow for newly created or edited posts.
+- [x] Build community feed with sport tag, post type, and optional area filters.
+- [x] Add My posts view for Player-owned pending/approved posts.
+- [x] Build post detail, create/edit/delete flows.
+- [x] Build comment flow.
+- [x] Build admin approval/deletion screen.
+- [x] Add post/comment visibility statuses.
 
 Exit criteria:
 
-- Player can create, edit, and delete own posts.
-- Players can comment on visible posts.
-- Admin can hide/delete violating posts and handle reports.
+- [x] Player can create, edit, and delete own pending/approved posts.
+- [x] Players can comment on visible posts.
+- [x] Admin can approve or delete community posts.
+- [x] Community posts do not duplicate match scheduling fields such as match time/location.
 
 ---
 
@@ -352,7 +366,6 @@ Admin:
 - `/admin/users`
 - `/admin/venues`
 - `/admin/community`
-- `/admin/reports`
 - `/admin/config/sports`
 - `/admin/config/levels`
 - `/admin/config/areas`
@@ -392,7 +405,6 @@ Core models:
 - CommunityPost
 - Comment
 - Notification
-- Report
 
 Recommended enum/status fields:
 
@@ -404,8 +416,8 @@ Recommended enum/status fields:
 - VisibilityStatus: `ACTIVE`, `HIDDEN`, `LOCKED`, `DELETED`
 - MatchStatus: `OPEN`, `FULL`, `CLOSED`, `CANCELED`
 - JoinRequestStatus: `PENDING`, `APPROVED`, `REJECTED`, `CANCELED`
-- ContentStatus: `VISIBLE`, `HIDDEN`, `DELETED`
-- ReportStatus: `OPEN`, `REVIEWED`, `DISMISSED`, `RESOLVED`
+- CommunityPostType: `DISCUSSION`, `ADVICE`, `EVENT`, `GENERAL`
+- ContentStatus: `PENDING`, `VISIBLE`, `HIDDEN`, `DELETED`
 - NotificationType: `MATCH_JOIN_REQUESTED`, `MATCH_JOIN_APPROVED`, `MATCH_JOIN_REJECTED`
 
 Indexes to plan early:
@@ -417,7 +429,7 @@ Indexes to plan early:
 - `Venue.areaId`, `Venue.approvalStatus`, `Venue.visibilityStatus`
 - `Match.sportId`, `Match.areaId`, `Match.time`, `Match.status`
 - `MatchJoinRequest.matchId`, `MatchJoinRequest.requesterId` unique
-- `CommunityPost.sportId`, `CommunityPost.areaId`, `CommunityPost.status`
+- `CommunityPost.sportId`, `CommunityPost.postType`, `CommunityPost.areaId`, `CommunityPost.status`
 - `Notification.recipientId`, `Notification.readAt`, `Notification.createdAt`
 
 ---
@@ -462,7 +474,7 @@ Authorization rules:
 - Guest can access only public/auth routes.
 - Player can manage own profile, matches, join requests, posts, comments, and notifications.
 - Venue Owner can manage own venue listings.
-- Admin can manage users, venues, community moderation, reports, sports, levels, and areas.
+- Admin can manage users, venues, community moderation, sports, levels, and areas.
 - Admin can view operational dashboards.
 
 ---
@@ -515,7 +527,6 @@ These do not block scaffolding, but should be resolved before production deploym
 | Storage provider | Local/mock adapter | S3, R2, or MinIO |
 | Hanoi ward/commune source | 126 Hanoi commune-level units seeded from 2025 public legal/government references | Confirm update process when administrative data changes |
 | Chat scope | Direct contact info only | Decide whether in-app chat is required |
-| Report categories | Basic text reason | Configurable taxonomy |
 | Database schema sync | `prisma db push` in Docker Compose | Prisma migrations for production |
 
 ---

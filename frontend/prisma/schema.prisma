@@ -53,16 +53,17 @@ enum JoinRequestStatus {
 }
 
 enum ContentStatus {
+  PENDING
   VISIBLE
   HIDDEN
   DELETED
 }
 
-enum ReportStatus {
-  OPEN
-  REVIEWED
-  DISMISSED
-  RESOLVED
+enum CommunityPostType {
+  DISCUSSION
+  ADVICE
+  EVENT
+  GENERAL
 }
 
 enum NotificationType {
@@ -93,7 +94,6 @@ model User {
   communityPosts       CommunityPost[]
   comments             Comment[]
   notifications        Notification[]       @relation("NotificationRecipient")
-  reports              Report[]             @relation("ReportReporter")
   verificationTokens   VerificationToken[]
   passwordResetTokens  PasswordResetToken[]
 }
@@ -220,6 +220,7 @@ model SkillLevel {
 
   sport             Sport              @relation(fields: [sportId], references: [id], onDelete: Cascade)
   playerSportLevels PlayerSportLevel[]
+  matchExpectedLevels MatchExpectedLevel[]
   matches           Match[]
 
   @@unique([sportId, name])
@@ -300,6 +301,7 @@ model Match {
   sportId         String
   areaId          String
   time            DateTime
+  detailedAddress String?
   requiredPlayers Int
   expectedLevelId String?
   status          MatchStatus @default(OPEN)
@@ -311,9 +313,21 @@ model Match {
   sport         Sport              @relation(fields: [sportId], references: [id])
   area          Area               @relation(fields: [areaId], references: [id])
   expectedLevel SkillLevel?        @relation(fields: [expectedLevelId], references: [id])
+  expectedLevels MatchExpectedLevel[]
   joinRequests  MatchJoinRequest[]
 
   @@index([sportId, areaId, time, status])
+}
+
+model MatchExpectedLevel {
+  id           String @id @default(cuid())
+  matchId      String
+  skillLevelId String
+
+  match      Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  skillLevel SkillLevel @relation(fields: [skillLevelId], references: [id])
+
+  @@unique([matchId, skillLevelId])
 }
 
 model MatchJoinRequest {
@@ -332,22 +346,23 @@ model MatchJoinRequest {
 }
 
 model CommunityPost {
-  id              String        @id @default(cuid())
-  authorId        String
-  sportId         String
-  areaId          String
-  content         String
-  desiredPlayTime DateTime?
-  status          ContentStatus @default(VISIBLE)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id        String            @id @default(cuid())
+  authorId  String
+  sportId   String
+  postType  CommunityPostType
+  areaId    String?
+  title     String            @default("Untitled")
+  content   String
+  status    ContentStatus     @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   sport    Sport     @relation(fields: [sportId], references: [id])
-  area     Area      @relation(fields: [areaId], references: [id])
+  area     Area?     @relation(fields: [areaId], references: [id])
   comments Comment[]
 
-  @@index([sportId, areaId, status])
+  @@index([sportId, postType, areaId, status])
 }
 
 model Comment {
@@ -374,17 +389,4 @@ model Notification {
   recipient User @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
 
   @@index([recipientId, readAt, createdAt])
-}
-
-model Report {
-  id         String       @id @default(cuid())
-  reporterId String
-  targetType String
-  targetId   String
-  reason     String
-  status     ReportStatus @default(OPEN)
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-
-  reporter User @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
 }

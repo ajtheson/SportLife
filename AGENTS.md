@@ -37,7 +37,7 @@ Core features for v1.0.0:
 - Venue search and direct owner contact
 - Match creation, discovery, join requests, approval, rejection, and closing/canceling
 - Community posts and comments
-- Admin user, venue, community, report, sport, area, and skill-level management
+- Admin user, venue, community, sport, area, and skill-level management
 - In-app notifications for match join request events
 
 Out of scope for v1.0.0:
@@ -138,7 +138,6 @@ Use the SRS entities as the initial model:
 - CommunityPost
 - Comment
 - Notification
-- Report
 
 Important invariants:
 
@@ -155,9 +154,23 @@ Important invariants:
 - Editing an Approved venue sends it back to Pending Approval and clears the previous rejection reason.
 - Public venue discovery shows only Approved and Active venues.
 - Rejected venue listings require a rejection reason visible to the Venue Owner.
+- Only Player users can create matches.
+- Match requiredPlayers means additional players needed beyond the owner.
+- Match expected levels can contain multiple skill levels, but every selected level must belong to the selected sport.
+- Match owners can close their own FULL matches or matches after scheduled time.
+- Match owners can cancel their own matches only before scheduled time.
+- Close/cancel marks pending join requests as CANCELED.
 - A Player cannot request to join their own match.
 - A Player cannot submit duplicate join requests for the same match.
+- A match automatically becomes FULL when approved join requests reach requiredPlayers.
 - Match notifications are in-app only for v1.0.0.
+- Community posts are sport-tagged discussion content for advice, equipment questions, event announcements, venue experiences, and general sport topics.
+- Community posts must not duplicate match scheduling fields such as match time/location; finding or joining games belongs to the Match feature.
+- Community posts require a title capped at 80 characters.
+- New or edited community posts start as Pending and must be approved by Admin before appearing in the public feed.
+- Player users can edit or delete their own Pending or Visible community posts.
+- Admin can approve or delete community posts; report post/comment flow is not part of Phase 5.
+- Admin community moderation groups Pending and Visible posts separately, with comments shown inline under each post.
 
 ## Documentation Guidelines
 

@@ -7,9 +7,7 @@ rectangle "UC-07 Admin" {
   Admin -- (Approve/reject venues)
   Admin -- (Lock/hide venues)
   Admin -- (Moderate posts)
-  Admin -- (Handle reports)
   Admin -- (Configure sports, levels, areas)
   Admin -- (View dashboard statistics)
 }
 @enduml
-

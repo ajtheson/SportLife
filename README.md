@@ -21,7 +21,7 @@ Open the app:
 http://localhost:3000
 ```
 
-Product routes use a left-sidebar shell for navigation across venue discovery, role workspaces, and future modules such as matches, community, chat, and notifications.
+Product routes use a left-sidebar shell for navigation across venue discovery, matches, community, notifications, and role workspaces. Chat remains a future placeholder.
 
 The Compose stack starts:
 
@@ -35,12 +35,22 @@ Current completed phase:
 - Phase 1: Auth, roles, email verification, login/logout, password reset, and resend verification for unverified registrations
 - Phase 2: Player profile onboarding with Hanoi ward/commune seed data, sport/level selectors, unique 10-digit phone numbers, and Admin config screens for creating, editing, and activating/deactivating sports, levels, and areas
 - Phase 3: Venue Owner profile, venue submission/editing, admin approval/rejection, approved venue discovery, and sidebar product navigation
+- Phase 4: Player-created matches, detailed address, multi-level filters by sport, join requests, owner approval/rejection, auto-Full status, close/cancel rules, and in-app notifications
+- Phase 5: Sport-tagged community discussion posts with titles, admin approval, comments, and moderation
 
 Default development admin account:
 
 ```text
 Email: admin@sportlife.local
 Password: ChangeMe123!
+```
+
+Demo seeded accounts:
+
+```text
+Player: player.anh@sportlife.local
+Venue owner: owner.caugiay@sportlife.local
+Password: Demo123456!
 ```
 
 ## Email In Development

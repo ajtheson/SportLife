@@ -91,10 +91,11 @@ entity "CommunityPost" as post {
   * id : UUID
   --
   * author_id : UUID
-  sport_id : UUID
+  * sport_id : UUID
+  * post_type : Enum
   area_id : UUID
+  title : String
   content : Text
-  desired_play_time : DateTime
   status : Enum
 }
 
@@ -132,4 +133,3 @@ post ||--o{ comment : contains
 user ||--o{ comment : writes
 user ||--o{ notif : receives
 @enduml
-

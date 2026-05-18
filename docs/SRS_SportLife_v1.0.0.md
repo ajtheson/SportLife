@@ -1,7 +1,7 @@
 # Software Requirements Specification (SRS) - SportLife
 
-**Version:** 1.0.1  
-**Date:** 2026-05-18  
+**Version:** 1.0.3  
+**Date:** 2026-05-19  
 **Status:** Draft for stakeholder review  
 **Author:** doc-coordinator / srs-agent
 
@@ -13,6 +13,8 @@
 | ----- | ----- | ----- | ----- | ----- |
 | 1.0.0 | 2026-05-18 | A | doc-coordinator | Initial SRS for SportLife |
 | 1.0.1 | 2026-05-18 | M | doc-coordinator | Added recommended web tech stack for implementation planning |
+| 1.0.2 | 2026-05-18 | M | doc-coordinator | Refined community posts as sport-tagged discussion content, not match scheduling |
+| 1.0.3 | 2026-05-19 | M | doc-coordinator | Added community post title and admin approval before publication; removed community report flow |
 
 *A - Added, M - Modified, D - Deleted*
 
@@ -33,7 +35,7 @@ SportLife helps:
 - Venue owners publish sport venue information.
 - Players create sport profiles with preferred sports, skill levels, and ward/commune location.
 - Players find open matches, create matches, and find people to play with in the same area.
-- Players use community posts to contact each other and arrange games.
+- Players use sport-tagged community posts for discussion, advice, event announcements, and general sport topics.
 - Admins manage users, venues, categories, areas, skill levels, content, and system visibility.
 
 Version 1.0.0 is a **web application** focused on Hanoi. It does not support online payment or in-system financial settlement. Venue booking is limited to venue discovery and direct contact between player and venue owner.
@@ -44,7 +46,7 @@ Version 1.0.0 is a **web application** focused on Hanoi. It does not support onl
 | :---- | :---- | :---- |
 | 1 | Player | Sport player who creates a profile, searches venues, finds or creates matches, joins communities, and contacts others. |
 | 2 | Venue Owner | Owner or representative of a sport venue who publishes venue information and communicates with players. |
-| 3 | Admin | System administrator who manages users, venues, categories, locations, skill levels, reports, content, and dashboards. |
+| 3 | Admin | System administrator who manages users, venues, categories, locations, skill levels, community content, and dashboards. |
 
 ### 1.4 Context Diagram
 
@@ -206,12 +208,12 @@ See: [Context Diagram](./diagrams/context-diagram.puml)
 | :---- | :---- |
 | Primary Actor | Player |
 | Secondary Actors | Admin |
-| Description | Player creates community posts by sport/area so other players can comment and contact each other to arrange games. |
-| Trigger | Player wants to find people or discuss sport activity in an area. |
+| Description | Player creates community posts tagged by sport so other players can discuss advice, equipment, events, venue experiences, and general sport topics. |
+| Trigger | Player wants to discuss a sport topic with the community. |
 | Preconditions | Player is authenticated. |
-| Postconditions | Post is published, edited, deleted by owner, or hidden/deleted by Admin if violating rules. |
-| Normal Flow | 1. Player opens community. 2. Player writes post with content, sport, area, and optional desired play time. 3. System publishes post. 4. Other players read and comment/contact. |
-| Exceptions | E1: Content violates policy and is hidden by Admin. |
+| Postconditions | Post is submitted for approval, approved by Admin, edited/deleted by owner, or deleted by Admin. |
+| Normal Flow | 1. Player opens community. 2. Player writes post with title, content, sport tag, post type, and optional area context. 3. System stores the post as pending approval. 4. Admin approves the post. 5. Other players read and comment on approved posts. |
+| Exceptions | E1: Admin deletes a pending or approved post. |
 | Priority | Should |
 
 #### 2.2.7 UC-07 - Admin Moderation and Configuration
@@ -226,7 +228,7 @@ See: [Context Diagram](./diagrams/context-diagram.puml)
 | Field | Description |
 | :---- | :---- |
 | Primary Actor | Admin |
-| Description | Admin manages player accounts, venue owner accounts, venue approval/rejection/locking, community moderation, reports, homepage/content visibility, dashboard statistics, sports, areas, and skill-level configuration. |
+| Description | Admin manages player accounts, venue owner accounts, venue approval/rejection/locking, community moderation, homepage/content visibility, dashboard statistics, sports, areas, and skill-level configuration. |
 | Trigger | Admin performs operational management. |
 | Preconditions | Admin is authenticated with admin role. |
 | Postconditions | System data/configuration/content status is updated. |
@@ -283,14 +285,14 @@ See: [Entity Relationship Diagram](./diagrams/entity-relationship.puml)
 | 9 | Match List | Player | Browses open matches by sport, area, time, and level. |
 | 10 | Match Detail | Player | Shows match info and join request status. |
 | 11 | Create/Edit Match | Player | Creates or updates open match information. |
-| 12 | Community Feed | Player | Displays posts by sport/area. |
-| 13 | Community Post Detail | Player | Shows post content, comments, and contact context. |
+| 12 | Community Feed | Player | Displays approved posts by title, sport, type, and optional area; Player can also view own pending/approved posts. |
+| 13 | Community Post Detail | Player | Shows post title, content, comments, and moderation status when owner/admin views it. |
 | 14 | Venue Owner Dashboard | Venue Owner | Manages venue listings and basic statistics. |
 | 15 | Venue Form | Venue Owner | Creates/updates venue information. |
 | 16 | Admin Dashboard | Admin | Shows system overview statistics. |
 | 17 | Admin User Management | Admin | Manages player and venue owner accounts. |
 | 18 | Admin Venue Approval | Admin | Reviews, approves, rejects, locks, or hides venues. |
-| 19 | Admin Community Moderation | Admin | Reviews and hides/deletes violating posts. |
+| 19 | Admin Community Moderation | Admin | Reviews, approves, and deletes community posts. |
 | 20 | Admin Configuration | Admin | Configures sports, skill levels, and Hanoi wards/communes. |
 | 21 | Notification Center | Player | Shows in-app match join request notifications. |
 
@@ -408,15 +410,16 @@ Functional Requirements:
 | Feature ID | F06 |
 | Priority | Should |
 | Actor | Player |
-| Description | Allows Player to post in community spaces and contact other players through discussion. |
+| Description | Allows Player to post sport-tagged community discussion content. Match scheduling belongs to the Match feature, not community posts. |
 
 Functional Requirements:
 
 - FR-F06-01: The system shall allow Player to create community posts.
-- FR-F06-02: The system shall allow posts to include content, sport, ward/commune, and optional desired play time.
-- FR-F06-03: The system shall allow other Players to view and comment on posts.
-- FR-F06-04: The system shall allow post owner to edit or delete own post.
-- FR-F06-05: The system shall allow Admin to hide or delete violating posts.
+- FR-F06-02: The system shall allow posts to include title, content, sport tag, post type, and optional ward/commune context.
+- FR-F06-03: The system shall store newly created or edited posts as pending approval before they appear in the public feed.
+- FR-F06-04: The system shall allow other Players to view and comment on approved posts.
+- FR-F06-05: The system shall allow post owner to edit or delete own pending or approved post.
+- FR-F06-06: The system shall allow Admin to approve or delete community posts.
 
 #### F07 - Admin Management and Configuration
 
@@ -433,7 +436,7 @@ Functional Requirements:
 - FR-F07-02: The system shall allow Admin to manage Venue Owner accounts.
 - FR-F07-03: The system shall allow Admin to approve or reject venue listings with rejection reason.
 - FR-F07-04: The system shall allow Admin to lock or hide approved venues that violate rules.
-- FR-F07-05: The system shall allow Admin to manage community content and reports.
+- FR-F07-05: The system shall allow Admin to manage community content approval and deletion.
 - FR-F07-06: The system shall allow Admin to manage displayed system content.
 - FR-F07-07: The system shall provide Admin dashboard statistics.
 - FR-F07-08: The system shall allow Admin to configure sports, Hanoi wards/communes, and per-sport skill levels.
@@ -469,7 +472,7 @@ Functional Requirements:
 | BR-09 | Player cannot request to join their own match. |
 | BR-10 | Player cannot submit duplicate join requests for the same match. |
 | BR-11 | Match owner can approve or reject join requests. |
-| BR-12 | Community is post-based; it does not include separate internal match organization workflow in v1.0.0. |
+| BR-12 | Community is post-based discussion; match scheduling by time/location belongs to the Match feature and is not duplicated in community posts. |
 | BR-13 | Payment and financial settlement are not handled by SportLife. |
 | BR-14 | Rating/review functions are excluded from v1.0.0. |
 
@@ -486,10 +489,9 @@ Functional Requirements:
 | Venue | id, owner_id, name, address, area_id, description, opening_hours, reference_price, contact_info, approval_status, visibility_status | Belongs to owner and area; supports many sports and images. |
 | Match | id, owner_id, sport_id, area_id, time, required_players, expected_level_id, status, description | Created by Player; has many join requests. |
 | MatchJoinRequest | id, match_id, requester_id, status | Belongs to Match and requester. |
-| CommunityPost | id, author_id, sport_id, area_id, content, desired_play_time, status | Created by Player; has many comments. |
+| CommunityPost | id, author_id, sport_id, post_type, area_id, title, content, status | Created by Player; has many comments. Area is optional context; match time/location fields are excluded. |
 | Comment | id, post_id, author_id, content, status | Belongs to post and author. |
 | Notification | id, recipient_id, type, reference_id, read_at | Created from match join events. |
-| Report | id, reporter_id, target_type, target_id, reason, status | Reviewed by Admin. |
 
 ---
 
@@ -586,7 +588,7 @@ This section records a recommended implementation stack to guide development pla
 | Authentication | Register, verify email result, login, forgot password, reset password. |
 | Player | Profile, venue search, match list/detail/form, community feed/post/detail, notification center. |
 | Venue Owner | Venue owner dashboard, venue listing form, venue status view, basic statistics. |
-| Admin | Dashboard, user management, venue approval, community moderation, report handling, category/area/level configuration. |
+| Admin | Dashboard, user management, venue approval, community moderation, category/area/level configuration. |
 
 ### 5.2 External Interface Requirements
 
@@ -616,8 +618,8 @@ This section records a recommended implementation stack to guide development pla
 | AC-06 | Player can search approved venues by sport and ward/commune and contact owner directly. |
 | AC-07 | Player can create match and manage join requests. |
 | AC-08 | Player receives in-app notifications for match join request, approval, and rejection. |
-| AC-09 | Player can create, edit, delete own community posts and comment on posts. |
-| AC-10 | Admin can hide/delete violating community posts and manage reports. |
+| AC-09 | Player can create, edit, delete own pending/approved community posts and comment on approved posts. |
+| AC-10 | Admin can approve or delete community posts. |
 | AC-11 | Payment and rating/review functions are absent from v1.0.0. |
 
 ---
@@ -629,7 +631,6 @@ This section records a recommended implementation stack to guide development pla
 | 1 | Exact email service provider | TBD | Required during SDD/implementation planning. |
 | 2 | Exact list of Hanoi wards/communes | TBD | Admin-configured data source to be decided. |
 | 3 | Chat scope and storage policy | TBD | User requested chat/contact; detailed chat behavior can be refined in SDD. |
-| 4 | Report violation categories | TBD | Admin handles reports; category taxonomy can be configured later. |
 
 ---
 
@@ -645,4 +646,3 @@ This section records a recommended implementation stack to guide development pla
 | PlantUML diagrams linked externally | Complete |
 | Each use case has a separate diagram folder | Complete |
 | Stakeholder review | Pending |
-

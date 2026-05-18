@@ -26,10 +26,10 @@ type NavItem =
 
 const primaryNav: NavItem[] = [
   { label: "Find venues", href: "/venues", marker: "V", enabled: true },
-  { label: "Find matches", marker: "M", enabled: false, roles: [UserRole.PLAYER] },
-  { label: "Community", marker: "C", enabled: false, roles: [UserRole.PLAYER] },
+  { label: "Find matches", href: "/matches", marker: "M", enabled: true, roles: [UserRole.PLAYER] },
+  { label: "Community", href: "/community", marker: "C", enabled: true, roles: [UserRole.PLAYER] },
   { label: "Chat", marker: "T", enabled: false },
-  { label: "Notifications", marker: "N", enabled: false, roles: [UserRole.PLAYER] },
+  { label: "Notifications", href: "/notifications", marker: "N", enabled: true, roles: [UserRole.PLAYER] },
 ];
 
 const roleNav: NavItem[] = [
@@ -37,6 +37,7 @@ const roleNav: NavItem[] = [
   { label: "My venues", href: "/venue-owner", marker: "O", enabled: true, roles: [UserRole.VENUE_OWNER] },
   { label: "Owner profile", href: "/venue-owner/profile", marker: "B", enabled: true, roles: [UserRole.VENUE_OWNER] },
   { label: "Venue review", href: "/admin/venues", marker: "R", enabled: true, roles: [UserRole.ADMIN] },
+  { label: "Community mod", href: "/admin/community", marker: "C", enabled: true, roles: [UserRole.ADMIN] },
   { label: "Configuration", href: "/admin/config", marker: "A", enabled: true, roles: [UserRole.ADMIN] },
 ];
 
