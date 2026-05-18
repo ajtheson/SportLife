@@ -19,6 +19,10 @@ export default async function Home() {
     redirect("/venue-owner/profile");
   }
 
+  if (session?.user) {
+    redirect("/venues");
+  }
+
   return (
     <main className="min-h-screen bg-[#f7f4ed] text-[#1d2520]">
       <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
@@ -63,24 +67,24 @@ function Header({ session }: { session: Session | null }) {
         <div className="flex items-center gap-3 text-sm">
           <span className="hidden text-[#526057] sm:inline">{session.user.email}</span>
           {session.user.role === UserRole.PLAYER ? (
-            <a className="rounded-md px-3 py-2 hover:bg-white" href="/player/profile">
+            <Link className="rounded-md px-3 py-2 hover:bg-white" href="/player/profile">
               Profile
-            </a>
+            </Link>
           ) : null}
           {session.user.role === UserRole.ADMIN ? (
-            <a className="rounded-md px-3 py-2 hover:bg-white" href="/admin/config">
+            <Link className="rounded-md px-3 py-2 hover:bg-white" href="/admin/config">
               Admin Config
-            </a>
+            </Link>
           ) : null}
           {session.user.role === UserRole.ADMIN ? (
-            <a className="rounded-md px-3 py-2 hover:bg-white" href="/admin/venues">
+            <Link className="rounded-md px-3 py-2 hover:bg-white" href="/admin/venues">
               Venue Review
-            </a>
+            </Link>
           ) : null}
           {session.user.role === UserRole.VENUE_OWNER ? (
-            <a className="rounded-md px-3 py-2 hover:bg-white" href="/venue-owner">
+            <Link className="rounded-md px-3 py-2 hover:bg-white" href="/venue-owner">
               Venues
-            </a>
+            </Link>
           ) : null}
           <Link className="rounded-md px-3 py-2 hover:bg-white" href="/venues">
             Discover
@@ -93,12 +97,12 @@ function Header({ session }: { session: Session | null }) {
         </div>
       ) : (
         <nav className="flex gap-3 text-sm font-medium">
-          <a className="rounded-md px-3 py-2 hover:bg-white" href="/login">
+          <Link className="rounded-md px-3 py-2 hover:bg-white" href="/login">
             Login
-          </a>
-          <a className="rounded-md bg-[#0f6b4f] px-3 py-2 text-white hover:bg-[#0b573f]" href="/register">
+          </Link>
+          <Link className="rounded-md bg-[#0f6b4f] px-3 py-2 text-white hover:bg-[#0b573f]" href="/register">
             Register
-          </a>
+          </Link>
         </nav>
       )}
     </header>

@@ -21,6 +21,8 @@ Open the app:
 http://localhost:3000
 ```
 
+Product routes use a left-sidebar shell for navigation across venue discovery, role workspaces, and future modules such as matches, community, chat, and notifications.
+
 The Compose stack starts:
 
 - `postgres`: PostgreSQL 16 with persistent Docker volume
@@ -32,10 +34,7 @@ Current completed phase:
 - Phase 0: Dockerized project foundation
 - Phase 1: Auth, roles, email verification, login/logout, password reset, and resend verification for unverified registrations
 - Phase 2: Player profile onboarding with Hanoi ward/commune seed data, sport/level selectors, unique 10-digit phone numbers, and Admin config screens for creating, editing, and activating/deactivating sports, levels, and areas
-
-Current in-progress phase:
-
-- Phase 3: Venue Owner profile, venue submission/editing, admin approval/rejection, and approved venue discovery
+- Phase 3: Venue Owner profile, venue submission/editing, admin approval/rejection, approved venue discovery, and sidebar product navigation
 
 Default development admin account:
 

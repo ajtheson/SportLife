@@ -115,9 +115,6 @@ function Header() {
         <Link className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium" href="/admin/config">
           Config
         </Link>
-        <Link className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium" href="/">
-          Home
-        </Link>
       </div>
     </div>
   );

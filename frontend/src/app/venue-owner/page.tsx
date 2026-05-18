@@ -41,9 +41,6 @@ export default async function VenueOwnerPage({ searchParams }: VenueOwnerPagePro
             <p className="mt-3 text-[#5f6b63]">Submit venues and track approval status.</p>
           </div>
           <div className="flex gap-2">
-            <Link className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium" href="/">
-              Home
-            </Link>
             <Link className="rounded-md bg-[#0f6b4f] px-3 py-2 text-sm font-medium text-white" href="/venue-owner/venues/new">
               New venue
             </Link>
@@ -62,6 +59,11 @@ export default async function VenueOwnerPage({ searchParams }: VenueOwnerPagePro
                   <p className="mt-2 text-sm text-[#5f6b63]">
                     {venue.area.name} · {venue.sports.map((item) => item.sport.name).join(", ")}
                   </p>
+                  {venue.availabilityNote ? (
+                    <p className="mt-3 rounded-md bg-[#eef7f1] p-3 text-sm text-[#26563b]">
+                      Availability: {venue.availabilityNote}
+                    </p>
+                  ) : null}
                   {venue.rejectionReason ? (
                     <p className="mt-3 rounded-md bg-[#fff5f0] p-3 text-sm text-[#8a3b1f]">
                       Rejection reason: {venue.rejectionReason}

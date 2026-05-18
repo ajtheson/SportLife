@@ -23,14 +23,9 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
   return (
     <main className="min-h-screen bg-[#f7f4ed] px-6 py-10 text-[#1d2520]">
       <div className="mx-auto grid w-full max-w-6xl gap-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold">Venue discovery</h1>
-            <p className="mt-3 text-[#5f6b63]">Find approved and active venues in Hanoi.</p>
-          </div>
-          <Link className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium" href="/">
-            Home
-          </Link>
+        <div>
+          <h1 className="text-3xl font-semibold">Venue discovery</h1>
+          <p className="mt-3 text-[#5f6b63]">Find approved and active venues in Hanoi.</p>
         </div>
 
         <form className="grid gap-3 rounded-lg border border-[#d9d2c1] bg-white p-5 md:grid-cols-[1fr_220px_260px_auto]">
@@ -64,6 +59,11 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
               <p className="mt-2 text-sm text-[#5f6b63]">
                 {venue.area.name} · {venue.sports.map((item) => item.sport.name).join(", ")}
               </p>
+              {venue.availabilityNote ? (
+                <p className="mt-3 rounded-md bg-[#eef7f1] p-3 text-sm text-[#26563b]">
+                  Availability: {venue.availabilityNote}
+                </p>
+              ) : null}
               <p className="mt-3 text-sm font-medium text-[#0f6b4f]">{venue.referencePrice ?? "Contact for price"}</p>
             </Link>
           ))}

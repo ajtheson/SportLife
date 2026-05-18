@@ -45,6 +45,10 @@ export default async function VenueDetailPage({ params }: VenueDetailPageProps) 
 
           <div className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
             <div>
+              <h2 className="font-semibold">Availability</h2>
+              <p className="mt-2">{venue.availabilityNote ?? "Contact venue owner for current availability"}</p>
+            </div>
+            <div>
               <h2 className="font-semibold">Contact</h2>
               <p className="mt-2">{venue.phone}</p>
             </div>

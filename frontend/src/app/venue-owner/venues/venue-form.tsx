@@ -87,6 +87,17 @@ export function VenueForm({ areas, sports, venue, defaultPhone }: VenueFormProps
       </div>
 
       <label className="grid gap-2 text-sm font-medium">
+        Availability note
+        <textarea
+          className="min-h-24 rounded-md border border-[#d9d2c1] px-3 py-2"
+          name="availabilityNote"
+          defaultValue={venue?.availabilityNote ?? ""}
+          maxLength={300}
+          placeholder="Example: Weekday evenings usually available, call before coming."
+        />
+      </label>
+
+      <label className="grid gap-2 text-sm font-medium">
         Description
         <textarea className="min-h-28 rounded-md border border-[#d9d2c1] px-3 py-2" name="description" defaultValue={venue?.description ?? ""} maxLength={1000} />
       </label>

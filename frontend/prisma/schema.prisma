@@ -252,6 +252,7 @@ model Venue {
   areaId           String
   phone            String
   description      String?
+  availabilityNote String?
   openingHours     Json?
   referencePrice   String?
   contactInfo      Json?

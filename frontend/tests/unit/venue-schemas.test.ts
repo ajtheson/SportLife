@@ -43,6 +43,7 @@ describe("venue schemas", () => {
         areaId: "area-id",
         phone: "0912345678",
         sportId: "sport-id",
+        availabilityNote: "Available weekday evenings",
         imageUrls: ["not-a-url"],
       }).success,
     ).toBe(false);

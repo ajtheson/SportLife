@@ -50,6 +50,7 @@ export async function saveVenueAction(formData: FormData) {
     areaId: formData.get("areaId"),
     phone: formData.get("phone"),
     description: formData.get("description") || undefined,
+    availabilityNote: formData.get("availabilityNote") || undefined,
     openingHours: formData.get("openingHours") || undefined,
     referencePrice: formData.get("referencePrice") || undefined,
     sportId: formData.get("sportId"),

@@ -1,5 +1,4 @@
 import { UserRole } from "@prisma/client";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
@@ -43,12 +42,6 @@ export default async function VenueOwnerProfilePage({ searchParams }: VenueOwner
     <main className="min-h-screen bg-[#f7f4ed] px-6 py-10 text-[#1d2520]">
       <div className="mx-auto w-full max-w-2xl">
         <div className="mb-8 grid gap-4">
-          <Link
-            className="inline-flex w-fit rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium hover:bg-[#f7f4ed]"
-            href="/"
-          >
-            Home
-          </Link>
           <h1 className="text-3xl font-semibold">Venue owner profile</h1>
           <p className="text-[#5f6b63]">Complete this profile before managing venues.</p>
         </div>

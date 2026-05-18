@@ -1,8 +1,8 @@
 # SportLife Implementation Plan
 
-**Version:** 0.4.0  
+**Version:** 0.5.0  
 **Date:** 2026-05-18  
-**Status:** Phase 3 in progress  
+**Status:** Phase 3 complete  
 **Source Requirements:** [SRS_SportLife_v1.0.0.md](./SRS_SportLife_v1.0.0.md)
 
 ---
@@ -104,6 +104,19 @@ docker compose up --build
 
 **Trade-off accepted:** Development Compose currently uses `prisma db push` for fast schema sync. Production-style migrations should be introduced before production deployment.
 
+### 2.7 Product Navigation Shell
+
+**Decision:** Use a left-sidebar product shell for product routes.
+
+**Scope:**
+
+- Apply the shell to venue discovery, Player workspace, Venue Owner workspace, and Admin workspace routes.
+- Keep the public home/auth pages simple.
+- Show future tabs such as matches, community, chat, and notifications as disabled placeholders until their phases are implemented.
+- Render role-specific workspace entries only for the current role.
+
+**Rationale:** This gives users a stable app navigation model now and lets later phases attach real screens without redesigning every page.
+
 ---
 
 ## 3. Delivery Phases
@@ -186,7 +199,7 @@ Exit criteria:
 
 Outcome: Venue Owners can submit venues; Admin can approve/reject; Players can search approved venues.
 
-Status: in progress. Venue Owner profile onboarding is implemented with unique 10-digit phone numbers. Venue Owners can submit and edit venue listings with phone contact, active Hanoi area, exactly one active sport, text opening hours, reference price, description, and optional image URLs. New and edited venues enter Pending Approval. Admin venue review supports approve, reject with reason, hide, and restore. Public venue discovery shows only Approved and Active venues with sport, area, and text filters.
+Status: complete. Venue Owner profile onboarding is implemented with unique 10-digit phone numbers. Venue Owners can submit and edit venue listings with phone contact, active Hanoi area, exactly one active sport, availability note, text opening hours, reference price, description, and optional image URLs. New and edited venues enter Pending Approval. Admin venue review supports approve, reject with reason, hide, and restore. Public venue discovery shows only Approved and Active venues with sport, area, and text filters. Product routes now use a left-sidebar app shell. View/contact count tracking is deferred and optional because contact information is currently displayed directly.
 
 Tasks:
 
@@ -197,7 +210,7 @@ Tasks:
 - [x] Build Admin venue approval queue.
 - [x] Support approval, rejection with reason, hide, and active status.
 - [x] Build Player venue search and detail screens.
-- Track basic view/contact interaction counts if feasible in this phase.
+- [ ] Track basic view/contact interaction counts later only if product analytics needs it.
 
 Exit criteria:
 

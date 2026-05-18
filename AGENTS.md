@@ -150,6 +150,7 @@ Important invariants:
 - Venue Owner profile contact info is a phone number stored as exactly 10 digits and unique across venue owners.
 - Venue listing contact info is a 10-digit phone number.
 - Each venue listing selects exactly one sport.
+- Venue availability is represented as an owner-maintained text note, not booking inventory.
 - New venue listings and approval-sensitive updates start as Pending Approval.
 - Editing an Approved venue sends it back to Pending Approval and clears the previous rejection reason.
 - Public venue discovery shows only Approved and Active venues.

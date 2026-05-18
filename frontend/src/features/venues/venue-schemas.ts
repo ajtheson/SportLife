@@ -7,6 +7,7 @@ export const venueFormSchema = z.object({
   areaId: z.string().min(1),
   phone: z.string().trim().regex(/^\d{10}$/, "Phone must be exactly 10 digits."),
   description: z.string().trim().max(1000).optional(),
+  availabilityNote: z.string().trim().max(300).optional(),
   openingHours: z.string().trim().max(300).optional(),
   referencePrice: z.string().trim().max(120).optional(),
   sportId: z.string().min(1),

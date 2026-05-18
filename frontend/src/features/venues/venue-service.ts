@@ -82,6 +82,7 @@ export async function saveOwnerVenue(ownerId: string, input: VenueFormInput) {
     areaId: input.areaId,
     phone: input.phone,
     description: input.description || null,
+    availabilityNote: input.availabilityNote || null,
     openingHours: input.openingHours ? { text: input.openingHours } : Prisma.JsonNull,
     referencePrice: input.referencePrice || null,
     approvalStatus: ApprovalStatus.PENDING_APPROVAL,
