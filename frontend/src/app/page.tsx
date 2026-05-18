@@ -1,11 +1,23 @@
 import { UserRole } from "@prisma/client";
 import type { Session } from "next-auth";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { logoutAction } from "@/features/auth/auth-actions";
+import { userHasPlayerProfile } from "@/features/player-profile/player-profile-service";
+import { userHasVenueOwnerProfile } from "@/features/venue-owner-profile/venue-owner-profile-service";
 
 export default async function Home() {
   const session = await auth();
+
+  if (session?.user.role === UserRole.PLAYER && !(await userHasPlayerProfile(session.user.id))) {
+    redirect("/player/profile");
+  }
+
+  if (session?.user.role === UserRole.VENUE_OWNER && !(await userHasVenueOwnerProfile(session.user.id))) {
+    redirect("/venue-owner/profile");
+  }
 
   return (
     <main className="min-h-screen bg-[#f7f4ed] text-[#1d2520]">
@@ -55,6 +67,24 @@ function Header({ session }: { session: Session | null }) {
               Profile
             </a>
           ) : null}
+          {session.user.role === UserRole.ADMIN ? (
+            <a className="rounded-md px-3 py-2 hover:bg-white" href="/admin/config">
+              Admin Config
+            </a>
+          ) : null}
+          {session.user.role === UserRole.ADMIN ? (
+            <a className="rounded-md px-3 py-2 hover:bg-white" href="/admin/venues">
+              Venue Review
+            </a>
+          ) : null}
+          {session.user.role === UserRole.VENUE_OWNER ? (
+            <a className="rounded-md px-3 py-2 hover:bg-white" href="/venue-owner">
+              Venues
+            </a>
+          ) : null}
+          <Link className="rounded-md px-3 py-2 hover:bg-white" href="/venues">
+            Discover
+          </Link>
           <form action={logoutAction}>
             <button className="rounded-md bg-[#1d2520] px-3 py-2 text-white" type="submit">
               Logout

@@ -144,7 +144,14 @@ Important invariants:
 
 - Public registration supports only Player and Venue Owner.
 - If a user registers with an email that exists but is still unverified and active, resend a fresh verification email instead of blocking registration as an existing account.
+- Player users must complete a PlayerProfile after login before using normal Player-facing flows.
+- Player contact info is a phone number stored on PlayerProfile as exactly 10 digits and unique across players.
+- Venue Owner users must complete a VenueOwnerProfile before managing venues.
+- Venue Owner profile contact info is a phone number stored as exactly 10 digits and unique across venue owners.
+- Venue listing contact info is a 10-digit phone number.
+- Each venue listing selects exactly one sport.
 - New venue listings and approval-sensitive updates start as Pending Approval.
+- Editing an Approved venue sends it back to Pending Approval and clears the previous rejection reason.
 - Public venue discovery shows only Approved and Active venues.
 - Rejected venue listings require a rejection reason visible to the Venue Owner.
 - A Player cannot request to join their own match.

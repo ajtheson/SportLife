@@ -1,8 +1,8 @@
 # SportLife Implementation Plan
 
-**Version:** 0.2.0  
+**Version:** 0.4.0  
 **Date:** 2026-05-18  
-**Status:** Phase 1 complete  
+**Status:** Phase 3 in progress  
 **Source Requirements:** [SRS_SportLife_v1.0.0.md](./SRS_SportLife_v1.0.0.md)
 
 ---
@@ -162,40 +162,49 @@ Exit criteria:
 
 Outcome: Players can create and edit sport profile data using configured sports, levels, and areas.
 
+Status: complete. Player profile onboarding/edit is implemented for display name, unique 10-digit phone number, Hanoi ward/commune, sports, per-sport skill levels, availability, and introduction. Player users are redirected to complete the profile after login before reaching the home page. Seed data uses the 126 Hanoi commune-level administrative units listed for 2025 by Vietnamese legal/government reference sources. Admin configuration screens are implemented for sports, skill levels, and Hanoi areas, including create, edit, reorder skill levels, and Active/Inactive status management. Avatar upload is intentionally deferred until the storage/image workflow is implemented.
+
 Tasks:
 
-- Implement PlayerProfile and PlayerSportLevel models.
-- Build profile onboarding/edit screen.
-- Add selectors for area, sports, and skill levels.
-- Add server-side validation for active sport, active level, and active area.
-- Add admin configuration screens for sports, skill levels, and areas.
+- [x] Implement PlayerProfile and PlayerSportLevel models.
+- [x] Add unique 10-digit Player phone number requirement.
+- [x] Seed the 126 Hanoi wards/communes and disable old placeholder area rows.
+- [x] Build profile onboarding/edit screen.
+- [ ] Add avatar upload after storage/image workflow is available.
+- [x] Add selectors for area, sports, and skill levels.
+- [x] Add server-side validation for active sport, active level, and active area.
+- [x] Force Player users without a profile to complete `/player/profile` after login.
+- [x] Add admin configuration screens for sports, skill levels, and areas, including create/edit/status management.
 
 Exit criteria:
 
-- Player can complete a basic sport profile.
-- Inactive config values cannot be selected or saved.
-- Admin can manage sports, levels, and areas.
+- [x] Player can complete a basic sport profile.
+- [x] Inactive config values cannot be selected or saved.
+- [x] Admin can manage sports, levels, and areas.
 
 ### Phase 3 - Venue Management and Discovery
 
 Outcome: Venue Owners can submit venues; Admin can approve/reject; Players can search approved venues.
 
+Status: in progress. Venue Owner profile onboarding is implemented with unique 10-digit phone numbers. Venue Owners can submit and edit venue listings with phone contact, active Hanoi area, exactly one active sport, text opening hours, reference price, description, and optional image URLs. New and edited venues enter Pending Approval. Admin venue review supports approve, reject with reason, hide, and restore. Public venue discovery shows only Approved and Active venues with sport, area, and text filters.
+
 Tasks:
 
-- Implement Venue, VenueSport, and VenueImage models.
-- Build Venue Owner dashboard and venue form.
-- Set new or approval-sensitive updates to Pending Approval.
-- Build Admin venue approval queue.
-- Support approval, rejection with reason, lock, hide, and active status.
-- Build Player venue search and detail screens.
+- [x] Implement Venue, VenueSport, and VenueImage models.
+- [x] Build Venue Owner profile onboarding.
+- [x] Build Venue Owner dashboard and venue form.
+- [x] Set new or approval-sensitive updates to Pending Approval.
+- [x] Build Admin venue approval queue.
+- [x] Support approval, rejection with reason, hide, and active status.
+- [x] Build Player venue search and detail screens.
 - Track basic view/contact interaction counts if feasible in this phase.
 
 Exit criteria:
 
-- Venue Owner can submit a venue and see status.
-- Admin can approve or reject with reason.
-- Player sees only Approved and Active venues.
-- Payment behavior is absent.
+- [x] Venue Owner can submit a venue and see status.
+- [x] Admin can approve or reject with reason.
+- [x] Player sees only Approved and Active venues.
+- [x] Payment behavior is absent.
 
 ### Phase 4 - Matchmaking and In-App Notifications
 
@@ -491,7 +500,7 @@ These do not block scaffolding, but should be resolved before production deploym
 | Package manager | `npm` unless user chooses otherwise | Confirm `npm` vs `pnpm` |
 | Email provider | Console/dev adapter or SMTP app password through env | Confirm SMTP provider vs Resend/SendGrid |
 | Storage provider | Local/mock adapter | S3, R2, or MinIO |
-| Hanoi ward/commune source | Small seed placeholder | Authoritative source and update process |
+| Hanoi ward/commune source | 126 Hanoi commune-level units seeded from 2025 public legal/government references | Confirm update process when administrative data changes |
 | Chat scope | Direct contact info only | Decide whether in-app chat is required |
 | Report categories | Basic text reason | Configurable taxonomy |
 | Database schema sync | `prisma db push` in Docker Compose | Prisma migrations for production |

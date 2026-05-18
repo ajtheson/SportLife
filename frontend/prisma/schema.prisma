@@ -156,6 +156,7 @@ model PlayerProfile {
   id           String   @id @default(cuid())
   userId       String   @unique
   displayName  String
+  phone        String   @unique
   avatarUrl    String?
   areaId       String?
   introduction String?
@@ -186,6 +187,7 @@ model VenueOwnerProfile {
   id           String   @id @default(cuid())
   userId       String   @unique
   businessName String
+  phone        String   @unique
   contactInfo  Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -248,6 +250,7 @@ model Venue {
   name             String
   address          String
   areaId           String
+  phone            String
   description      String?
   openingHours     Json?
   referencePrice   String?

@@ -40,7 +40,7 @@ services:
       STORAGE_PROVIDER: local
       ADMIN_SEED_EMAIL: ${ADMIN_SEED_EMAIL:-admin@sportlife.local}
       ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-ChangeMe123!}
-    command: sh -c "npm run prisma:generate && npm run db:push && npm run db:seed"
+    command: sh -c "npm run prisma:generate && npm run db:push -- --accept-data-loss && npm run db:seed"
     restart: "no"
 
   frontend:

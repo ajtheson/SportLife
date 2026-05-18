@@ -31,6 +31,11 @@ Current completed phase:
 
 - Phase 0: Dockerized project foundation
 - Phase 1: Auth, roles, email verification, login/logout, password reset, and resend verification for unverified registrations
+- Phase 2: Player profile onboarding with Hanoi ward/commune seed data, sport/level selectors, unique 10-digit phone numbers, and Admin config screens for creating, editing, and activating/deactivating sports, levels, and areas
+
+Current in-progress phase:
+
+- Phase 3: Venue Owner profile, venue submission/editing, admin approval/rejection, and approved venue discovery
 
 Default development admin account:
 
