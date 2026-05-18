@@ -1,0 +1,92 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sportlife-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sportlife
+      POSTGRES_PASSWORD: sportlife
+      POSTGRES_DB: sportlife
+    ports:
+      - "5432:5432"
+    volumes:
+      - sportlife-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sportlife -d sportlife"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    build:
+      context: ./frontend
+      target: development
+    container_name: sportlife-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://sportlife:sportlife@postgres:5432/sportlife?schema=public
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-only-change-me}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      EMAIL_FROM: "${EMAIL_FROM:-SportLife <no-reply@sportlife.local>}"
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_APP_PASSWORD: ${SMTP_APP_PASSWORD:-}
+      STORAGE_PROVIDER: local
+      ADMIN_SEED_EMAIL: ${ADMIN_SEED_EMAIL:-admin@sportlife.local}
+      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-ChangeMe123!}
+    command: sh -c "npm run prisma:generate && npm run db:push && npm run db:seed"
+    restart: "no"
+
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    container_name: sportlife-frontend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://sportlife:sportlife@postgres:5432/sportlife?schema=public
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-only-change-me}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      EMAIL_FROM: "${EMAIL_FROM:-SportLife <no-reply@sportlife.local>}"
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_APP_PASSWORD: ${SMTP_APP_PASSWORD:-}
+      STORAGE_PROVIDER: local
+      ADMIN_SEED_EMAIL: ${ADMIN_SEED_EMAIL:-admin@sportlife.local}
+      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-ChangeMe123!}
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "3000:3000"
+    command: sh -c "npm run prisma:generate && npm run dev -- --hostname 0.0.0.0 --port 3000"
+    volumes:
+      - ./frontend:/app
+      - sportlife-frontend-node-modules:/app/node_modules
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  sportlife-postgres-data:
+  sportlife-frontend-node-modules:

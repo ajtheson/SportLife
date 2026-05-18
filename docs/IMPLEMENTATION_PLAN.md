@@ -1,8 +1,8 @@
 # SportLife Implementation Plan
 
-**Version:** 0.1.0  
+**Version:** 0.2.0  
 **Date:** 2026-05-18  
-**Status:** Proposed  
+**Status:** Phase 1 complete  
 **Source Requirements:** [SRS_SportLife_v1.0.0.md](./SRS_SportLife_v1.0.0.md)
 
 ---
@@ -12,6 +12,12 @@
 This document converts the SportLife SRS into an implementation plan for the first working web application. It defines the recommended architecture, project structure, delivery phases, initial data model, routes, environment variables, and verification approach.
 
 The goal is to start simple, keep the codebase modular, and avoid premature infrastructure complexity while preserving the ability to grow into the full v1.0.0 scope.
+
+Docker Compose is the default local runtime and onboarding path. A new developer should be able to run the application, database, schema sync, and seed flow with:
+
+```powershell
+docker compose up --build
+```
 
 ---
 
@@ -80,6 +86,24 @@ The goal is to start simple, keep the codebase modular, and avoid premature infr
 - The SRS explicitly excludes push notifications and email notifications for match events.
 - DB-backed notifications are enough for join request, approval, and rejection events.
 
+### 2.6 Containerization
+
+**Decision:** Use Docker Compose as the default local development runtime.
+
+**Services:**
+
+- `postgres`: PostgreSQL 16 with persistent volume
+- `migrate`: one-shot Prisma generate, schema push, and seed job
+- `frontend`: Next.js full-stack app exposed on `localhost:3000`
+
+**Rationale:**
+
+- New contributors should not need local Node/PostgreSQL setup before seeing the app run.
+- The database schema and seed data should be reproducible.
+- The current architecture is a full-stack Next.js BFF, so no separate backend container is needed yet.
+
+**Trade-off accepted:** Development Compose currently uses `prisma db push` for fast schema sync. Production-style migrations should be introduced before production deployment.
+
 ---
 
 ## 3. Delivery Phases
@@ -93,7 +117,7 @@ Tasks:
 - Scaffold Next.js App Router with TypeScript.
 - Configure Tailwind CSS and base UI components.
 - Add Prisma and PostgreSQL.
-- Add Docker Compose for local PostgreSQL.
+- Add Docker Compose for PostgreSQL, migration/seed job, and frontend app runtime.
 - Add Auth.js foundation.
 - Add `.env.example`.
 - Add lint, typecheck, build, unit test, and E2E test scripts.
@@ -101,7 +125,7 @@ Tasks:
 
 Exit criteria:
 
-- `npm run dev` starts the app.
+- `docker compose up --build` starts PostgreSQL, syncs/seeds the database, and starts the app.
 - `npm run build` succeeds.
 - Prisma can connect to local PostgreSQL.
 
@@ -109,24 +133,30 @@ Exit criteria:
 
 Outcome: users can register, verify email, log in, log out, and reset password.
 
+Status: complete. Core auth flow is implemented and manually tested through Docker Compose with Gmail SMTP: register, resend verification for unverified email, verify email, login/logout, forgot password, reset password, and a protected Player profile placeholder route.
+
 Tasks:
 
-- Implement User model, roles, account statuses, verification tokens, and password reset tokens.
-- Implement registration for Player and Venue Owner.
-- Implement email verification flow.
-- Implement login/logout.
-- Implement forgot/reset password.
-- Seed initial sports: Billiard, Badminton, Pickleball.
-- Seed initial skill levels per sport.
-- Seed initial Hanoi areas from a selected source or minimal placeholder dataset.
-- Seed one Admin account for development.
+- [x] Implement User model, roles, account statuses, verification tokens, and password reset tokens.
+- [x] Implement registration for Player and Venue Owner.
+- [x] Implement email verification flow.
+- [x] Implement login/logout.
+- [x] Implement forgot/reset password.
+- [x] Seed initial sports: Billiard, Badminton, Pickleball.
+- [x] Seed initial skill levels per sport.
+- [x] Seed initial Hanoi areas from a selected source or minimal placeholder dataset.
+- [x] Seed one Admin account for development.
+- [x] Manually verify real Gmail SMTP delivery through Docker Compose after recreating the frontend container.
+- [x] Confirm unverified users can register again with the same email and receive a fresh verification email.
+- [ ] Add fuller auth E2E coverage for registration, verification, login, and password reset.
 
 Exit criteria:
 
-- Guest can register as Player or Venue Owner.
-- Unverified users cannot access authenticated features.
-- Verified users can log in.
-- Admin cannot self-register publicly.
+- [x] Guest can register as Player or Venue Owner.
+- [x] Unverified users cannot access authenticated features.
+- [x] Verified users can log in.
+- [x] Admin cannot self-register publicly.
+- [x] Unverified existing email registration resends verification instead of blocking with account-exists.
 
 ### Phase 2 - Player Profile and Configuration
 
@@ -442,6 +472,7 @@ E2E tests:
 Commands to maintain:
 
 ```powershell
+docker compose up --build
 npm run lint
 npm run typecheck
 npm run test
@@ -458,11 +489,12 @@ These do not block scaffolding, but should be resolved before production deploym
 | Question | Default for Development | Production Decision Needed |
 | --- | --- | --- |
 | Package manager | `npm` unless user chooses otherwise | Confirm `npm` vs `pnpm` |
-| Email provider | Console/dev adapter | Resend or SendGrid |
+| Email provider | Console/dev adapter or SMTP app password through env | Confirm SMTP provider vs Resend/SendGrid |
 | Storage provider | Local/mock adapter | S3, R2, or MinIO |
 | Hanoi ward/commune source | Small seed placeholder | Authoritative source and update process |
 | Chat scope | Direct contact info only | Decide whether in-app chat is required |
 | Report categories | Basic text reason | Configurable taxonomy |
+| Database schema sync | `prisma db push` in Docker Compose | Prisma migrations for production |
 
 ---
 
@@ -470,16 +502,17 @@ These do not block scaffolding, but should be resolved before production deploym
 
 Use this checklist for the next implementation step:
 
-- [ ] Scaffold Next.js App Router with TypeScript.
-- [ ] Add Tailwind CSS.
-- [ ] Add base UI component setup.
-- [ ] Add Prisma and PostgreSQL schema.
-- [ ] Add Docker Compose for local database.
-- [ ] Add Auth.js configuration.
-- [ ] Add password hashing and token utilities.
-- [ ] Add `.env.example`.
-- [ ] Add seed script for sports, levels, areas, and admin user.
-- [ ] Add lint/typecheck/test/build scripts.
-- [ ] Add first tests for auth and business rules.
-- [ ] Start local dev server and verify the app opens.
+- [x] Scaffold Next.js App Router with TypeScript.
+- [x] Add Tailwind CSS.
+- [x] Add base UI component setup.
+- [x] Add Prisma and PostgreSQL schema.
+- [x] Add Docker Compose for local database, migration/seed job, and frontend app.
+- [x] Add Auth.js configuration.
+- [x] Add password hashing and token utilities.
+- [x] Add `.env.example`.
+- [x] Add seed script for sports, levels, areas, and admin user.
+- [x] Add lint/typecheck/test/build scripts.
+- [x] Add first tests for auth and business rules.
+- [x] Start Docker Compose stack and verify the app opens.
 
+Note: The scaffolded app builds and tests successfully. Docker Compose is the preferred local runtime. Run `docker compose up --build` from the repository root, then open `http://localhost:3000`.
