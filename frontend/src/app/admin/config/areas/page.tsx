@@ -3,8 +3,13 @@ import Link from "next/link";
 
 import { createAreaAction, updateAreaAction, updateAreaStatusAction } from "@/features/config/config-actions";
 import { listAreas } from "@/features/config/config-service";
-
 import { configMessage, requireAdminPage } from "../config-page-utils";
+
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 type AreasPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -15,89 +20,99 @@ export default async function AreasPage({ searchParams }: AreasPageProps) {
   const [areas, message] = await Promise.all([listAreas(), configMessage(searchParams)]);
 
   return (
-    <main className="min-h-screen bg-[#f7f4ed] px-6 py-10 text-[#1d2520]">
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto grid w-full max-w-6xl gap-6">
         <Header />
-        {message ? <div className="rounded-md border border-[#d9d2c1] bg-white p-4 text-sm">{message}</div> : null}
+        
+        {message ? <div className={`rounded-md border p-4 text-sm ${message.includes("Không thể") || message.includes("Vui lòng") ? "border-destructive/50 bg-destructive/10 text-destructive" : "border-primary/50 bg-primary/10 text-primary"}`}>{message}</div> : null}
 
-        <form action={createAreaAction} className="grid gap-3 rounded-lg border border-[#d9d2c1] bg-white p-5 md:grid-cols-[1fr_180px_auto]">
-          <label className="grid gap-2 text-sm font-medium">
-            New Hanoi area
-            <input className="rounded-md border border-[#d9d2c1] px-3 py-2" name="name" required maxLength={100} />
-          </label>
-          <label className="grid gap-2 text-sm font-medium">
-            Type
-            <select className="rounded-md border border-[#d9d2c1] px-3 py-2" name="type" required>
-              <option value="ward">Ward</option>
-              <option value="commune">Commune</option>
+        <form action={createAreaAction} className="grid gap-3 rounded-xl border border-border bg-card p-5 shadow-sm md:grid-cols-[1fr_180px_auto]">
+          <div className="grid gap-2">
+            <Label>Tên khu vực mới</Label>
+            <Input name="name" required maxLength={100} placeholder="Nhập tên khu vực..." />
+          </div>
+          <div className="grid gap-2">
+            <Label>Phân loại</Label>
+            <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" name="type" required>
+              <option value="ward">Phường/Xã</option>
+              <option value="commune">Quận/Huyện</option>
             </select>
-          </label>
-          <button className="self-end rounded-md bg-[#0f6b4f] px-4 py-2 font-medium text-white" type="submit">
-            Add
-          </button>
+          </div>
+          <Button className="self-end" type="submit">
+            Thêm mới
+          </Button>
         </form>
 
-        <div className="overflow-hidden rounded-lg border border-[#d9d2c1] bg-white">
-          <table className="w-full border-collapse text-left text-sm">
-            <thead className="bg-[#fbfaf7]">
-              <tr>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Type</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Usage</th>
-                <th className="px-4 py-3">Action</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead className="w-[40%]">Tên khu vực</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead>Sử dụng</TableHead>
+                <TableHead className="text-right">Thao tác</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {areas.map((area) => {
                 const nextStatus = area.status === ConfigStatus.ACTIVE ? ConfigStatus.INACTIVE : ConfigStatus.ACTIVE;
-                const usage =
-                  area._count.playerProfiles + area._count.venues + area._count.matches + area._count.communityPosts;
+                const usage = area._count.playerProfiles + area._count.venues + area._count.matches + area._count.communityPosts;
 
                 return (
-                  <tr key={area.id} className="border-t border-[#ece5d8] align-top">
-                    <td className="px-4 py-3" colSpan={2}>
-                      <form action={updateAreaAction} className="grid min-w-96 gap-2 sm:grid-cols-[1fr_150px_auto]">
+                  <TableRow key={area.id}>
+                    <TableCell className="p-2">
+                      <form action={updateAreaAction} className="flex gap-2">
                         <input name="areaId" type="hidden" value={area.id} />
-                        <input
-                          aria-label={`${area.name} name`}
-                          className="rounded-md border border-[#d9d2c1] px-3 py-2"
+                        <Input
+                          aria-label={`Tên ${area.name}`}
                           name="name"
                           defaultValue={area.name}
                           required
                           maxLength={100}
+                          className="h-8 flex-1"
                         />
                         <select
-                          aria-label={`${area.name} type`}
-                          className="rounded-md border border-[#d9d2c1] px-3 py-2"
+                          aria-label={`Loại ${area.name}`}
+                          className="flex h-8 rounded-md border border-input bg-background px-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           name="type"
                           defaultValue={area.type}
                           required
                         >
-                          <option value="ward">Ward</option>
-                          <option value="commune">Commune</option>
+                          <option value="ward">Phường/Xã</option>
+                          <option value="commune">Quận/Huyện</option>
                         </select>
-                        <button className="rounded-md border border-[#d9d2c1] px-3 py-2" type="submit">
-                          Save
-                        </button>
+                        <Button size="sm" variant="outline" type="submit">
+                          Lưu
+                        </Button>
                       </form>
-                    </td>
-                    <td className="px-4 py-3">{area.status}</td>
-                    <td className="px-4 py-3">{usage} linked records</td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={area.status === "ACTIVE" ? "default" : "secondary"}>
+                        {area.status === "ACTIVE" ? "HOẠT ĐỘNG" : "KHÔNG HOẠT ĐỘNG"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{usage} bản ghi liên kết</TableCell>
+                    <TableCell className="text-right">
                       <form action={updateAreaStatusAction}>
                         <input name="areaId" type="hidden" value={area.id} />
                         <input name="status" type="hidden" value={nextStatus} />
-                        <button className="rounded-md border border-[#d9d2c1] px-3 py-2" type="submit">
-                          Set {nextStatus}
-                        </button>
+                        <Button size="sm" variant="secondary" type="submit">
+                          Đổi thành {nextStatus === "ACTIVE" ? "HOẠT ĐỘNG" : "NGỪNG H.ĐỘNG"}
+                        </Button>
                       </form>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+              {areas.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                    Chưa có khu vực nào.
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
         </div>
       </div>
     </main>
@@ -108,12 +123,12 @@ function Header() {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <h1 className="text-3xl font-semibold">Hanoi areas</h1>
-        <p className="mt-3 text-[#5f6b63]">Configure active wards and communes available to SportLife users.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-primary">Khu vực Hà Nội</h1>
+        <p className="mt-2 text-muted-foreground">Cấu hình danh sách Quận/Huyện, Phường/Xã cho người dùng SportLife.</p>
       </div>
       <div className="flex gap-2">
-        <Link className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium" href="/admin/config">
-          Config
+        <Link className={buttonVariants({ variant: "outline" })} href="/admin/config">
+          ← Quay lại Cấu hình
         </Link>
       </div>
     </div>

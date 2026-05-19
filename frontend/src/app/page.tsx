@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { logoutAction } from "@/features/auth/auth-actions";
 import { userHasPlayerProfile } from "@/features/player-profile/player-profile-service";
 import { userHasVenueOwnerProfile } from "@/features/venue-owner-profile/venue-owner-profile-service";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function Home() {
   const session = await auth();
@@ -24,32 +25,32 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f4ed] text-[#1d2520]">
+    <main className="min-h-screen bg-background text-foreground">
       <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
         <Header session={session} />
 
         <div className="grid flex-1 items-center gap-10 py-12 md:grid-cols-[1.05fr_0.95fr]">
           <div className="max-w-2xl">
-            <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#0f6b4f]">
-              Hanoi sport community
+            <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary">
+              Cộng đồng thể thao Hà Nội
             </p>
             <h1 className="text-4xl font-semibold leading-tight md:text-6xl">
-              Find venues, players, and open matches nearby.
+              Tìm sân, kết nối người chơi và tham gia trận đấu quanh bạn.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-[#526057]">
-              SportLife connects players and venue owners for billiard, badminton, and pickleball across Hanoi.
+            <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
+              SportLife kết nối người chơi và chủ sân cho các bộ môn Billiard, Cầu lông và Pickleball trên toàn Hà Nội.
             </p>
           </div>
 
           <div className="grid gap-4">
             {[
-              ["Players", "Create a sport profile, discover venues, and join matches."],
-              ["Venue Owners", "Publish venue listings and track approval status."],
-              ["Admins", "Manage users, venues, areas, levels, and community content."],
+              ["Người chơi", "Tạo hồ sơ thể thao, tìm kiếm sân tập và tham gia các trận đấu."],
+              ["Chủ sân", "Đăng thông tin sân và theo dõi trạng thái kiểm duyệt."],
+              ["Quản trị viên", "Quản lý người dùng, sân bãi, khu vực, trình độ và nội dung cộng đồng."],
             ].map(([title, description]) => (
-              <div key={title} className="rounded-lg border border-[#d9d2c1] bg-white p-5 shadow-sm">
+              <div key={title} className="rounded-lg border border-border bg-card p-5 shadow-sm">
                 <h2 className="text-lg font-semibold">{title}</h2>
-                <p className="mt-2 text-sm leading-6 text-[#5f6b63]">{description}</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
               </div>
             ))}
           </div>
@@ -62,46 +63,46 @@ export default async function Home() {
 function Header({ session }: { session: Session | null }) {
   return (
     <header className="flex items-center justify-between gap-4">
-      <div className="text-xl font-semibold">SportLife</div>
+      <div className="text-xl font-bold tracking-tight text-primary">SportLife</div>
       {session?.user ? (
         <div className="flex items-center gap-3 text-sm">
-          <span className="hidden text-[#526057] sm:inline">{session.user.email}</span>
+          <span className="hidden text-muted-foreground sm:inline">{session.user.email}</span>
           {session.user.role === UserRole.PLAYER ? (
-            <Link className="rounded-md px-3 py-2 hover:bg-white" href="/player/profile">
-              Profile
+            <Link className={buttonVariants({ variant: "ghost" })} href="/player/profile">
+              Hồ sơ
             </Link>
           ) : null}
           {session.user.role === UserRole.ADMIN ? (
-            <Link className="rounded-md px-3 py-2 hover:bg-white" href="/admin/config">
-              Admin Config
+            <Link className={buttonVariants({ variant: "ghost" })} href="/admin/config">
+              Cấu hình
             </Link>
           ) : null}
           {session.user.role === UserRole.ADMIN ? (
-            <Link className="rounded-md px-3 py-2 hover:bg-white" href="/admin/venues">
-              Venue Review
+            <Link className={buttonVariants({ variant: "ghost" })} href="/admin/venues">
+              Duyệt sân
             </Link>
           ) : null}
           {session.user.role === UserRole.VENUE_OWNER ? (
-            <Link className="rounded-md px-3 py-2 hover:bg-white" href="/venue-owner">
-              Venues
+            <Link className={buttonVariants({ variant: "ghost" })} href="/venue-owner">
+              Quản lý sân
             </Link>
           ) : null}
-          <Link className="rounded-md px-3 py-2 hover:bg-white" href="/venues">
-            Discover
+          <Link className={buttonVariants({ variant: "ghost" })} href="/venues">
+            Khám phá
           </Link>
           <form action={logoutAction}>
-            <button className="rounded-md bg-[#1d2520] px-3 py-2 text-white" type="submit">
-              Logout
+            <button className={buttonVariants({ variant: "default" })} type="submit">
+              Đăng xuất
             </button>
           </form>
         </div>
       ) : (
         <nav className="flex gap-3 text-sm font-medium">
-          <Link className="rounded-md px-3 py-2 hover:bg-white" href="/login">
-            Login
+          <Link className={buttonVariants({ variant: "ghost" })} href="/login">
+            Đăng nhập
           </Link>
-          <Link className="rounded-md bg-[#0f6b4f] px-3 py-2 text-white hover:bg-[#0b573f]" href="/register">
-            Register
+          <Link className={buttonVariants({ variant: "default" })} href="/register">
+            Đăng ký
           </Link>
         </nav>
       )}

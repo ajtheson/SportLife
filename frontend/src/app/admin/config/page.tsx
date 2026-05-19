@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { getConfigDashboardCounts } from "@/features/config/config-service";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default async function AdminConfigPage() {
   const session = await auth();
@@ -18,24 +19,28 @@ export default async function AdminConfigPage() {
 
   const counts = await getConfigDashboardCounts();
   const sections = [
-    ["Sports", `${counts.sports} active`, "/admin/config/sports"],
-    ["Skill levels", `${counts.skillLevels} active`, "/admin/config/levels"],
-    ["Areas", `${counts.areas} active Hanoi wards/communes`, "/admin/config/areas"],
+    ["Môn thể thao", `${counts.sports} đang hoạt động`, "/admin/config/sports"],
+    ["Trình độ", `${counts.skillLevels} đang hoạt động`, "/admin/config/levels"],
+    ["Khu vực", `${counts.areas} quận/huyện đang hoạt động`, "/admin/config/areas"],
   ];
 
   return (
-    <main className="min-h-screen bg-[#f7f4ed] px-6 py-10 text-[#1d2520]">
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto w-full max-w-5xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold">Configuration</h1>
-          <p className="mt-3 text-[#5f6b63]">Manage reusable SportLife sports, skill levels, and Hanoi areas.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">Cấu hình hệ thống</h1>
+          <p className="mt-3 text-muted-foreground">Quản lý danh mục Môn thể thao, Trình độ kỹ năng và Khu vực (Quận/Huyện).</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           {sections.map(([title, subtitle, href]) => (
-            <Link key={href} className="rounded-lg border border-[#d9d2c1] bg-white p-5 hover:bg-[#fbfaf7]" href={href}>
-              <h2 className="text-lg font-semibold">{title}</h2>
-              <p className="mt-2 text-sm text-[#5f6b63]">{subtitle}</p>
+            <Link key={href} href={href}>
+              <Card className="h-full transition-colors hover:bg-muted/50 hover:shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-xl text-primary">{title}</CardTitle>
+                  <CardDescription>{subtitle}</CardDescription>
+                </CardHeader>
+              </Card>
             </Link>
           ))}
         </div>

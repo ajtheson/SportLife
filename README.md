@@ -37,6 +37,7 @@ Current completed phase:
 - Phase 3: Venue Owner profile, venue submission/editing, admin approval/rejection, approved venue discovery, and sidebar product navigation
 - Phase 4: Player-created matches, detailed address, multi-level filters by sport, join requests, owner approval/rejection, auto-Full status, close/cancel rules, and in-app notifications
 - Phase 5: Sport-tagged community discussion posts with titles, admin approval, comments, and moderation
+- Phase 6 (Part A-D): Full Vietnamese localization, Design System integration (shadcn/ui), and UI polishing for all pages.
 
 Default development admin account:
 

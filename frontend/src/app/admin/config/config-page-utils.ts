@@ -19,19 +19,19 @@ export async function configMessage(searchParams: Promise<Record<string, string 
   const params = await searchParams;
 
   if (params.status === "created") {
-    return "Created.";
+    return "Đã thêm thành công.";
   }
 
   if (params.status === "updated") {
-    return "Updated.";
+    return "Đã cập nhật thành công.";
   }
 
   if (params.error === "duplicate") {
-    return "This value already exists.";
+    return "Giá trị này đã tồn tại.";
   }
 
   if (params.error === "invalid_input") {
-    return "Please check the submitted values.";
+    return "Vui lòng kiểm tra lại thông tin.";
   }
 
   return null;

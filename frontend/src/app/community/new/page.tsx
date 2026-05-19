@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { getCommunityFormData } from "@/features/community/community-service";
+import { buttonVariants } from "@/components/ui/button";
 
 import { CommunityPostForm } from "../community-post-form";
 
@@ -25,16 +26,16 @@ export default async function NewCommunityPostPage({ searchParams }: NewCommunit
   const [data, message] = await Promise.all([getCommunityFormData(), pageMessage(searchParams)]);
 
   return (
-    <main className="min-h-screen px-6 py-10">
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto grid w-full max-w-4xl gap-6">
-        <Link className="w-fit rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium" href="/community">
-          Back to community
+        <Link className={buttonVariants({ variant: "outline", className: "w-fit" })} href="/community">
+          ← Quay lại cộng đồng
         </Link>
         <div>
-          <h1 className="text-3xl font-semibold">New community post</h1>
-          <p className="mt-3 text-[#5f6b63]">Submit a sport-tagged discussion post for admin approval.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">Bài viết cộng đồng mới</h1>
+          <p className="mt-3 text-muted-foreground">Tạo bài viết và chờ Admin duyệt để hiển thị công khai.</p>
         </div>
-        {message ? <div className="rounded-md border border-[#d9d2c1] bg-white p-4 text-sm">{message}</div> : null}
+        {message ? <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">{message}</div> : null}
         <CommunityPostForm areas={data.areas} postTypes={data.postTypes} sports={data.sports} />
       </div>
     </main>
@@ -44,8 +45,8 @@ export default async function NewCommunityPostPage({ searchParams }: NewCommunit
 async function pageMessage(searchParams: Promise<Record<string, string | string[] | undefined>>) {
   const params = await searchParams;
 
-  if (params.error === "invalid_input") return "Please check the submitted values.";
-  if (params.error) return "The post could not be saved.";
+  if (params.error === "invalid_input") return "Vui lòng kiểm tra lại thông tin.";
+  if (params.error) return "Không thể lưu bài viết.";
 
   return null;
 }

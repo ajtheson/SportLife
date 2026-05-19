@@ -13,8 +13,8 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const initialSports = ["Billiard", "Badminton", "Pickleball"];
-const defaultLevels = ["Beginner", "Intermediate", "Advanced"];
+const initialSports = ["Bida", "Cầu lông", "Pickleball"];
+const defaultLevels = ["Mới chơi", "Trung bình", "Khá giỏi"];
 const initialAreas = [
   "Phường Ba Đình",
   "Phường Ngọc Hà",
@@ -153,70 +153,70 @@ const demoPassword = "Demo123456!";
 const demoPlayers = [
   {
     email: "player.anh@sportlife.local",
-    displayName: "Anh Nguyen",
+    displayName: "Nguyễn Anh",
     phone: "0900000001",
     areaIndex: 13,
     sports: [
-      { sport: "Badminton", level: "Intermediate" },
-      { sport: "Pickleball", level: "Beginner" },
+      { sport: "Cầu lông", level: "Trung bình" },
+      { sport: "Pickleball", level: "Mới chơi" },
     ],
   },
   {
     email: "player.binh@sportlife.local",
-    displayName: "Binh Tran",
+    displayName: "Trần Bình",
     phone: "0900000002",
     areaIndex: 16,
     sports: [
-      { sport: "Badminton", level: "Advanced" },
-      { sport: "Billiard", level: "Intermediate" },
+      { sport: "Cầu lông", level: "Khá giỏi" },
+      { sport: "Bida", level: "Trung bình" },
     ],
   },
   {
     email: "player.chi@sportlife.local",
-    displayName: "Chi Le",
+    displayName: "Lê Chi",
     phone: "0900000003",
     areaIndex: 21,
     sports: [
-      { sport: "Pickleball", level: "Intermediate" },
-      { sport: "Badminton", level: "Beginner" },
+      { sport: "Pickleball", level: "Trung bình" },
+      { sport: "Cầu lông", level: "Mới chơi" },
     ],
   },
   {
     email: "player.duy@sportlife.local",
-    displayName: "Duy Pham",
+    displayName: "Phạm Duy",
     phone: "0900000004",
     areaIndex: 31,
     sports: [
-      { sport: "Billiard", level: "Advanced" },
-      { sport: "Pickleball", level: "Intermediate" },
+      { sport: "Bida", level: "Khá giỏi" },
+      { sport: "Pickleball", level: "Trung bình" },
     ],
   },
   {
     email: "player.ha@sportlife.local",
-    displayName: "Ha Do",
+    displayName: "Đỗ Hà",
     phone: "0900000005",
     areaIndex: 44,
     sports: [
-      { sport: "Badminton", level: "Beginner" },
-      { sport: "Billiard", level: "Beginner" },
+      { sport: "Cầu lông", level: "Mới chơi" },
+      { sport: "Bida", level: "Mới chơi" },
     ],
   },
   {
     email: "player.linh@sportlife.local",
-    displayName: "Linh Vu",
+    displayName: "Vũ Linh",
     phone: "0900000006",
     areaIndex: 49,
     sports: [
-      { sport: "Pickleball", level: "Advanced" },
-      { sport: "Badminton", level: "Intermediate" },
+      { sport: "Pickleball", level: "Khá giỏi" },
+      { sport: "Cầu lông", level: "Trung bình" },
     ],
   },
 ];
 
 const demoOwners = [
-  { email: "owner.caugiay@sportlife.local", businessName: "Cau Giay Sports Hub", phone: "0910000001" },
-  { email: "owner.hadong@sportlife.local", businessName: "Ha Dong Active Club", phone: "0910000002" },
-  { email: "owner.longbien@sportlife.local", businessName: "Long Bien Court Group", phone: "0910000003" },
+  { email: "owner.caugiay@sportlife.local", businessName: "Trung tâm Thể thao Cầu Giấy", phone: "0910000001" },
+  { email: "owner.hadong@sportlife.local", businessName: "Câu lạc bộ Năng động Hà Đông", phone: "0910000002" },
+  { email: "owner.longbien@sportlife.local", businessName: "Cụm Sân Long Biên", phone: "0910000003" },
 ];
 
 const demoEmails = [...demoPlayers.map((player) => player.email), ...demoOwners.map((owner) => owner.email)];
@@ -266,8 +266,8 @@ async function seedDemoData() {
             displayName: player.displayName,
             phone: player.phone,
             areaId: areaAt(player.areaIndex).id,
-            availability: "Weekday evenings and weekend mornings",
-            introduction: `${player.displayName} is looking for friendly games and local sport discussions.`,
+            availability: "Các buổi tối trong tuần và sáng cuối tuần",
+            introduction: `${player.displayName} đang tìm kiếm những trận đấu giao lưu thân thiện và chia sẻ về thể thao.`,
             contactInfo: { phone: player.phone },
             sportLevels: {
               create: player.sports.map((item) => levelId(item.sport, item.level)),
@@ -307,12 +307,12 @@ async function seedDemoData() {
   }
 
   const venueSeeds = [
-    [owners[0], "Cau Giay Badminton Arena", "Badminton", areaAt(13), "0920000001", "12 Tran Thai Tong", "120,000 VND/hour", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
-    [owners[0], "Lang Billiard Lounge", "Billiard", areaAt(16), "0920000002", "45 Lang Street", "90,000 VND/hour", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
-    [owners[1], "Ha Dong Pickleball Yard", "Pickleball", areaAt(44), "0920000003", "8 To Hieu", "180,000 VND/hour", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
-    [owners[1], "Van Quan Badminton Club", "Badminton", areaAt(45), "0920000004", "22 Van Quan", "110,000 VND/hour", ApprovalStatus.PENDING_APPROVAL, VisibilityStatus.ACTIVE, null],
-    [owners[2], "Long Bien Multi Court", "Pickleball", areaAt(11), "0920000005", "5 Nguyen Van Cu", "160,000 VND/hour", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
-    [owners[2], "Bo De Billiard House", "Billiard", areaAt(8), "0920000006", "31 Bo De", "100,000 VND/hour", ApprovalStatus.REJECTED, VisibilityStatus.ACTIVE, "Missing clear opening hours."],
+    [owners[0], "Sân Cầu lông Cầu Giấy", "Cầu lông", areaAt(13), "0920000001", "12 Trần Thái Tông", "120,000 VNĐ/giờ", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
+    [owners[0], "Quán Bida Láng", "Bida", areaAt(16), "0920000002", "45 Đường Láng", "90,000 VNĐ/giờ", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
+    [owners[1], "Sân Pickleball Hà Đông", "Pickleball", areaAt(44), "0920000003", "8 Tô Hiệu", "180,000 VNĐ/giờ", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
+    [owners[1], "Câu lạc bộ Cầu lông Văn Quán", "Cầu lông", areaAt(45), "0920000004", "22 Văn Quán", "110,000 VNĐ/giờ", ApprovalStatus.PENDING_APPROVAL, VisibilityStatus.ACTIVE, null],
+    [owners[2], "Sân Đa Năng Long Biên", "Pickleball", areaAt(11), "0920000005", "5 Nguyễn Văn Cừ", "160,000 VNĐ/giờ", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
+    [owners[2], "Bida Bồ Đề", "Bida", areaAt(8), "0920000006", "31 Bồ Đề", "100,000 VNĐ/giờ", ApprovalStatus.REJECTED, VisibilityStatus.ACTIVE, "Thiếu thông tin giờ mở cửa rõ ràng."],
   ] as const;
 
   for (const [owner, name, sportName, area, phone, address, price, approvalStatus, visibilityStatus, rejectionReason] of venueSeeds) {
@@ -327,8 +327,8 @@ async function seedDemoData() {
         address,
         areaId: area.id,
         phone,
-        description: `${name} is a demo venue for browsing and admin review.`,
-        availabilityNote: "Open slots are updated daily by the venue owner.",
+        description: `${name} là sân demo để duyệt thử chức năng và tìm kiếm.`,
+        availabilityNote: "Giờ trống được chủ sân cập nhật hàng ngày.",
         openingHours: { text: "08:00 - 22:00" },
         referencePrice: price,
         contactInfo: { phone },
@@ -346,15 +346,15 @@ async function seedDemoData() {
   const matchSeeds = [
     {
       owner: players[0],
-      sport: "Badminton",
+      sport: "Cầu lông",
       area: areaAt(13),
       time: addDays(1, 19),
       requiredPlayers: 2,
-      levels: ["Beginner", "Intermediate"],
-      description: "Casual doubles session after work. Bring your own racket.",
+      levels: ["Mới chơi", "Trung bình"],
+      description: "Giao lưu đánh đôi sau giờ làm. Vui lòng mang theo vợt.",
       requests: [
-        { player: players[1], status: JoinRequestStatus.APPROVED, message: "I can join after 18:30." },
-        { player: players[4], status: JoinRequestStatus.PENDING, message: "Beginner but happy to rotate." },
+        { player: players[1], status: JoinRequestStatus.APPROVED, message: "Tôi có thể tham gia sau 18:30." },
+        { player: players[4], status: JoinRequestStatus.PENDING, message: "Mình mới tập chơi nhưng rất nhiệt tình." },
       ],
     },
     {
@@ -363,19 +363,19 @@ async function seedDemoData() {
       area: areaAt(44),
       time: addDays(2, 8),
       requiredPlayers: 3,
-      levels: ["Intermediate"],
-      description: "Morning pickleball practice, friendly pace.",
-      requests: [{ player: players[5], status: JoinRequestStatus.APPROVED, message: "I have balls." }],
+      levels: ["Trung bình"],
+      description: "Tập luyện pickleball buổi sáng, đánh nhẹ nhàng giao lưu.",
+      requests: [{ player: players[5], status: JoinRequestStatus.APPROVED, message: "Mình có sẵn bóng nhé." }],
     },
     {
       owner: players[3],
-      sport: "Billiard",
+      sport: "Bida",
       area: areaAt(16),
       time: addDays(3, 20),
       requiredPlayers: 1,
-      levels: ["Advanced"],
-      description: "Looking for one advanced player for 9-ball practice.",
-      requests: [{ player: players[1], status: JoinRequestStatus.PENDING, message: "Interested in a race to 7." }],
+      levels: ["Khá giỏi"],
+      description: "Cần tìm 1 bạn trình độ khá để luyện tập bida lỗ 9 bóng.",
+      requests: [{ player: players[1], status: JoinRequestStatus.PENDING, message: "Chạm 7 không bạn?" }],
     },
     {
       owner: players[5],
@@ -383,11 +383,11 @@ async function seedDemoData() {
       area: areaAt(11),
       time: addDays(4, 18),
       requiredPlayers: 2,
-      levels: ["Intermediate", "Advanced"],
-      description: "Fast games near Long Bien.",
+      levels: ["Trung bình", "Khá giỏi"],
+      description: "Các trận đấu nhịp độ nhanh khu vực Long Biên.",
       requests: [
-        { player: players[2], status: JoinRequestStatus.APPROVED, message: "See you there." },
-        { player: players[0], status: JoinRequestStatus.APPROVED, message: "Can play 90 minutes." },
+        { player: players[2], status: JoinRequestStatus.APPROVED, message: "Hẹn gặp lại ở sân." },
+        { player: players[0], status: JoinRequestStatus.APPROVED, message: "Mình có thể chơi 90 phút." },
       ],
     },
   ];
@@ -404,7 +404,7 @@ async function seedDemoData() {
         sportId: sport.id,
         areaId: seed.area.id,
         time: seed.time,
-        detailedAddress: `${seed.area.name}, demo court`,
+        detailedAddress: `${seed.area.name}, sân demo`,
         requiredPlayers: seed.requiredPlayers,
         expectedLevelId: expectedLevelIds[0] ?? null,
         status: approvedCount >= seed.requiredPlayers ? MatchStatus.FULL : MatchStatus.OPEN,
@@ -446,58 +446,58 @@ async function seedDemoData() {
   const postSeeds = [
     {
       author: players[0],
-      title: "Best shuttlecocks for indoor courts?",
-      sport: "Badminton",
+      title: "Loại cầu lông nào tốt nhất cho sân trong nhà?",
+      sport: "Cầu lông",
       type: CommunityPostType.ADVICE,
       area: areaAt(13),
       status: ContentStatus.VISIBLE,
-      content: "I usually play indoors around Cau Giay. Which shuttlecock brand lasts well for intermediate doubles?",
+      content: "Mình thường chơi trong nhà ở Cầu Giấy. Loại cầu nào bền và phù hợp cho đánh đôi trình độ trung bình?",
       comments: [
-        { author: players[1], content: "Victor Gold feels consistent for our group." },
-        { author: players[4], content: "If budget matters, try Lining A+60 first." },
+        { author: players[1], content: "Cầu Victor Gold khá ổn định cho nhóm mình." },
+        { author: players[4], content: "Nếu quan tâm chi phí, bạn có thể thử Lining A+60." },
       ],
     },
     {
       author: players[2],
-      title: "Pickleball paddle for control style",
+      title: "Vợt Pickleball cho lối đánh kiểm soát",
       sport: "Pickleball",
       type: CommunityPostType.ADVICE,
       area: areaAt(44),
       status: ContentStatus.VISIBLE,
-      content: "I prefer soft touch and dinks over power. Looking for paddle suggestions available in Hanoi.",
-      comments: [{ author: players[5], content: "Look for a 16mm control paddle. It helps a lot at the kitchen." }],
+      content: "Mình thích lối đánh mềm mại và dink hơn là đánh sức mạnh. Mọi người gợi ý vợt nào dễ mua ở Hà Nội nhé.",
+      comments: [{ author: players[5], content: "Bạn tìm vợt dày 16mm nhé. Rất hữu ích khi đánh trên lưới (kitchen)." }],
     },
     {
       author: players[3],
-      title: "Small 9-ball tournament idea",
-      sport: "Billiard",
+      title: "Ý tưởng tổ chức giải Bida 9 bóng nhỏ",
+      sport: "Bida",
       type: CommunityPostType.EVENT,
       area: areaAt(16),
       status: ContentStatus.PENDING,
-      content: "Thinking about a small weekend 9-ball event with 8 to 12 players. Any format suggestions?",
+      content: "Mình đang tính tổ chức giải 9 bóng cuối tuần, quy mô từ 8-12 người. Ai có gợi ý về thể thức thi đấu không?",
       comments: [],
     },
     {
       author: players[5],
-      title: "Where to practice pickleball footwork?",
+      title: "Tập di chuyển chân trong Pickleball ở đâu?",
       sport: "Pickleball",
       type: CommunityPostType.DISCUSSION,
       area: areaAt(11),
       status: ContentStatus.VISIBLE,
-      content: "I want drills for split step and side movement. What routine works for you?",
+      content: "Mình muốn tập các bước split step và di chuyển ngang. Bài tập nào hiệu quả với mọi người?",
       comments: [
-        { author: players[2], content: "Do shadow drills before games, 10 minutes is enough." },
-        { author: players[0], content: "Badminton ladder drills transfer well too." },
+        { author: players[2], content: "Khởi động di chuyển chân không (shadow drills) khoảng 10 phút trước trận là ổn." },
+        { author: players[0], content: "Các bài tập chân của Cầu lông áp dụng sang cũng rất tốt." },
       ],
     },
     {
       author: players[4],
-      title: "Beginner badminton grip question",
-      sport: "Badminton",
+      title: "Câu hỏi về quấn cán vợt cầu lông cho người mới",
+      sport: "Cầu lông",
       type: CommunityPostType.GENERAL,
       area: areaAt(31),
       status: ContentStatus.PENDING,
-      content: "How often should a beginner replace overgrip when playing two times per week?",
+      content: "Cho mình hỏi nếu chơi 2 lần một tuần thì bao lâu nên thay quấn cán vợt 1 lần?",
       comments: [],
     },
   ];
@@ -525,9 +525,9 @@ async function seedDemoData() {
     });
   }
 
-  console.log("Demo accounts password:", demoPassword);
-  console.log("Demo player:", demoPlayers[0].email);
-  console.log("Demo owner:", demoOwners[0].email);
+  console.log("Mật khẩu tài khoản demo:", demoPassword);
+  console.log("Tài khoản người chơi demo:", demoPlayers[0].email);
+  console.log("Tài khoản chủ sân demo:", demoOwners[0].email);
 }
 
 async function main() {

@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0  
 **Date:** 2026-05-19  
-**Status:** Phase 5 complete  
+**Status:** Phase 6 (Part A-D) complete  
 **Source Requirements:** [SRS_SportLife_v1.0.0.md](./SRS_SportLife_v1.0.0.md)
 
 ---
@@ -271,6 +271,38 @@ Exit criteria:
 - [x] Players can comment on visible posts.
 - [x] Admin can approve or delete community posts.
 - [x] Community posts do not duplicate match scheduling fields such as match time/location.
+
+### Phase 6 - Localization and UI Polish (Partially Complete)
+
+Outcome: The entire application uses a cohesive design system (`shadcn/ui`) and is fully localized into Vietnamese.
+
+Status: Partially complete (Phases 6A-6D finished). The design system is installed (Be Vietnam Pro font, green earth theme). All pages (Auth, Matches, Venues, Community, Admin) and seed data are localized to Vietnamese. Remaining tasks (Phase 6E-6G) focus on missing SRS gaps, chat, and testing.
+
+Tasks:
+
+- [x] Install and configure `shadcn/ui` with custom green earth theme.
+- [x] Configure Google Fonts (Be Vietnam Pro).
+- [x] Localize auth pages (login, register, forgot/reset password).
+- [x] Localize product shell, sidebar, and landing page.
+- [x] Localize all player exploration pages (matches, venues, community).
+- [x] Localize venue owner dashboard and venue forms.
+- [x] Localize admin moderation and configuration pages.
+- [x] Format all dates and times to `vi-VN` locale.
+- [ ] Implement Admin user management.
+- [ ] Implement Admin statistical dashboard.
+- [ ] Allow Player to edit matches.
+- [ ] Implement image/avatar upload.
+- [ ] Implement pagination for long lists.
+- [ ] Implement Chat feature.
+- [ ] Add comprehensive E2E testing and CI/CD pipelines.
+
+Exit criteria:
+
+- [x] No English text remains on the UI.
+- [x] The UI is fully responsive and uses modern components.
+- [ ] Admin can manage users and view statistics.
+- [ ] Players can upload avatars and edit matches.
+- [ ] Real-time or polled chat is functional.
 
 ---
 

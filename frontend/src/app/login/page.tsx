@@ -2,6 +2,10 @@ import Link from "next/link";
 
 import { loginAction } from "@/features/auth/auth-actions";
 import { authMessage } from "@/features/auth/auth-messages";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 type LoginPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -12,44 +16,56 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12">
-      <h1 className="text-3xl font-semibold">Login</h1>
-      <p className="mt-3 text-[#5f6b63]">Use your verified SportLife account.</p>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Đăng nhập</CardTitle>
+          <CardDescription>Sử dụng tài khoản SportLife đã xác thực của bạn.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {message ? (
+            <div className="mb-6 rounded-md border border-border bg-muted p-4 text-sm text-foreground">{message}</div>
+          ) : null}
 
-      {message ? (
-        <div className="mt-6 rounded-md border border-[#d9d2c1] bg-white p-4 text-sm text-[#1d2520]">{message}</div>
-      ) : null}
+          <form action={loginAction} className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+              />
+            </div>
 
-      <form action={loginAction} className="mt-6 grid gap-4">
-        <label className="grid gap-2 text-sm font-medium">
-          Email
-          <input
-            className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-          />
-        </label>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Mật khẩu</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+              />
+            </div>
 
-        <label className="grid gap-2 text-sm font-medium">
-          Password
-          <input
-            className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
-        </label>
-
-        <button className="rounded-md bg-[#0f6b4f] px-4 py-2 font-medium text-white hover:bg-[#0b573f]" type="submit">
-          Login
-        </button>
-      </form>
-
-      <Link className="mt-4 text-sm font-medium text-[#0f6b4f]" href="/forgot-password">
-        Forgot password?
-      </Link>
+            <Button type="submit" className="w-full">
+              Đăng nhập
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-4">
+          <Link className="text-sm font-medium text-primary hover:underline" href="/forgot-password">
+            Quên mật khẩu?
+          </Link>
+          <div className="text-center text-sm text-muted-foreground">
+            Chưa có tài khoản?{" "}
+            <Link className="font-medium text-primary hover:underline" href="/register">
+              Đăng ký
+            </Link>
+          </div>
+        </CardFooter>
+      </Card>
     </main>
   );
 }

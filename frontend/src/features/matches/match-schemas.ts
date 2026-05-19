@@ -3,7 +3,7 @@ import { z } from "zod";
 export const matchFormSchema = z.object({
   sportId: z.string().min(1),
   areaId: z.string().min(1),
-  time: z.coerce.date().refine((value) => value > new Date(), "Match time must be in the future."),
+  time: z.coerce.date().refine((value) => value > new Date(), "Thời gian trận đấu phải diễn ra trong tương lai."),
   detailedAddress: z.string().trim().max(240).optional(),
   requiredPlayers: z.coerce.number().int().min(1).max(50),
   expectedLevelIds: z.array(z.string().min(1)).max(10).optional(),
