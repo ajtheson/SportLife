@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 function notificationText(type: NotificationType) {
   if (type === NotificationType.MATCH_JOIN_REQUESTED) return "Có người chơi muốn tham gia trận đấu của bạn.";
   if (type === NotificationType.MATCH_JOIN_APPROVED) return "Yêu cầu tham gia trận đấu của bạn đã được duyệt.";
+  if (type === NotificationType.MATCH_UPDATED) return "Chủ trận đã thay đổi thông tin trận đấu, yêu cầu tham gia của bạn đã bị hủy tự động.";
   return "Yêu cầu tham gia trận đấu của bạn đã bị từ chối.";
 }
 

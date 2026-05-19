@@ -70,6 +70,7 @@ enum NotificationType {
   MATCH_JOIN_REQUESTED
   MATCH_JOIN_APPROVED
   MATCH_JOIN_REJECTED
+  MATCH_UPDATED
 }
 
 model User {

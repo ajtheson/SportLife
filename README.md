@@ -38,6 +38,7 @@ Current completed phase:
 - Phase 4: Player-created matches, detailed address, multi-level filters by sport, join requests, owner approval/rejection, auto-Full status, close/cancel rules, and in-app notifications
 - Phase 5: Sport-tagged community discussion posts with titles, admin approval, comments, and moderation
 - Phase 6 (Part A-D): Full Vietnamese localization, Design System integration (shadcn/ui), and UI polishing for all pages.
+- Phase 6E (Complete): Added Admin statistical dashboard, Admin User Management (Lock/Unlock accounts, pagination, and role filters), and Player Edit Match feature with automatic join request cancellation and notifications.
 
 Default development admin account:
 

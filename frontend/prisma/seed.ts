@@ -7,6 +7,7 @@ import {
   NotificationType,
   PrismaClient,
   UserRole,
+  UserStatus,
   VisibilityStatus,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -150,12 +151,13 @@ function areaType(areaName: string) {
 
 const demoPassword = "Demo123456!";
 
-const demoPlayers = [
+const explicitPlayers = [
   {
     email: "player.anh@sportlife.local",
     displayName: "Nguyễn Anh",
     phone: "0900000001",
     areaIndex: 13,
+    status: UserStatus.ACTIVE,
     sports: [
       { sport: "Cầu lông", level: "Trung bình" },
       { sport: "Pickleball", level: "Mới chơi" },
@@ -166,6 +168,7 @@ const demoPlayers = [
     displayName: "Trần Bình",
     phone: "0900000002",
     areaIndex: 16,
+    status: UserStatus.ACTIVE,
     sports: [
       { sport: "Cầu lông", level: "Khá giỏi" },
       { sport: "Bida", level: "Trung bình" },
@@ -176,6 +179,7 @@ const demoPlayers = [
     displayName: "Lê Chi",
     phone: "0900000003",
     areaIndex: 21,
+    status: UserStatus.ACTIVE,
     sports: [
       { sport: "Pickleball", level: "Trung bình" },
       { sport: "Cầu lông", level: "Mới chơi" },
@@ -186,6 +190,7 @@ const demoPlayers = [
     displayName: "Phạm Duy",
     phone: "0900000004",
     areaIndex: 31,
+    status: UserStatus.ACTIVE,
     sports: [
       { sport: "Bida", level: "Khá giỏi" },
       { sport: "Pickleball", level: "Trung bình" },
@@ -196,6 +201,7 @@ const demoPlayers = [
     displayName: "Đỗ Hà",
     phone: "0900000005",
     areaIndex: 44,
+    status: UserStatus.ACTIVE,
     sports: [
       { sport: "Cầu lông", level: "Mới chơi" },
       { sport: "Bida", level: "Mới chơi" },
@@ -206,12 +212,24 @@ const demoPlayers = [
     displayName: "Vũ Linh",
     phone: "0900000006",
     areaIndex: 49,
+    status: UserStatus.ACTIVE,
     sports: [
       { sport: "Pickleball", level: "Khá giỏi" },
       { sport: "Cầu lông", level: "Trung bình" },
     ],
   },
 ];
+
+const generatedPlayers = Array.from({ length: 20 }).map((_, i) => ({
+  email: `player.gen${i + 1}@sportlife.local`,
+  displayName: `Người chơi tự động ${i + 1}`,
+  phone: `0901000${(i + 1).toString().padStart(3, "0")}`,
+  areaIndex: i % 145,
+  status: i % 5 === 0 ? UserStatus.LOCKED : UserStatus.ACTIVE,
+  sports: [{ sport: initialSports[i % 3], level: defaultLevels[i % 3] }],
+}));
+
+const demoPlayers = [...explicitPlayers, ...generatedPlayers];
 
 const demoOwners = [
   { email: "owner.caugiay@sportlife.local", businessName: "Trung tâm Thể thao Cầu Giấy", phone: "0910000001" },
@@ -259,7 +277,7 @@ async function seedDemoData() {
         emailVerified: new Date(),
         passwordHash,
         role: UserRole.PLAYER,
-        status: "ACTIVE",
+        status: (player as any).status || UserStatus.ACTIVE,
         name: player.displayName,
         playerProfile: {
           create: {
@@ -290,7 +308,7 @@ async function seedDemoData() {
         emailVerified: new Date(),
         passwordHash,
         role: UserRole.VENUE_OWNER,
-        status: "ACTIVE",
+        status: UserStatus.ACTIVE,
         name: owner.businessName,
         venueOwnerProfile: {
           create: {
@@ -588,13 +606,13 @@ async function main() {
   if (adminEmail && adminPassword) {
     await prisma.user.upsert({
       where: { email: adminEmail },
-      update: { role: UserRole.ADMIN, status: "ACTIVE", emailVerified: new Date() },
+      update: { role: UserRole.ADMIN, status: UserStatus.ACTIVE, emailVerified: new Date() },
       create: {
         email: adminEmail,
         emailVerified: new Date(),
         passwordHash: await bcrypt.hash(adminPassword, 12),
         role: UserRole.ADMIN,
-        status: "ACTIVE",
+        status: UserStatus.ACTIVE,
         name: "SportLife Admin",
       },
     });

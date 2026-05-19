@@ -118,6 +118,12 @@ export default async function MatchDetailPage({ params, searchParams }: MatchDet
 
             {isOwner && (match.status === MatchStatus.OPEN || match.status === MatchStatus.FULL) ? (
               <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href={`/matches/${match.id}/edit`}
+                  className={buttonVariants({ variant: "default" })}
+                >
+                  Sửa trận đấu
+                </Link>
                 <form action={closeMatchAction}>
                   <input name="matchId" type="hidden" value={match.id} />
                   <Button type="submit" variant="secondary">

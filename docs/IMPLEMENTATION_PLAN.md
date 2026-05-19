@@ -288,9 +288,9 @@ Tasks:
 - [x] Localize venue owner dashboard and venue forms.
 - [x] Localize admin moderation and configuration pages.
 - [x] Format all dates and times to `vi-VN` locale.
-- [ ] Implement Admin user management.
-- [ ] Implement Admin statistical dashboard.
-- [ ] Allow Player to edit matches.
+- [x] Implement Admin user management.
+- [x] Implement Admin statistical dashboard.
+- [x] Allow Player to edit matches.
 - [ ] Implement image/avatar upload.
 - [ ] Implement pagination for long lists.
 - [ ] Implement Chat feature.

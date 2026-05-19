@@ -40,6 +40,8 @@ const roleNav: NavItem[] = [
   { label: "Hồ sơ cá nhân", href: "/player/profile", icon: "👤", enabled: true, roles: [UserRole.PLAYER] },
   { label: "Sân của tôi", href: "/venue-owner", icon: "🏢", enabled: true, roles: [UserRole.VENUE_OWNER] },
   { label: "Hồ sơ chủ sân", href: "/venue-owner/profile", icon: "📋", enabled: true, roles: [UserRole.VENUE_OWNER] },
+  { label: "Tổng quan", href: "/admin", icon: "📊", enabled: true, roles: [UserRole.ADMIN] },
+  { label: "Người dùng", href: "/admin/users", icon: "👥", enabled: true, roles: [UserRole.ADMIN] },
   { label: "Duyệt sân", href: "/admin/venues", icon: "✅", enabled: true, roles: [UserRole.ADMIN] },
   { label: "Kiểm duyệt", href: "/admin/community", icon: "📝", enabled: true, roles: [UserRole.ADMIN] },
   { label: "Cấu hình", href: "/admin/config", icon: "⚙️", enabled: true, roles: [UserRole.ADMIN] },

@@ -27,4 +27,9 @@ export const matchStatusActionSchema = z.object({
   matchId: z.string().min(1),
 });
 
+export const editMatchSchema = matchFormSchema.extend({
+  matchId: z.string().min(1),
+});
+
 export type MatchFormInput = z.infer<typeof matchFormSchema>;
+export type EditMatchInput = z.infer<typeof editMatchSchema>;

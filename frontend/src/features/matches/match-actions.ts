@@ -6,12 +6,13 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 
-import { joinRequestIdSchema, joinRequestSchema, matchFormSchema, matchStatusActionSchema } from "./match-schemas";
+import { editMatchSchema, joinRequestIdSchema, joinRequestSchema, matchFormSchema, matchStatusActionSchema } from "./match-schemas";
 import {
   approveJoinRequest,
   cancelMatch,
   closeMatch,
   createMatch,
+  editMatch,
   rejectJoinRequest,
   requestJoinMatch,
 } from "./match-service";
@@ -202,4 +203,44 @@ export async function cancelMatchAction(formData: FormData) {
   revalidatePath("/matches");
   revalidatePath(target);
   redirectWith(target, "status", "canceled");
+}
+
+export async function editMatchAction(formData: FormData) {
+  const user = await requirePlayer();
+  const matchId = String(formData.get("matchId") ?? "");
+  const target = matchId ? `/matches/${matchId}` : "/matches";
+
+  const parsed = editMatchSchema.safeParse({
+    matchId: formData.get("matchId"),
+    sportId: formData.get("sportId"),
+    areaId: formData.get("areaId"),
+    time: formData.get("time"),
+    detailedAddress: formData.get("detailedAddress") || undefined,
+    requiredPlayers: formData.get("requiredPlayers"),
+    expectedLevelIds: formData.getAll("expectedLevelIds").map(String),
+    description: formData.get("description") || undefined,
+  });
+
+  if (!parsed.success) {
+    redirectWith(`${target}/edit`, "error", "invalid_input");
+  }
+
+  try {
+    await editMatch(user.id, parsed.data);
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "PROFILE_REQUIRED") {
+        redirect("/player/profile");
+      }
+
+      if (["INVALID_AREA", "INVALID_SPORT", "INVALID_LEVEL", "MATCH_NOT_FOUND", "MATCH_NOT_EDITABLE"].includes(error.message)) {
+        redirectWith(`${target}/edit`, "error", error.message.toLowerCase());
+      }
+    }
+    throw error;
+  }
+
+  revalidatePath("/matches");
+  revalidatePath(target);
+  redirectWith(target, "status", "updated");
 }
