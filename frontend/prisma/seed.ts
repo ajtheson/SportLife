@@ -220,7 +220,7 @@ const explicitPlayers = [
   },
 ];
 
-const generatedPlayers = Array.from({ length: 20 }).map((_, i) => ({
+const generatedPlayers = Array.from({ length: 54 }).map((_, i) => ({
   email: `player.gen${i + 1}@sportlife.local`,
   displayName: `Người chơi tự động ${i + 1}`,
   phone: `0901000${(i + 1).toString().padStart(3, "0")}`,
@@ -231,11 +231,19 @@ const generatedPlayers = Array.from({ length: 20 }).map((_, i) => ({
 
 const demoPlayers = [...explicitPlayers, ...generatedPlayers];
 
-const demoOwners = [
+const explicitOwners = [
   { email: "owner.caugiay@sportlife.local", businessName: "Trung tâm Thể thao Cầu Giấy", phone: "0910000001" },
   { email: "owner.hadong@sportlife.local", businessName: "Câu lạc bộ Năng động Hà Đông", phone: "0910000002" },
   { email: "owner.longbien@sportlife.local", businessName: "Cụm Sân Long Biên", phone: "0910000003" },
 ];
+
+const generatedOwners = Array.from({ length: 9 }).map((_, i) => ({
+  email: `owner.gen${i + 1}@sportlife.local`,
+  businessName: `Chủ sân demo ${i + 1}`,
+  phone: `0911000${(i + 1).toString().padStart(3, "0")}`,
+}));
+
+const demoOwners = [...explicitOwners, ...generatedOwners];
 
 const demoEmails = [...demoPlayers.map((player) => player.email), ...demoOwners.map((owner) => owner.email)];
 
@@ -268,7 +276,7 @@ async function seedDemoData() {
     return { sportId: sport.id, skillLevelId: level.id };
   };
 
-  const players = [];
+  const players: { id: string }[] = [];
 
   for (const player of demoPlayers) {
     const user = await prisma.user.create({
@@ -277,7 +285,7 @@ async function seedDemoData() {
         emailVerified: new Date(),
         passwordHash,
         role: UserRole.PLAYER,
-        status: (player as any).status || UserStatus.ACTIVE,
+        status: player.status ?? UserStatus.ACTIVE,
         name: player.displayName,
         playerProfile: {
           create: {
@@ -299,7 +307,7 @@ async function seedDemoData() {
     players.push(user);
   }
 
-  const owners = [];
+  const owners: { id: string }[] = [];
 
   for (const owner of demoOwners) {
     const user = await prisma.user.create({
@@ -353,6 +361,45 @@ async function seedDemoData() {
         approvalStatus,
         visibilityStatus,
         rejectionReason,
+        sports: { create: [{ sportId: sport.id }] },
+        images: {
+          create: [{ url: `https://placehold.co/800x500?text=${encodeURIComponent(name)}`, altText: name }],
+        },
+      },
+    });
+  }
+
+  const approvalCycle = [ApprovalStatus.APPROVED, ApprovalStatus.APPROVED, ApprovalStatus.PENDING_APPROVAL, ApprovalStatus.REJECTED];
+  const visibilityCycle = [VisibilityStatus.ACTIVE, VisibilityStatus.ACTIVE, VisibilityStatus.HIDDEN];
+
+  for (let index = 0; index < 30; index += 1) {
+    const owner = owners[index % owners.length];
+    const sportName = initialSports[index % initialSports.length];
+    const sport = sportByName.get(sportName);
+    const approvalStatus = approvalCycle[index % approvalCycle.length];
+    const visibilityStatus = visibilityCycle[index % visibilityCycle.length];
+    const phone = `0921000${(index + 1).toString().padStart(3, "0")}`;
+    const name = `${sportName} demo ${index + 1}`;
+
+    if (!sport) throw new Error(`Missing sport ${sportName}`);
+
+    await prisma.venue.create({
+      data: {
+        ownerId: owner.id,
+        name,
+        address: `${10 + index} Đường thể thao demo`,
+        areaId: areaAt(index * 3).id,
+        phone,
+        description: `${name} có dữ liệu demo để kiểm thử danh sách, lọc và kiểm duyệt.`,
+        availabilityNote: index % 3 === 0 ? "Còn khung tối trong tuần." : "Cuối tuần thường khan chỗ, vui lòng liên hệ trước.",
+        openingHours: { text: index % 2 === 0 ? "07:00 - 22:00" : "09:00 - 23:00" },
+        referencePrice: `${90 + (index % 6) * 20},000 VNĐ/giờ`,
+        contactInfo: { phone },
+        approvalStatus,
+        visibilityStatus,
+        rejectionReason: approvalStatus === ApprovalStatus.REJECTED ? "Dữ liệu demo: cần bổ sung thông tin liên hệ hoặc giờ mở cửa." : null,
+        viewCount: 15 + index * 7,
+        contactCount: 2 + (index % 8),
         sports: { create: [{ sportId: sport.id }] },
         images: {
           create: [{ url: `https://placehold.co/800x500?text=${encodeURIComponent(name)}`, altText: name }],
@@ -461,6 +508,88 @@ async function seedDemoData() {
     }
   }
 
+  const joinStatusCycle: JoinRequestStatus[] = [JoinRequestStatus.PENDING, JoinRequestStatus.APPROVED, JoinRequestStatus.REJECTED];
+
+  for (let index = 0; index < 36; index += 1) {
+    const owner = players[index % players.length];
+    const sportName = initialSports[index % initialSports.length];
+    const sport = sportByName.get(sportName);
+    const selectedLevels = [defaultLevels[index % defaultLevels.length], defaultLevels[(index + 1) % defaultLevels.length]];
+    const expectedLevelIds = [...new Set(selectedLevels.map((level) => levelId(sportName, level).skillLevelId))];
+    const requiredPlayers = (index % 3) + 1;
+    const requestCount = (index % 4) + 1;
+    const requests: { requester: { id: string }; status: JoinRequestStatus }[] = [];
+
+    for (let requestIndex = 0; requestIndex < requestCount; requestIndex += 1) {
+      const requester = players[(index + requestIndex + 7) % players.length];
+
+      if (requester.id !== owner.id) {
+        requests.push({
+          requester,
+          status: joinStatusCycle[(index + requestIndex) % joinStatusCycle.length],
+        });
+      }
+    }
+    const approvedCount = requests.filter((request) => request.status === JoinRequestStatus.APPROVED).length;
+
+    if (!sport) throw new Error(`Missing sport ${sportName}`);
+
+    const match = await prisma.match.create({
+      data: {
+        ownerId: owner.id,
+        sportId: sport.id,
+        areaId: areaAt(index * 2).id,
+        time: addDays((index % 14) + 1, 7 + (index % 14)),
+        detailedAddress: `${24 + index} Ngõ demo, ${areaAt(index * 2).name}`,
+        requiredPlayers,
+        expectedLevelId: expectedLevelIds[0] ?? null,
+        status: approvedCount >= requiredPlayers ? MatchStatus.FULL : MatchStatus.OPEN,
+        description: `Kèo ${sportName} demo ${index + 1} để kiểm thử danh sách, lọc, duyệt và thông báo.`,
+        expectedLevels: { create: expectedLevelIds.map((skillLevelId) => ({ skillLevelId })) },
+      },
+    });
+
+    for (const request of requests) {
+      const joinRequest = await prisma.matchJoinRequest.create({
+        data: {
+          matchId: match.id,
+          requesterId: request.requester.id,
+          status: request.status,
+          message: `Yêu cầu tham gia demo ${index + 1}.`,
+        },
+      });
+
+      await prisma.notification.create({
+        data: {
+          recipientId: owner.id,
+          type: NotificationType.MATCH_JOIN_REQUESTED,
+          referenceId: joinRequest.id,
+          readAt: index % 5 === 0 ? new Date() : null,
+        },
+      });
+
+      if (request.status === JoinRequestStatus.APPROVED) {
+        await prisma.notification.create({
+          data: {
+            recipientId: request.requester.id,
+            type: NotificationType.MATCH_JOIN_APPROVED,
+            referenceId: joinRequest.id,
+          },
+        });
+      }
+
+      if (request.status === JoinRequestStatus.REJECTED) {
+        await prisma.notification.create({
+          data: {
+            recipientId: request.requester.id,
+            type: NotificationType.MATCH_JOIN_REJECTED,
+            referenceId: joinRequest.id,
+          },
+        });
+      }
+    }
+  }
+
   const postSeeds = [
     {
       author: players[0],
@@ -537,6 +666,35 @@ async function seedDemoData() {
           create: seed.comments.map((comment) => ({
             authorId: comment.author.id,
             content: comment.content,
+          })),
+        },
+      },
+    });
+  }
+
+  const postTypes = [CommunityPostType.DISCUSSION, CommunityPostType.ADVICE, CommunityPostType.EVENT, CommunityPostType.GENERAL];
+  const postStatuses = [ContentStatus.VISIBLE, ContentStatus.VISIBLE, ContentStatus.PENDING];
+
+  for (let index = 0; index < 36; index += 1) {
+    const sportName = initialSports[index % initialSports.length];
+    const sport = sportByName.get(sportName);
+    const commentCount = index % 5;
+
+    if (!sport) throw new Error(`Missing sport ${sportName}`);
+
+    await prisma.communityPost.create({
+      data: {
+        authorId: players[index % players.length].id,
+        title: `Bài viết demo ${index + 1} về ${sportName}`,
+        sportId: sport.id,
+        postType: postTypes[index % postTypes.length],
+        areaId: areaAt(index * 4).id,
+        status: postStatuses[index % postStatuses.length],
+        content: `Nội dung demo ${index + 1} cho cộng đồng ${sportName}. Bài này giúp kiểm thử feed, tab bài của tôi, bộ lọc, chi tiết và kiểm duyệt.`,
+        comments: {
+          create: Array.from({ length: commentCount }).map((_, commentIndex) => ({
+            authorId: players[(index + commentIndex + 3) % players.length].id,
+            content: `Bình luận demo ${commentIndex + 1} cho bài viết ${index + 1}.`,
           })),
         },
       },

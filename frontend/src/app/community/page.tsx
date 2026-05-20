@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { listAreas, listSports } from "@/features/config/config-service";
 import { listCommunityPosts } from "@/features/community/community-service";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 type CommunityPageProps = {

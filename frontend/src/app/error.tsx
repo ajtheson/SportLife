@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button";
 
 export default function GlobalError({
-  error,
   reset,
 }: {
   error: Error & { digest?: string };
@@ -27,9 +28,9 @@ export default function GlobalError({
         <Button onClick={reset} variant="default">
           Thử lại
         </Button>
-        <a href="/" className={buttonVariants({ variant: "outline" })}>
+        <Link href="/" className={buttonVariants({ variant: "outline" })}>
           Trang chủ
-        </a>
+        </Link>
       </div>
     </div>
   );

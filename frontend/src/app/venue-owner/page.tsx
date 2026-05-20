@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { listOwnerVenues } from "@/features/venues/venue-service";
 import { userHasVenueOwnerProfile } from "@/features/venue-owner-profile/venue-owner-profile-service";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 

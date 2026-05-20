@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0  
 **Date:** 2026-05-19  
-**Status:** Phase 6 (Part A-D) complete  
+**Status:** Phase 6 (Part A-E) complete  
 **Source Requirements:** [SRS_SportLife_v1.0.0.md](./SRS_SportLife_v1.0.0.md)
 
 ---
@@ -223,7 +223,7 @@ Exit criteria:
 
 Outcome: Players can create matches, request to join, and receive in-app notifications.
 
-Status: complete. Player-only match creation is implemented with sport, area, optional detailed address, future time, required players, optional expected levels for the selected sport, and description. Required players means additional players beyond the owner. Players can browse matches, request to join, and match owners can approve or reject pending requests. Approved requests count toward required players and automatically move the match to Full when enough players are approved. Match owners can close their own Full matches or matches after the scheduled time, and can cancel their own matches before the scheduled time. Close/cancel clears pending requests by marking them Canceled. In-app notifications are created for requested, approved, and rejected join request events. Editing an existing match is deferred as an optional follow-up because the core SRS flow is complete and manually tested.
+Status: complete. Player-only match creation is implemented with sport, area, optional detailed address, future time, required players, optional expected levels for the selected sport, and description. Required players means additional players beyond the owner. Players can browse matches, request to join, and match owners can approve or reject pending requests. Approved requests count toward required players and automatically move the match to Full when enough players are approved. Match owners can close their own Full matches or matches after the scheduled time, and can cancel their own matches before the scheduled time. Close/cancel clears pending requests by marking them Canceled. In-app notifications are created for requested, approved, and rejected join request events. Match owners can edit open/full matches; editing resets the match to Open, replaces expected levels, cancels existing join requests, and notifies affected players.
 
 Tasks:
 
@@ -272,11 +272,11 @@ Exit criteria:
 - [x] Admin can approve or delete community posts.
 - [x] Community posts do not duplicate match scheduling fields such as match time/location.
 
-### Phase 6 - Localization and UI Polish (Partially Complete)
+### Phase 6 - Localization and UI Polish (Part A-E Complete)
 
 Outcome: The entire application uses a cohesive design system (`shadcn/ui`) and is fully localized into Vietnamese.
 
-Status: Partially complete (Phases 6A-6D finished). The design system is installed (Be Vietnam Pro font, green earth theme). All pages (Auth, Matches, Venues, Community, Admin) and seed data are localized to Vietnamese. Remaining tasks (Phase 6E-6G) focus on missing SRS gaps, chat, and testing.
+Status: Partially complete (Phases 6A-6E finished). The design system is installed (Be Vietnam Pro font, green earth theme). All pages (Auth, Matches, Venues, Community, Admin) and seed data are localized to Vietnamese. Admin statistical dashboard, Admin user management with role filters and pagination, and Player match editing are implemented. Remaining tasks focus on image/avatar upload, broader pagination for remaining long lists, chat, and comprehensive testing/CI.
 
 Tasks:
 
@@ -291,8 +291,9 @@ Tasks:
 - [x] Implement Admin user management.
 - [x] Implement Admin statistical dashboard.
 - [x] Allow Player to edit matches.
+- [x] Add pagination to Admin user management.
 - [ ] Implement image/avatar upload.
-- [ ] Implement pagination for long lists.
+- [ ] Implement pagination for remaining long lists.
 - [ ] Implement Chat feature.
 - [ ] Add comprehensive E2E testing and CI/CD pipelines.
 
@@ -300,8 +301,9 @@ Exit criteria:
 
 - [x] No English text remains on the UI.
 - [x] The UI is fully responsive and uses modern components.
-- [ ] Admin can manage users and view statistics.
-- [ ] Players can upload avatars and edit matches.
+- [x] Admin can manage users and view statistics.
+- [ ] Players can upload avatars.
+- [x] Players can edit matches.
 - [ ] Real-time or polled chat is functional.
 
 ---
@@ -508,6 +510,7 @@ Authorization rules:
 - Venue Owner can manage own venue listings.
 - Admin can manage users, venues, community moderation, sports, levels, and areas.
 - Admin can view operational dashboards.
+- Admin user lock/unlock actions cannot lock the current admin account or other admin accounts.
 
 ---
 

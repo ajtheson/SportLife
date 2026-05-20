@@ -20,11 +20,15 @@ export async function toggleUserStatusAction(userId: string) {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { status: true },
+      select: { role: true, status: true },
     });
 
     if (!user) {
       return { success: false, error: "Không tìm thấy người dùng." };
+    }
+
+    if (user.role === UserRole.ADMIN) {
+      return { success: false, error: "Không thể khóa tài khoản quản trị viên." };
     }
 
     const newStatus = user.status === UserStatus.ACTIVE ? UserStatus.LOCKED : UserStatus.ACTIVE;

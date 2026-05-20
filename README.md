@@ -37,7 +37,7 @@ Current completed phase:
 - Phase 3: Venue Owner profile, venue submission/editing, admin approval/rejection, approved venue discovery, and sidebar product navigation
 - Phase 4: Player-created matches, detailed address, multi-level filters by sport, join requests, owner approval/rejection, auto-Full status, close/cancel rules, and in-app notifications
 - Phase 5: Sport-tagged community discussion posts with titles, admin approval, comments, and moderation
-- Phase 6 (Part A-D): Full Vietnamese localization, Design System integration (shadcn/ui), and UI polishing for all pages.
+- Phase 6 (Part A-E): Full Vietnamese localization, Design System integration (shadcn/ui), UI polishing, Admin dashboard/user management, and Player edit match.
 - Phase 6E (Complete): Added Admin statistical dashboard, Admin User Management (Lock/Unlock accounts, pagination, and role filters), and Player Edit Match feature with automatic join request cancellation and notifications.
 
 Default development admin account:
@@ -54,6 +54,14 @@ Player: player.anh@sportlife.local
 Venue owner: owner.caugiay@sportlife.local
 Password: Demo123456!
 ```
+
+The development seed also creates a larger demo dataset for UI review:
+
+- 73 users, including 60 players, 12 venue owners, and 1 admin
+- 36 venues across Approved, Pending Approval, Rejected, Active, and Hidden states
+- 40 matches with join requests and in-app notifications
+- 41 community posts and 75 comments across Visible and Pending moderation states
+- 126 Hanoi ward/commune areas and 3 sports
 
 ## Email In Development
 

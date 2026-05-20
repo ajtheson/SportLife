@@ -4,7 +4,7 @@ import { approveContentAction, deleteContentAction } from "@/features/community/
 import { listAdminCommunityContent } from "@/features/community/community-service";
 import { requireAdminPage } from "../config/config-page-utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 type AdminCommunityPageProps = {

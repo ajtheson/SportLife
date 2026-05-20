@@ -47,8 +47,6 @@ export default async function PlayerProfilePage({ searchParams }: PlayerProfileP
   ]);
   const selectedSportLevelBySport = new Map(profile?.sportLevels.map((item) => [item.sportId, item.skillLevelId]));
 
-  const isError = searchParams.then(p => p.error != null);
-
   return (
     <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto w-full max-w-3xl">
