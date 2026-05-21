@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+const venueImageUrlSchema = z
+  .string()
+  .trim()
+  .refine((value) => {
+    if (value.startsWith("/uploads/venues/")) {
+      return true;
+    }
+
+    return z.string().url().safeParse(value).success;
+  }, "Ảnh sân phải là URL hợp lệ hoặc ảnh đã tải lên.");
+
 export const venueFormSchema = z.object({
   venueId: z.string().optional(),
   name: z.string().trim().min(2).max(120),
@@ -11,7 +22,7 @@ export const venueFormSchema = z.object({
   openingHours: z.string().trim().max(300).optional(),
   referencePrice: z.string().trim().max(120).optional(),
   sportId: z.string().min(1),
-  imageUrls: z.array(z.string().trim().url()).max(8).optional(),
+  imageUrls: z.array(venueImageUrlSchema).max(5).optional(),
 });
 
 export const venueIdSchema = z.object({

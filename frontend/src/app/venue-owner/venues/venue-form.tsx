@@ -17,7 +17,7 @@ type VenueFormProps = {
 
 export function VenueForm({ areas, sports, venue, defaultPhone }: VenueFormProps) {
   const selectedSportId = venue?.sports[0]?.sportId ?? "";
-  const imageUrls = venue?.images.map((image) => image.url).join("\n") ?? "";
+  const imageUrls = venue?.images.map((image) => image.url) ?? [];
   const openingHours =
     venue?.openingHours && typeof venue.openingHours === "object" && "text" in venue.openingHours
       ? String(venue.openingHours.text)
@@ -82,7 +82,7 @@ export function VenueForm({ areas, sports, venue, defaultPhone }: VenueFormProps
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
           <Label>Giờ mở cửa</Label>
-          <Input name="openingHours" defaultValue={openingHours} maxLength={300} placeholder="Ví dụ: 06:00 - 22:00 hàng ngày" />
+          <Input name="openingHours" defaultValue={openingHours} maxLength={300} placeholder="Ví dụ: 06:00 - 22:00 hằng ngày" />
         </div>
         <div className="grid gap-2">
           <Label>Giá tham khảo</Label>
@@ -106,14 +106,49 @@ export function VenueForm({ areas, sports, venue, defaultPhone }: VenueFormProps
         <Textarea className="min-h-28" name="description" defaultValue={venue?.description ?? ""} maxLength={1000} placeholder="Thông tin thêm về sân, tiện ích, chỗ để xe..." />
       </div>
 
-      <div className="grid gap-2">
-        <Label>Hình ảnh (URL)</Label>
-        <Textarea
-          className="min-h-24"
-          name="imageUrls"
-          defaultValue={imageUrls}
-          placeholder="https://example.com/hinh-anh.jpg (Mỗi link 1 dòng)"
-        />
+      <div className="grid gap-3">
+        <Label>Ảnh sân</Label>
+        {venue?.images.length ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {venue.images.slice(0, 5).map((image) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={image.id}
+                alt={image.altText ?? venue.name}
+                className="aspect-video w-full rounded-md border border-border object-cover"
+                src={image.url}
+              />
+            ))}
+          </div>
+        ) : null}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="grid gap-1.5">
+              <Label className="text-xs text-muted-foreground">Ảnh từ máy {index + 1}</Label>
+              <Input name="venueImages" type="file" accept="image/jpeg,image/png,image/webp" />
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Có thể tải tối đa 5 ảnh JPG, PNG hoặc WEBP, mỗi ảnh không quá 5MB. Nếu chọn ảnh mới từ máy, danh sách ảnh hiện tại sẽ được thay bằng ảnh vừa tải.
+        </p>
+      </div>
+
+      <div className="grid gap-3">
+        <Label>URL ảnh hiện tại hoặc ảnh ngoài</Label>
+        <div className="grid gap-3">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Input
+              key={index}
+              name="imageUrls"
+              defaultValue={imageUrls[index] ?? ""}
+              placeholder={`https://example.com/hinh-anh-${index + 1}.jpg`}
+            />
+          ))}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Nếu không chọn ảnh từ máy, hệ thống sẽ dùng các URL ảnh bên trên.
+        </p>
       </div>
 
       <Button type="submit" size="lg" className="w-full sm:w-auto sm:justify-self-start">

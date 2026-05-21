@@ -10,6 +10,7 @@ Primary product scope is defined in [docs/SRS_SportLife_v1.0.0.md](docs/SRS_Spor
 
 - This repository contains product documentation, PlantUML diagrams, and a scaffolded full-stack Next.js application in `frontend/`.
 - The project uses Docker Compose as the default runtime for local development and onboarding. A new user should be able to run the stack with `docker compose up --build` from the repository root.
+- Local development image uploads are stored by the Next.js app under `frontend/public/uploads/` through the Docker bind mount. Uploaded files are gitignored; PostgreSQL stores only image URLs.
 - The `backend/` directory is currently reserved. Backend behavior is implemented inside the Next.js app through Route Handlers, Server Actions, Auth.js, Prisma, and server-side feature modules.
 - PlantUML diagrams are under [docs/diagrams](docs/diagrams).
 - [skill-navigator.md](skill-navigator.md) routes broad engineering tasks to local Codex skills.
@@ -65,6 +66,7 @@ Use this stack when creating the implementation unless the user chooses otherwis
 - Transactional email provider such as Resend or SendGrid
 - SMTP email via provider app password is supported through environment variables; never hardcode or commit the app password.
 - S3-compatible object storage for images; store image URLs in PostgreSQL
+- Current local development uses the local upload adapter under `frontend/public/uploads/`; replace it with S3-compatible storage for production.
 - Playwright for critical E2E flows
 - Unit/integration tests for business rules and authorization
 - Docker for local development, including PostgreSQL
@@ -145,11 +147,14 @@ Important invariants:
 - Public registration supports only Player and Venue Owner.
 - If a user registers with an email that exists but is still unverified and active, resend a fresh verification email instead of blocking registration as an existing account.
 - Player users must complete a PlayerProfile after login before using normal Player-facing flows.
+- Player avatar upload accepts JPG, PNG, or WEBP up to 2MB and stores the resulting URL on PlayerProfile.
 - Player contact info is a phone number stored on PlayerProfile as exactly 10 digits and unique across players.
 - Venue Owner users must complete a VenueOwnerProfile before managing venues.
 - Venue Owner profile contact info is a phone number stored as exactly 10 digits and unique across venue owners.
 - Venue listing contact info is a 10-digit phone number.
 - Each venue listing selects exactly one sport.
+- Venue image upload accepts JPG, PNG, or WEBP, up to 5 images and 5MB per image.
+- Venue image URLs can be external URLs or local `/uploads/venues/...` paths.
 - Venue availability is represented as an owner-maintained text note, not booking inventory.
 - New venue listings and approval-sensitive updates start as Pending Approval.
 - Editing an Approved venue sends it back to Pending Approval and clears the previous rejection reason.

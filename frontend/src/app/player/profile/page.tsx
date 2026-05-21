@@ -27,6 +27,10 @@ function profileMessage(searchParams: Record<string, string | string[] | undefin
     return "Vui lòng kiểm tra lại thông tin hồ sơ và thử lại.";
   }
 
+  if (searchParams.error === "invalid_avatar") {
+    return "Ảnh đại diện phải là JPG, PNG hoặc WEBP và không quá 2MB.";
+  }
+
   return null;
 }
 
@@ -64,6 +68,30 @@ export default async function PlayerProfilePage({ searchParams }: PlayerProfileP
         <Card>
           <CardContent className="pt-6">
             <form action={savePlayerProfileAction} className="grid gap-6">
+              <div className="grid gap-3">
+                <Label>Ảnh đại diện</Label>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  {profile?.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      alt={profile.displayName}
+                      className="size-20 rounded-full border border-border object-cover"
+                      src={profile.avatarUrl}
+                    />
+                  ) : (
+                    <div className="flex size-20 items-center justify-center rounded-full border border-dashed border-border bg-muted text-sm text-muted-foreground">
+                      Avatar
+                    </div>
+                  )}
+                  <div className="grid flex-1 gap-2">
+                    <Input name="avatar" type="file" accept="image/jpeg,image/png,image/webp" />
+                    <p className="text-sm text-muted-foreground">
+                      JPG, PNG hoặc WEBP, tối đa 2MB. Chọn ảnh mới sẽ thay ảnh hiện tại.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label>Tên hiển thị</Label>

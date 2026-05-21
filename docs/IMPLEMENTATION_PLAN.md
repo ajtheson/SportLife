@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0  
 **Date:** 2026-05-19  
-**Status:** Phase 7A complete  
+**Status:** Phase 7B complete  
 **Source Requirements:** [SRS_SportLife_v1.0.0.md](./SRS_SportLife_v1.0.0.md)
 
 ---
@@ -175,7 +175,7 @@ Exit criteria:
 
 Outcome: Players can create and edit sport profile data using configured sports, levels, and areas.
 
-Status: complete. Player profile onboarding/edit is implemented for display name, unique 10-digit phone number, Hanoi ward/commune, sports, per-sport skill levels, availability, and introduction. Player users are redirected to complete the profile after login before reaching the home page. Seed data uses the 126 Hanoi commune-level administrative units listed for 2025 by Vietnamese legal/government reference sources. Admin configuration screens are implemented for sports, skill levels, and Hanoi areas, including create, edit, reorder skill levels, and Active/Inactive status management. Avatar upload is intentionally deferred until the storage/image workflow is implemented.
+Status: complete. Player profile onboarding/edit is implemented for display name, avatar upload, unique 10-digit phone number, Hanoi ward/commune, sports, per-sport skill levels, availability, and introduction. Player users are redirected to complete the profile after login before reaching the home page. Seed data uses the 126 Hanoi commune-level administrative units listed for 2025 by Vietnamese legal/government reference sources. Admin configuration screens are implemented for sports, skill levels, and Hanoi areas, including create, edit, reorder skill levels, and Active/Inactive status management.
 
 Tasks:
 
@@ -183,7 +183,7 @@ Tasks:
 - [x] Add unique 10-digit Player phone number requirement.
 - [x] Seed the 126 Hanoi wards/communes and disable old placeholder area rows.
 - [x] Build profile onboarding/edit screen.
-- [ ] Add avatar upload after storage/image workflow is available.
+- [x] Add avatar upload after storage/image workflow is available.
 - [x] Add selectors for area, sports, and skill levels.
 - [x] Add server-side validation for active sport, active level, and active area.
 - [x] Force Player users without a profile to complete `/player/profile` after login.
@@ -199,7 +199,7 @@ Exit criteria:
 
 Outcome: Venue Owners can submit venues; Admin can approve/reject; Players can search approved venues.
 
-Status: complete. Venue Owner profile onboarding is implemented with unique 10-digit phone numbers. Venue Owners can submit and edit venue listings with phone contact, active Hanoi area, exactly one active sport, availability note, text opening hours, reference price, description, and optional image URLs. New and edited venues enter Pending Approval. Admin venue review supports approve, reject with reason, hide, and restore. Public venue discovery shows only Approved and Active venues with sport, area, and text filters. Product routes now use a left-sidebar app shell. View/contact count tracking is deferred and optional because contact information is currently displayed directly.
+Status: complete. Venue Owner profile onboarding is implemented with unique 10-digit phone numbers. Venue Owners can submit and edit venue listings with phone contact, active Hanoi area, exactly one active sport, availability note, text opening hours, reference price, description, optional external image URLs, and local venue photo uploads. New and edited venues enter Pending Approval. Admin venue review supports approve, reject with reason, hide, and restore. Public venue discovery shows only Approved and Active venues with sport, area, and text filters. Product routes now use a left-sidebar app shell. View/contact count tracking is deferred and optional because contact information is currently displayed directly.
 
 Tasks:
 
@@ -276,7 +276,7 @@ Exit criteria:
 
 Outcome: The entire application uses a cohesive design system (`shadcn/ui`) and is fully localized into Vietnamese.
 
-Status: complete for Phase 6A-6E. The design system is installed (green earth theme). All pages (Auth, Matches, Venues, Community, Admin) and seed data are localized to Vietnamese. Admin statistical dashboard, Admin user management with role filters and pagination, and Player match editing are implemented. Remaining polish tasks are tracked separately: image/avatar upload, broader pagination for remaining long lists, and comprehensive testing/CI.
+Status: complete for Phase 6A-6E. The design system is installed (green earth theme). All pages (Auth, Matches, Venues, Community, Admin) and seed data are localized to Vietnamese. Admin statistical dashboard, Admin user management with role filters and pagination, and Player match editing are implemented. Remaining polish tasks are tracked separately: broader pagination for remaining long lists and comprehensive testing/CI.
 
 Tasks:
 
@@ -292,7 +292,7 @@ Tasks:
 - [x] Implement Admin statistical dashboard.
 - [x] Allow Player to edit matches.
 - [x] Add pagination to Admin user management.
-- [ ] Implement image/avatar upload.
+- [x] Implement image/avatar upload.
 - [ ] Implement pagination for remaining long lists.
 - [ ] Add comprehensive E2E testing and CI/CD pipelines.
 
@@ -301,7 +301,7 @@ Exit criteria:
 - [x] No English text remains on the UI.
 - [x] The UI is fully responsive and uses modern components.
 - [x] Admin can manage users and view statistics.
-- [ ] Players can upload avatars.
+- [x] Players can upload avatars.
 - [x] Players can edit matches.
 
 ### Phase 7A - Direct In-App Chat (Complete)
@@ -327,6 +327,29 @@ Exit criteria:
 - [x] Player users must have completed profile before using chat.
 - [x] Venue Owner users must have completed profile before using chat.
 - [x] Admin users do not participate in chat.
+
+### Phase 7B - Local Image Uploads (Complete)
+
+Outcome: Players can upload avatars and Venue Owners can upload venue photos while the app is running through Docker Compose.
+
+Status: complete. The Next.js server stores uploaded images under `frontend/public/uploads/` through the Docker bind mount and stores only image URLs in PostgreSQL. Uploaded files are ignored by git. This is the local development adapter; production should use S3-compatible object storage.
+
+Tasks:
+
+- [x] Add shared local image storage helper.
+- [x] Add Player avatar upload to `/player/profile`.
+- [x] Add Venue photo upload to venue create/edit forms.
+- [x] Keep external venue image URLs supported for existing/demo data.
+- [x] Enforce JPG/PNG/WEBP validation.
+- [x] Enforce avatar maximum 2MB.
+- [x] Enforce venue maximum 5 photos and 5MB per photo.
+
+Exit criteria:
+
+- [x] Player profile can save and display uploaded avatar.
+- [x] Venue form can save uploaded photos as `VenueImage` rows.
+- [x] Selecting new venue photos replaces the submitted venue image list.
+- [x] Upload files are not committed to git.
 
 ---
 
@@ -585,7 +608,7 @@ These do not block scaffolding, but should be resolved before production deploym
 | --- | --- | --- |
 | Package manager | `npm` unless user chooses otherwise | Confirm `npm` vs `pnpm` |
 | Email provider | Console/dev adapter or SMTP app password through env | Confirm SMTP provider vs Resend/SendGrid |
-| Storage provider | Local/mock adapter | S3, R2, or MinIO |
+| Storage provider | Local upload adapter under `frontend/public/uploads/` | S3, R2, or MinIO |
 | Hanoi ward/commune source | 126 Hanoi commune-level units seeded from 2025 public legal/government references | Confirm update process when administrative data changes |
 | Chat scope | Direct in-app 1:1 chat for approved venue contact and approved match participants | Realtime/polling can be added later if needed |
 | Database schema sync | `prisma db push` in Docker Compose | Prisma migrations for production |

@@ -1,7 +1,7 @@
 # Software Requirements Specification (SRS) - SportLife
 
-**Version:** 1.0.3  
-**Date:** 2026-05-19  
+**Version:** 1.0.4  
+**Date:** 2026-05-21  
 **Status:** Draft for stakeholder review  
 **Author:** doc-coordinator / srs-agent
 
@@ -15,6 +15,7 @@
 | 1.0.1 | 2026-05-18 | M | doc-coordinator | Added recommended web tech stack for implementation planning |
 | 1.0.2 | 2026-05-18 | M | doc-coordinator | Refined community posts as sport-tagged discussion content, not match scheduling |
 | 1.0.3 | 2026-05-19 | M | doc-coordinator | Added community post title and admin approval before publication; removed community report flow |
+| 1.0.4 | 2026-05-21 | M | doc-coordinator | Added image upload limits for Player avatars and Venue photos |
 
 *A - Added, M - Modified, D - Deleted*
 
@@ -344,6 +345,7 @@ Functional Requirements:
 Functional Requirements:
 
 - FR-F02-01: The system shall allow Player to manage display name and avatar.
+- FR-F02-07: The system shall accept Player avatar uploads as JPG, PNG, or WEBP up to 2MB.
 - FR-F02-02: The system shall allow Player to select a Hanoi ward/commune.
 - FR-F02-03: The system shall allow Player to select interested sports.
 - FR-F02-04: The system shall allow Player to select configured skill level for each sport.
@@ -366,6 +368,7 @@ Functional Requirements:
 - FR-F03-03: The system shall show approval status and rejection reason to Venue Owner.
 - FR-F03-04: The system shall allow Venue Owner to edit venue information.
 - FR-F03-05: The system shall display basic venue statistics such as view count or contact interactions where available.
+- FR-F03-06: The system shall accept up to 5 venue images as JPG, PNG, or WEBP, with each image up to 5MB.
 
 #### F04 - Venue Discovery and Direct Contact
 
@@ -475,6 +478,7 @@ Functional Requirements:
 | BR-12 | Community is post-based discussion; match scheduling by time/location belongs to the Match feature and is not duplicated in community posts. |
 | BR-13 | Payment and financial settlement are not handled by SportLife. |
 | BR-14 | Rating/review functions are excluded from v1.0.0. |
+| BR-15 | Uploaded image binaries are stored outside PostgreSQL; PostgreSQL stores image URLs only. |
 
 ### 3.4 Data Entities
 

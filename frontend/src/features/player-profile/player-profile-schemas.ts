@@ -6,6 +6,7 @@ export const playerProfileSchema = z.object({
   areaId: z.string().min(1),
   introduction: z.string().trim().max(500).optional(),
   availability: z.string().trim().max(300).optional(),
+  avatarUrl: z.string().trim().optional(),
   sportLevels: z
     .array(
       z.object({

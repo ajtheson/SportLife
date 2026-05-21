@@ -14,6 +14,11 @@ type NewVenuePageProps = {
 
 async function formMessage(searchParams: Promise<Record<string, string | string[] | undefined>>) {
   const params = await searchParams;
+
+  if (params.error === "invalid_images") {
+    return "Ảnh sân phải là JPG, PNG hoặc WEBP, tối đa 5 ảnh và mỗi ảnh không quá 5MB.";
+  }
+
   return params.error === "invalid_input" ? "Vui lòng kiểm tra lại thông tin sân và thử lại." : null;
 }
 
@@ -56,7 +61,7 @@ function Header({ title }: { title: string }) {
         <p className="mt-2 text-muted-foreground">Sân mới cần được admin duyệt trước khi hiển thị.</p>
       </div>
       <Link className={buttonVariants({ variant: "outline" })} href="/venue-owner">
-        ← Sân của tôi
+        Trở về sân của tôi
       </Link>
     </div>
   );

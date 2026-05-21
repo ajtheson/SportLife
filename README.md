@@ -40,6 +40,7 @@ Current completed phase:
 - Phase 6 (Part A-E): Full Vietnamese localization, Design System integration (shadcn/ui), UI polishing, Admin dashboard/user management, and Player edit match.
 - Phase 6E (Complete): Added Admin statistical dashboard, Admin User Management (Lock/Unlock accounts, pagination, and role filters), and Player Edit Match feature with automatic join request cancellation and notifications.
 - Phase 7A (Complete): Direct in-app chat for Player-to-Venue Owner contact from approved venues and Player-to-Player chat after approved match join requests, with in-app message notifications.
+- Phase 7B (Complete): Local image upload for Player avatars and Venue photos through the Dockerized Next.js app.
 
 Default development admin account:
 
@@ -64,6 +65,16 @@ The development seed also creates a larger demo dataset for UI review:
 - 41 community posts and 75 comments across Visible and Pending moderation states
 - 126 Hanoi ward/commune areas and 3 sports
 - 3 direct chat conversations for UI review
+
+## Local Image Uploads
+
+The development app stores uploaded images under `frontend/public/uploads/` through the Docker bind mount. These files are intentionally ignored by git.
+
+- Player avatars: JPG, PNG, or WEBP, maximum 2MB.
+- Venue photos: JPG, PNG, or WEBP, maximum 5 photos and 5MB per photo.
+- Venue edit keeps existing image URLs if no new files are selected. Selecting new venue photos replaces the submitted venue image list.
+
+Production should replace the local storage adapter with S3-compatible object storage while continuing to store image URLs in PostgreSQL.
 
 ## Email In Development
 

@@ -15,6 +15,11 @@ type EditVenuePageProps = {
 
 async function formMessage(searchParams: Promise<Record<string, string | string[] | undefined>>) {
   const params = await searchParams;
+
+  if (params.error === "invalid_images") {
+    return "Ảnh sân phải là JPG, PNG hoặc WEBP, tối đa 5 ảnh và mỗi ảnh không quá 5MB.";
+  }
+
   return params.error === "invalid_input" ? "Vui lòng kiểm tra lại thông tin sân và thử lại." : null;
 }
 
@@ -52,7 +57,7 @@ export default async function EditVenuePage({ params, searchParams }: EditVenueP
             <p className="mt-2 text-muted-foreground">Các thay đổi sẽ cần được admin duyệt lại.</p>
           </div>
           <Link className={buttonVariants({ variant: "outline" })} href="/venue-owner">
-            ← Sân của tôi
+            Trở về sân của tôi
           </Link>
         </div>
         {message ? <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">{message}</div> : null}
