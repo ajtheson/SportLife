@@ -254,6 +254,10 @@ function addDays(days: number, hour: number) {
   return date;
 }
 
+function orderedChatUserIds(userId: string, otherUserId: string) {
+  return [userId, otherUserId].sort() as [string, string];
+}
+
 async function seedDemoData() {
   await prisma.user.deleteMany({ where: { email: { in: demoEmails } } });
 
@@ -699,6 +703,39 @@ async function seedDemoData() {
         },
       },
     });
+  }
+
+  const chatPairs = [
+    { a: players[0], b: owners[0], messages: ["Chào chủ sân, tối nay còn sân cầu lông không?", "Chào bạn, sau 20:00 còn một khung trống nhé."] },
+    { a: players[1], b: players[0], messages: ["Trận mai mình được duyệt rồi, bạn mang cầu hay mình mang?", "Bạn mang giúp mình nhé, mai gặp ở sân."] },
+    { a: players[2], b: owners[1], messages: ["Sân pickleball cuối tuần còn khung sáng không?", "Sáng Chủ nhật còn 9:00 - 10:30."] },
+  ];
+
+  for (const pair of chatPairs) {
+    const [userAId, userBId] = orderedChatUserIds(pair.a.id, pair.b.id);
+    const conversation = await prisma.conversation.create({
+      data: {
+        userAId,
+        userBId,
+      },
+    });
+
+    for (const [messageIndex, content] of pair.messages.entries()) {
+      const senderId = messageIndex % 2 === 0 ? pair.a.id : pair.b.id;
+      const message = await prisma.chatMessage.create({
+        data: {
+          conversationId: conversation.id,
+          senderId,
+          content,
+          readAt: messageIndex === 0 ? new Date() : null,
+        },
+      });
+
+      await prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { lastMessageAt: message.createdAt },
+      });
+    }
   }
 
   console.log("Mật khẩu tài khoản demo:", demoPassword);

@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0  
 **Date:** 2026-05-19  
-**Status:** Phase 6 (Part A-E) complete  
+**Status:** Phase 7A complete  
 **Source Requirements:** [SRS_SportLife_v1.0.0.md](./SRS_SportLife_v1.0.0.md)
 
 ---
@@ -112,7 +112,7 @@ docker compose up --build
 
 - Apply the shell to venue discovery, Player workspace, Venue Owner workspace, and Admin workspace routes.
 - Keep the public home/auth pages simple.
-- Show future tabs such as chat as disabled placeholders until their phases are implemented.
+- Chat is available as a first-class sidebar tab for verified, active Player and Venue Owner users.
 - Render role-specific workspace entries only for the current role.
 
 **Rationale:** This gives users a stable app navigation model now and lets later phases attach real screens without redesigning every page.
@@ -276,7 +276,7 @@ Exit criteria:
 
 Outcome: The entire application uses a cohesive design system (`shadcn/ui`) and is fully localized into Vietnamese.
 
-Status: Partially complete (Phases 6A-6E finished). The design system is installed (Be Vietnam Pro font, green earth theme). All pages (Auth, Matches, Venues, Community, Admin) and seed data are localized to Vietnamese. Admin statistical dashboard, Admin user management with role filters and pagination, and Player match editing are implemented. Remaining tasks focus on image/avatar upload, broader pagination for remaining long lists, chat, and comprehensive testing/CI.
+Status: complete for Phase 6A-6E. The design system is installed (green earth theme). All pages (Auth, Matches, Venues, Community, Admin) and seed data are localized to Vietnamese. Admin statistical dashboard, Admin user management with role filters and pagination, and Player match editing are implemented. Remaining polish tasks are tracked separately: image/avatar upload, broader pagination for remaining long lists, and comprehensive testing/CI.
 
 Tasks:
 
@@ -294,7 +294,6 @@ Tasks:
 - [x] Add pagination to Admin user management.
 - [ ] Implement image/avatar upload.
 - [ ] Implement pagination for remaining long lists.
-- [ ] Implement Chat feature.
 - [ ] Add comprehensive E2E testing and CI/CD pipelines.
 
 Exit criteria:
@@ -304,7 +303,30 @@ Exit criteria:
 - [x] Admin can manage users and view statistics.
 - [ ] Players can upload avatars.
 - [x] Players can edit matches.
-- [ ] Real-time or polled chat is functional.
+
+### Phase 7A - Direct In-App Chat (Complete)
+
+Outcome: Verified, active Player and Venue Owner users can exchange direct in-app messages where product rules allow contact.
+
+Status: complete. Direct 1:1 conversations are implemented with server-side membership checks. Players can start chat with Venue Owners from approved public venue detail pages. Match owners and approved participants can start Player-to-Player chat from match detail pages after a join request is approved. Messages are stored in PostgreSQL, limited to 1000 characters, and create in-app notifications for recipients. The first version uses normal server actions and page refresh rather than WebSocket realtime.
+
+Tasks:
+
+- [x] Add Conversation and ChatMessage data model.
+- [x] Add `/chat` conversation list and `/chat/[conversationId]` message thread.
+- [x] Add Player-to-Venue Owner chat entry point from approved venue detail.
+- [x] Add Player-to-Player chat entry point for approved match participants.
+- [x] Create in-app notification when a new chat message is sent.
+- [x] Seed sample chat conversations for UI review.
+- [ ] Add polling or realtime refresh if the current refresh-based experience feels too static.
+
+Exit criteria:
+
+- [x] Users outside a conversation cannot read or send messages.
+- [x] Users cannot chat with themselves.
+- [x] Player users must have completed profile before using chat.
+- [x] Venue Owner users must have completed profile before using chat.
+- [x] Admin users do not participate in chat.
 
 ---
 
@@ -331,6 +353,7 @@ src/
     matches/
     community/
     notifications/
+    chat/
     admin/
   lib/
     auth/
@@ -387,6 +410,8 @@ Player:
 - `/community/new`
 - `/community/[postId]`
 - `/notifications`
+- `/chat`
+- `/chat/[conversationId]`
 
 Venue Owner:
 
@@ -506,8 +531,9 @@ Validation:
 Authorization rules:
 
 - Guest can access only public/auth routes.
-- Player can manage own profile, matches, join requests, posts, comments, and notifications.
+- Player can manage own profile, matches, join requests, posts, comments, notifications, and allowed chat conversations.
 - Venue Owner can manage own venue listings.
+- Venue Owner can manage allowed chat conversations started from approved venue contact.
 - Admin can manage users, venues, community moderation, sports, levels, and areas.
 - Admin can view operational dashboards.
 - Admin user lock/unlock actions cannot lock the current admin account or other admin accounts.
@@ -561,7 +587,7 @@ These do not block scaffolding, but should be resolved before production deploym
 | Email provider | Console/dev adapter or SMTP app password through env | Confirm SMTP provider vs Resend/SendGrid |
 | Storage provider | Local/mock adapter | S3, R2, or MinIO |
 | Hanoi ward/commune source | 126 Hanoi commune-level units seeded from 2025 public legal/government references | Confirm update process when administrative data changes |
-| Chat scope | Direct contact info only | Decide whether in-app chat is required |
+| Chat scope | Direct in-app 1:1 chat for approved venue contact and approved match participants | Realtime/polling can be added later if needed |
 | Database schema sync | `prisma db push` in Docker Compose | Prisma migrations for production |
 
 ---

@@ -12,6 +12,7 @@ function notificationText(type: NotificationType) {
   if (type === NotificationType.MATCH_JOIN_REQUESTED) return "Có người chơi muốn tham gia trận đấu của bạn.";
   if (type === NotificationType.MATCH_JOIN_APPROVED) return "Yêu cầu tham gia trận đấu của bạn đã được duyệt.";
   if (type === NotificationType.MATCH_UPDATED) return "Chủ trận đã thay đổi thông tin trận đấu, yêu cầu tham gia của bạn đã bị hủy tự động.";
+  if (type === NotificationType.CHAT_MESSAGE) return "Bạn có tin nhắn mới.";
   return "Yêu cầu tham gia trận đấu của bạn đã bị từ chối.";
 }
 
@@ -22,7 +23,7 @@ export default async function NotificationsPage() {
     redirect("/login");
   }
 
-  if (session.user.role !== UserRole.PLAYER) {
+  if (session.user.role === UserRole.ADMIN) {
     redirect("/");
   }
 
@@ -33,7 +34,7 @@ export default async function NotificationsPage() {
       <div className="mx-auto grid w-full max-w-4xl gap-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-primary">Thông báo</h1>
-          <p className="mt-3 text-muted-foreground">Các hoạt động liên quan đến trận đấu của bạn sẽ xuất hiện tại đây.</p>
+          <p className="mt-3 text-muted-foreground">Các hoạt động liên quan đến trận đấu và tin nhắn của bạn sẽ xuất hiện tại đây.</p>
         </div>
 
         <div className="grid gap-3">

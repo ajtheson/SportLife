@@ -20,7 +20,7 @@ export async function markNotificationReadAction(formData: FormData) {
     redirect("/login");
   }
 
-  if (session.user.role !== UserRole.PLAYER) {
+  if (session.user.role === UserRole.ADMIN) {
     redirect("/");
   }
 

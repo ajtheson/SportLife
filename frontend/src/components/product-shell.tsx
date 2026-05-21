@@ -32,8 +32,8 @@ const primaryNav: NavItem[] = [
   { label: "Tìm sân", href: "/venues", icon: "🏟️", enabled: true },
   { label: "Tìm trận", href: "/matches", icon: "⚡", enabled: true, roles: [UserRole.PLAYER] },
   { label: "Cộng đồng", href: "/community", icon: "💬", enabled: true, roles: [UserRole.PLAYER] },
-  { label: "Nhắn tin", icon: "✉️", enabled: false },
-  { label: "Thông báo", href: "/notifications", icon: "🔔", enabled: true, roles: [UserRole.PLAYER] },
+  { label: "Nhắn tin", href: "/chat", icon: "✉️", enabled: true, roles: [UserRole.PLAYER, UserRole.VENUE_OWNER] },
+  { label: "Thông báo", href: "/notifications", icon: "🔔", enabled: true, roles: [UserRole.PLAYER, UserRole.VENUE_OWNER] },
 ];
 
 const roleNav: NavItem[] = [

@@ -10,6 +10,7 @@ import {
   rejectJoinRequestAction,
   requestJoinMatchAction,
 } from "@/features/matches/match-actions";
+import { startMatchChatAction } from "@/features/chat/chat-actions";
 import { getMatchDetail } from "@/features/matches/match-service";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -66,6 +67,7 @@ export default async function MatchDetailPage({ params, searchParams }: MatchDet
   const isPlayer = session?.user.role === UserRole.PLAYER;
   const isOwner = session?.user.id === match.ownerId;
   const approvedRequests = match.joinRequests.filter((request) => request.status === JoinRequestStatus.APPROVED);
+  const approvedParticipantIds = new Set([match.ownerId, ...approvedRequests.map((request) => request.requesterId)]);
   const remaining = Math.max(match.requiredPlayers - approvedRequests.length, 0);
   const canRequest = isPlayer && !isOwner && match.status === MatchStatus.OPEN && !viewerRequest;
   const expectedLevels =
@@ -143,7 +145,20 @@ export default async function MatchDetailPage({ params, searchParams }: MatchDet
 
         {viewerRequest ? (
           <div className="rounded-lg border border-border bg-card p-5 text-sm shadow-sm">
-            Trạng thái yêu cầu của bạn: <span className="font-semibold text-primary">{requestStatusMap[viewerRequest.status] ?? viewerRequest.status}</span>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                Trạng thái yêu cầu của bạn: <span className="font-semibold text-primary">{requestStatusMap[viewerRequest.status] ?? viewerRequest.status}</span>
+              </div>
+              {viewerRequest.status === JoinRequestStatus.APPROVED ? (
+                <form action={startMatchChatAction}>
+                  <input name="matchId" type="hidden" value={match.id} />
+                  <input name="userId" type="hidden" value={match.ownerId} />
+                  <Button type="submit" size="sm">
+                    Nhắn tin với chủ trận
+                  </Button>
+                </form>
+              ) : null}
+            </div>
           </div>
         ) : null}
 
@@ -201,6 +216,14 @@ export default async function MatchDetailPage({ params, searchParams }: MatchDet
                           </Button>
                         </form>
                       </div>
+                    ) : request.status === JoinRequestStatus.APPROVED && approvedParticipantIds.has(session?.user.id ?? "") ? (
+                      <form action={startMatchChatAction}>
+                        <input name="matchId" type="hidden" value={match.id} />
+                        <input name="userId" type="hidden" value={request.requesterId} />
+                        <Button type="submit" variant="outline">
+                          Nhắn tin
+                        </Button>
+                      </form>
                     ) : null}
                   </div>
                 ))}

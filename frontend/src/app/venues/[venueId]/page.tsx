@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { UserRole } from "@prisma/client";
+import { auth } from "@/auth";
+import { startVenueChatAction } from "@/features/chat/chat-actions";
 import { getPublicVenue } from "@/features/venues/venue-service";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -10,6 +13,7 @@ type VenueDetailPageProps = {
 };
 
 export default async function VenueDetailPage({ params }: VenueDetailPageProps) {
+  const session = await auth();
   const { venueId } = await params;
   const venue = await getPublicVenue(venueId);
 
@@ -60,6 +64,14 @@ export default async function VenueDetailPage({ params }: VenueDetailPageProps) 
               <div>
                 <h2 className="font-semibold text-primary">Liên hệ</h2>
                 <p className="mt-2 text-sm text-muted-foreground">{venue.phone}</p>
+                {session?.user.role === UserRole.PLAYER && session.user.id !== venue.ownerId ? (
+                  <form action={startVenueChatAction} className="mt-3">
+                    <input name="venueId" type="hidden" value={venue.id} />
+                    <Button type="submit" size="sm">
+                      Nhắn tin với chủ sân
+                    </Button>
+                  </form>
+                ) : null}
               </div>
               <div>
                 <h2 className="font-semibold text-primary">Giá tham khảo</h2>

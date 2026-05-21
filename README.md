@@ -21,7 +21,7 @@ Open the app:
 http://localhost:3000
 ```
 
-Product routes use a left-sidebar shell for navigation across venue discovery, matches, community, notifications, and role workspaces. Chat remains a future placeholder.
+Product routes use a left-sidebar shell for navigation across venue discovery, matches, community, chat, notifications, and role workspaces.
 
 The Compose stack starts:
 
@@ -39,6 +39,7 @@ Current completed phase:
 - Phase 5: Sport-tagged community discussion posts with titles, admin approval, comments, and moderation
 - Phase 6 (Part A-E): Full Vietnamese localization, Design System integration (shadcn/ui), UI polishing, Admin dashboard/user management, and Player edit match.
 - Phase 6E (Complete): Added Admin statistical dashboard, Admin User Management (Lock/Unlock accounts, pagination, and role filters), and Player Edit Match feature with automatic join request cancellation and notifications.
+- Phase 7A (Complete): Direct in-app chat for Player-to-Venue Owner contact from approved venues and Player-to-Player chat after approved match join requests, with in-app message notifications.
 
 Default development admin account:
 
@@ -62,6 +63,7 @@ The development seed also creates a larger demo dataset for UI review:
 - 40 matches with join requests and in-app notifications
 - 41 community posts and 75 comments across Visible and Pending moderation states
 - 126 Hanoi ward/commune areas and 3 sports
+- 3 direct chat conversations for UI review
 
 ## Email In Development
 

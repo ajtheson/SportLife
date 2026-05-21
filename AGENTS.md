@@ -37,8 +37,9 @@ Core features for v1.0.0:
 - Venue search and direct owner contact
 - Match creation, discovery, join requests, approval, rejection, and closing/canceling
 - Community posts and comments
+- Direct in-app chat between allowed users
 - Admin user, venue, community, sport, area, and skill-level management
-- In-app notifications for match join request events
+- In-app notifications for match join request and chat message events
 
 Out of scope for v1.0.0:
 
@@ -164,6 +165,14 @@ Important invariants:
 - A Player cannot submit duplicate join requests for the same match.
 - A match automatically becomes FULL when approved join requests reach requiredPlayers.
 - Match notifications are in-app only for v1.0.0.
+- Chat is direct 1:1 in-app messaging for verified, active users only.
+- Player users can start chat with Venue Owners from Approved and Active venue listings.
+- Player users can start chat with match owners or approved participants only after the relevant match join request is approved.
+- Venue Owner users can participate in conversations started from approved venue contact.
+- Admin users do not participate in chat.
+- Users cannot chat with themselves.
+- A direct user pair has at most one conversation.
+- Chat messages are text-only in v1.0.0 and limited to 1000 characters.
 - Community posts are sport-tagged discussion content for advice, equipment questions, event announcements, venue experiences, and general sport topics.
 - Community posts must not duplicate match scheduling fields such as match time/location; finding or joining games belongs to the Match feature.
 - Community posts require a title capped at 80 characters.
