@@ -57,14 +57,15 @@ Venue owner: owner.caugiay@sportlife.local
 Password: Demo123456!
 ```
 
-The development seed also creates a larger demo dataset for UI review:
+The development seed creates a compact curated dataset for UI review:
 
-- 73 users, including 60 players, 12 venue owners, and 1 admin
-- 36 venues across Approved, Pending Approval, Rejected, Active, and Hidden states
-- 40 matches with join requests and in-app notifications
-- 41 community posts and 75 comments across Visible and Pending moderation states
+- 13 users, including 8 players, 4 venue owners, and 1 admin
+- 7 named venues across Approved, Pending Approval, Rejected, Active, and Hidden states
+- 6 matches with approved, pending, and rejected join requests
+- 6 community posts with Visible and Pending moderation states
 - 126 Hanoi ward/commune areas and 3 sports
 - 3 direct chat conversations for UI review
+- Remote venue images from free stock photo providers are stored as URLs in PostgreSQL
 
 ## Local Image Uploads
 

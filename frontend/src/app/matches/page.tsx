@@ -1,13 +1,14 @@
 import { MatchStatus } from "@prisma/client";
+import { CalendarClock, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 
 import { auth } from "@/auth";
 import { listAreas, listSports } from "@/features/config/config-service";
 import type { MatchListTab } from "@/features/matches/match-service";
 import { listMatches } from "@/features/matches/match-service";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 type MatchesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -44,22 +45,30 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
   const [matches, sports, areas] = await Promise.all([listMatches(filters), listSports(), listAreas()]);
 
   return (
-    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
-      <div className="mx-auto grid w-full max-w-6xl gap-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary">Tìm trận đấu</h1>
-            <p className="mt-3 text-muted-foreground">Khám phá các trận đấu do người chơi tạo tại Hà Nội.</p>
+    <main className="min-h-screen px-4 py-6 text-foreground sm:px-6 lg:px-8">
+      <div className="mx-auto grid w-full max-w-7xl gap-6">
+        <header className="flex flex-col gap-4 rounded-2xl border border-border bg-card/90 p-5 shadow-sm sm:p-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <Badge variant="secondary" className="mb-3">
+              Matchmaking
+            </Badge>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Tìm trận đấu</h1>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+              Khám phá các trận đang mở, gửi yêu cầu tham gia và quản lý trận của bạn.
+            </p>
           </div>
-          <Link className={buttonVariants()} href="/matches/new">
+          <Link className={buttonVariants({ size: "lg" })} href="/matches/new">
             Tạo trận
           </Link>
-        </div>
+        </header>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 rounded-2xl border border-border bg-card/90 p-2 shadow-sm">
           {tabsFor(Boolean(session?.user)).map((tab) => (
             <Link
-              className={buttonVariants({ variant: selectedTab === tab.value ? "default" : "outline" })}
+              className={buttonVariants({
+                variant: selectedTab === tab.value ? "default" : "ghost",
+                className: "min-w-fit",
+              })}
               href={matchesHref({ tab: tab.value, sportId: filters.sportId, areaId: filters.areaId })}
               key={tab.value}
             >
@@ -68,9 +77,9 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
           ))}
         </div>
 
-        <form className="grid gap-3 rounded-xl border border-border bg-card p-5 shadow-sm md:grid-cols-[220px_260px_auto]">
+        <form className="grid gap-3 rounded-2xl border border-border bg-card/95 p-4 shadow-sm md:grid-cols-[220px_260px_auto]">
           <input name="tab" type="hidden" value={selectedTab} />
-          <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" name="sportId" defaultValue={filters.sportId ?? ""}>
+          <select name="sportId" defaultValue={filters.sportId ?? ""}>
             <option value="">Tất cả các môn</option>
             {sports.map((sport) => (
               <option key={sport.id} value={sport.id}>
@@ -78,7 +87,7 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
               </option>
             ))}
           </select>
-          <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" name="areaId" defaultValue={filters.areaId ?? ""}>
+          <select name="areaId" defaultValue={filters.areaId ?? ""}>
             <option value="">Tất cả khu vực</option>
             {areas.map((area) => (
               <option key={area.id} value={area.id}>
@@ -86,46 +95,61 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
               </option>
             ))}
           </select>
-          <Button type="submit">Lọc</Button>
+          <Button type="submit">Lọc trận</Button>
         </form>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {matches.map((match) => {
             const approvedCount = match.joinRequests.filter((request) => request.status === "APPROVED").length;
             const remaining = Math.max(match.requiredPlayers - approvedCount, 0);
             const statusInfo = statusMap[match.status] ?? { label: match.status, variant: "outline" };
+            const viewerRequest = match.joinRequests.find((request) => request.requesterId === session?.user?.id);
 
             return (
-              <Link key={match.id} href={`/matches/${match.id}`}>
-                <Card className="h-full transition-colors hover:bg-muted/50 hover:shadow-sm">
-                  <CardHeader className="pb-3">
+              <Link className="group block focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50" key={match.id} href={`/matches/${match.id}`}>
+                <Card className="h-full transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md group-hover:ring-primary/25">
+                  <CardHeader>
                     <div className="flex items-start justify-between gap-4">
-                      <CardTitle className="text-xl text-primary">{match.sport.name}</CardTitle>
+                      <div>
+                        <CardTitle className="text-xl text-foreground">{match.sport.name}</CardTitle>
+                        <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                          <MapPin className="size-4 text-primary" aria-hidden="true" />
+                          {match.area.name}
+                        </p>
+                      </div>
                       <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="grid gap-2">
-                    <p className="text-sm text-muted-foreground">{match.area.name}</p>
-                    {match.detailedAddress ? <p className="text-sm text-muted-foreground">{match.detailedAddress}</p> : null}
-                    <p className="text-sm text-muted-foreground">{match.time.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}</p>
-                    
+                  <CardContent className="grid gap-3">
+                    {match.detailedAddress ? <p className="line-clamp-2 text-sm text-muted-foreground">{match.detailedAddress}</p> : null}
+                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CalendarClock className="size-4 text-primary" aria-hidden="true" />
+                      {match.time.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}
+                    </p>
+
                     {selectedTab === "requests" ? (
-                      <p className="text-sm text-muted-foreground">
-                        Trạng thái xin tham gia: <span className="font-medium text-foreground">{requestStatusMap[match.joinRequests.find((request) => request.requesterId === session?.user?.id)?.status ?? ""] ?? "KHÔNG RÕ"}</span>
+                      <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                        Trạng thái xin tham gia:{" "}
+                        <span className="font-semibold text-foreground">{requestStatusMap[viewerRequest?.status ?? ""] ?? "Không rõ"}</span>
                       </p>
                     ) : null}
-                    
+
                     {match.expectedLevels.length > 0 ? (
-                      <p className="text-sm text-muted-foreground">
-                        Trình độ: {match.expectedLevels.map((item) => item.skillLevel.name).join(", ")}
-                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {match.expectedLevels.map((item) => (
+                          <Badge key={item.skillLevel.id} variant="outline">
+                            {item.skillLevel.name}
+                          </Badge>
+                        ))}
+                      </div>
                     ) : null}
-                    
-                    <p className="mt-1 text-sm font-semibold text-primary">
+
+                    <p className="flex items-center gap-2 rounded-lg border border-primary/15 bg-primary/10 p-3 text-sm font-semibold text-primary">
+                      <Users className="size-4" aria-hidden="true" />
                       {match.status === MatchStatus.FULL ? "Đã đủ người" : `Cần tuyển thêm ${remaining} người`}
                     </p>
-                    
-                    {match.description ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{match.description}</p> : null}
+
+                    {match.description ? <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">{match.description}</p> : null}
                   </CardContent>
                 </Card>
               </Link>
@@ -133,7 +157,7 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
           })}
 
           {matches.length === 0 ? (
-            <div className="col-span-full rounded-lg border border-border bg-card p-10 text-center text-sm text-muted-foreground">
+            <div className="col-span-full rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
               Không tìm thấy trận đấu nào phù hợp với bộ lọc.
             </div>
           ) : null}

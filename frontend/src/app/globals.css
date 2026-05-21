@@ -68,56 +68,56 @@
  */
 :root {
   /* Core surfaces */
-  --background: oklch(0.965 0.008 90);        /* #f7f4ed warm cream */
-  --foreground: oklch(0.20 0.02 160);          /* #1d2520 deep forest */
+  --background: oklch(0.972 0.006 145);
+  --foreground: oklch(0.20 0.02 160);
 
   /* Cards & popovers */
-  --card: oklch(0.995 0.002 90);               /* near-white warm */
+  --card: oklch(0.995 0.002 125);
   --card-foreground: oklch(0.20 0.02 160);
   --popover: oklch(0.995 0.002 90);
   --popover-foreground: oklch(0.20 0.02 160);
 
   /* Primary — SportLife green */
-  --primary: oklch(0.45 0.12 160);             /* #0f6b4f warm emerald */
+  --primary: oklch(0.43 0.12 158);
   --primary-foreground: oklch(0.98 0 0);       /* white */
 
   /* Secondary — warm sand */
-  --secondary: oklch(0.94 0.01 85);            /* light sand */
+  --secondary: oklch(0.94 0.025 210);
   --secondary-foreground: oklch(0.30 0.02 160);
 
   /* Muted — subtle beige */
-  --muted: oklch(0.95 0.008 85);
-  --muted-foreground: oklch(0.50 0.02 160);    /* #5f6b63 */
+  --muted: oklch(0.95 0.012 145);
+  --muted-foreground: oklch(0.44 0.02 160);
 
   /* Accent — soft sage */
-  --accent: oklch(0.93 0.03 155);              /* #eef7f1 soft sage */
-  --accent-foreground: oklch(0.30 0.05 160);
+  --accent: oklch(0.93 0.035 155);
+  --accent-foreground: oklch(0.25 0.05 160);
 
   /* Destructive */
   --destructive: oklch(0.577 0.245 27.325);
 
   /* Borders & inputs */
-  --border: oklch(0.88 0.01 80);               /* #d9d2c1 warm border */
-  --input: oklch(0.88 0.01 80);
+  --border: oklch(0.87 0.012 145);
+  --input: oklch(0.84 0.015 145);
   --ring: oklch(0.45 0.12 160);                /* matches primary */
 
   /* Charts — green spectrum */
   --chart-1: oklch(0.45 0.12 160);
-  --chart-2: oklch(0.55 0.10 155);
-  --chart-3: oklch(0.65 0.08 150);
-  --chart-4: oklch(0.75 0.06 145);
-  --chart-5: oklch(0.85 0.04 140);
+  --chart-2: oklch(0.58 0.12 215);
+  --chart-3: oklch(0.68 0.14 70);
+  --chart-4: oklch(0.62 0.12 25);
+  --chart-5: oklch(0.56 0.10 285);
 
   --radius: 0.625rem;
 
   /* Sidebar */
-  --sidebar: oklch(0.98 0.005 85);             /* #fcfbf8 */
+  --sidebar: oklch(0.985 0.006 145);
   --sidebar-foreground: oklch(0.20 0.02 160);
   --sidebar-primary: oklch(0.45 0.12 160);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.94 0.02 150);
+  --sidebar-accent: oklch(0.93 0.03 155);
   --sidebar-accent-foreground: oklch(0.25 0.03 160);
-  --sidebar-border: oklch(0.88 0.01 80);
+  --sidebar-border: oklch(0.87 0.012 145);
   --sidebar-ring: oklch(0.45 0.12 160);
 
   /* SportLife brand tokens */
@@ -184,8 +184,21 @@
   }
   body {
     @apply bg-background text-foreground;
+    text-rendering: optimizeLegibility;
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+  select {
+    @apply min-h-10 rounded-lg border-input bg-card transition-colors duration-200 hover:border-primary/30 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50;
+  }
+  main {
+    background:
+      linear-gradient(180deg, color-mix(in oklch, var(--accent) 28%, transparent), transparent 22rem),
+      var(--background);
   }
 }

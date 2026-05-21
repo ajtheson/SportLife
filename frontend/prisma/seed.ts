@@ -1,6 +1,7 @@
 import {
   ApprovalStatus,
   CommunityPostType,
+  ConfigStatus,
   ContentStatus,
   JoinRequestStatus,
   MatchStatus,
@@ -14,306 +15,397 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const initialSports = ["Bida", "Cầu lông", "Pickleball"];
-const defaultLevels = ["Mới chơi", "Trung bình", "Khá giỏi"];
-const initialAreas = [
-  "Phường Ba Đình",
-  "Phường Ngọc Hà",
-  "Phường Giảng Võ",
-  "Phường Hoàn Kiếm",
-  "Phường Cửa Nam",
-  "Phường Phú Thượng",
-  "Phường Hồng Hà",
-  "Phường Tây Hồ",
-  "Phường Bồ Đề",
-  "Phường Việt Hưng",
-  "Phường Phúc Lợi",
-  "Phường Long Biên",
-  "Phường Nghĩa Đô",
-  "Phường Cầu Giấy",
-  "Phường Yên Hòa",
-  "Phường Ô Chợ Dừa",
-  "Phường Láng",
-  "Phường Văn Miếu - Quốc Tử Giám",
-  "Phường Kim Liên",
-  "Phường Đống Đa",
-  "Phường Hai Bà Trưng",
-  "Phường Vĩnh Tuy",
-  "Phường Bạch Mai",
-  "Phường Vĩnh Hưng",
-  "Phường Định Công",
-  "Phường Tương Mai",
-  "Phường Lĩnh Nam",
-  "Phường Hoàng Mai",
-  "Phường Hoàng Liệt",
-  "Phường Yên Sở",
-  "Phường Phương Liệt",
-  "Phường Khương Đình",
-  "Phường Thanh Xuân",
-  "Phường Từ Liêm",
-  "Phường Thượng Cát",
-  "Phường Đông Ngạc",
-  "Phường Xuân Đỉnh",
-  "Phường Tây Tựu",
-  "Phường Phú Diễn",
-  "Phường Xuân Phương",
-  "Phường Tây Mỗ",
-  "Phường Đại Mỗ",
-  "Phường Thanh Liệt",
-  "Phường Kiến Hưng",
-  "Phường Hà Đông",
-  "Phường Yên Nghĩa",
-  "Phường Phú Lương",
-  "Phường Sơn Tây",
-  "Phường Tùng Thiện",
-  "Phường Dương Nội",
-  "Phường Chương Mỹ",
-  "Xã Sóc Sơn",
-  "Xã Kim Anh",
-  "Xã Trung Giã",
-  "Xã Đa Phúc",
-  "Xã Nội Bài",
-  "Xã Đông Anh",
-  "Xã Phúc Thịnh",
-  "Xã Thư Lâm",
-  "Xã Thiên Lộc",
-  "Xã Vĩnh Thanh",
-  "Xã Phù Đổng",
-  "Xã Thuận An",
-  "Xã Gia Lâm",
-  "Xã Bát Tràng",
-  "Xã Thanh Trì",
-  "Xã Đại Thanh",
-  "Xã Ngọc Hồi",
-  "Xã Nam Phù",
-  "Xã Yên Xuân",
-  "Xã Quang Minh",
-  "Xã Yên Lãng",
-  "Xã Tiến Thắng",
-  "Xã Mê Linh",
-  "Xã Đoài Phương",
-  "Xã Quảng Oai",
-  "Xã Cổ Đô",
-  "Xã Minh Châu",
-  "Xã Vật Lại",
-  "Xã Bất Bạt",
-  "Xã Suối Hai",
-  "Xã Ba Vì",
-  "Xã Yên Bài",
-  "Xã Phúc Thọ",
-  "Xã Phúc Lộc",
-  "Xã Hát Môn",
-  "Xã Đan Phượng",
-  "Xã Liên Minh",
-  "Xã Ô Diên",
-  "Xã Hoài Đức",
-  "Xã Dương Hòa",
-  "Xã Sơn Đồng",
-  "Xã An Khánh",
-  "Xã Quốc Oai",
-  "Xã Kiều Phú",
-  "Xã Hưng Đạo",
-  "Xã Phú Cát",
-  "Xã Thạch Thất",
-  "Xã Hạ Bằng",
-  "Xã Hòa Lạc",
-  "Xã Tây Phương",
-  "Xã Phú Nghĩa",
-  "Xã Xuân Mai",
-  "Xã Quảng Bị",
-  "Xã Trần Phú",
-  "Xã Hòa Phú",
-  "Xã Thanh Oai",
-  "Xã Bình Minh",
-  "Xã Tam Hưng",
-  "Xã Dân Hòa",
-  "Xã Thường Tín",
-  "Xã Hồng Vân",
-  "Xã Thượng Phúc",
-  "Xã Chương Dương",
-  "Xã Phú Xuyên",
-  "Xã Phượng Dực",
-  "Xã Chuyên Mỹ",
-  "Xã Đại Xuyên",
-  "Xã Vân Đình",
-  "Xã Ứng Thiên",
-  "Xã Ứng Hòa",
-  "Xã Hòa Xá",
-  "Xã Mỹ Đức",
-  "Xã Phúc Sơn",
-  "Xã Hồng Sơn",
-  "Xã Hương Sơn",
-];
-
-function areaType(areaName: string) {
-  return areaName.startsWith("Phường ") ? "ward" : "commune";
-}
-
 const demoPassword = "Demo123456!";
 
-const explicitPlayers = [
+const sports = ["Bida", "Cầu lông", "Pickleball"] as const;
+const levels = ["Mới chơi", "Trung bình", "Khá giỏi"] as const;
+
+const hanoiAreas = [
+  ["Xã Thanh Trì", "commune"],
+  ["Xã Đại Thanh", "commune"],
+  ["Xã Nam Phù", "commune"],
+  ["Xã Ngọc Hồi", "commune"],
+  ["Xã Thượng Phúc", "commune"],
+  ["Xã Thường Tín", "commune"],
+  ["Xã Chương Dương", "commune"],
+  ["Xã Hồng Vân", "commune"],
+  ["Xã Phú Xuyên", "commune"],
+  ["Xã Phượng Dực", "commune"],
+  ["Xã Chuyên Mỹ", "commune"],
+  ["Xã Đại Xuyên", "commune"],
+  ["Xã Thanh Oai", "commune"],
+  ["Xã Bình Minh", "commune"],
+  ["Xã Tam Hưng", "commune"],
+  ["Xã Dân Hòa", "commune"],
+  ["Xã Vân Đình", "commune"],
+  ["Xã Ứng Thiên", "commune"],
+  ["Xã Hòa Xá", "commune"],
+  ["Xã Ứng Hòa", "commune"],
+  ["Xã Mỹ Đức", "commune"],
+  ["Xã Hồng Sơn", "commune"],
+  ["Xã Phúc Sơn", "commune"],
+  ["Xã Hương Sơn", "commune"],
+  ["Xã Phú Nghĩa", "commune"],
+  ["Xã Xuân Mai", "commune"],
+  ["Xã Trần Phú", "commune"],
+  ["Xã Hòa Phú", "commune"],
+  ["Xã Quảng Bị", "commune"],
+  ["Xã Minh Châu", "commune"],
+  ["Xã Quảng Oai", "commune"],
+  ["Xã Vật Lại", "commune"],
+  ["Xã Cổ Đô", "commune"],
+  ["Xã Bất Bạt", "commune"],
+  ["Xã Suối Hai", "commune"],
+  ["Xã Ba Vì", "commune"],
+  ["Xã Yên Bài", "commune"],
+  ["Xã Đoài Phương", "commune"],
+  ["Xã Phúc Thọ", "commune"],
+  ["Xã Phúc Lộc", "commune"],
+  ["Xã Hát Môn", "commune"],
+  ["Xã Thạch Thất", "commune"],
+  ["Xã Hạ Bằng", "commune"],
+  ["Xã Tây Phương", "commune"],
+  ["Xã Hòa Lạc", "commune"],
+  ["Xã Yên Xuân", "commune"],
+  ["Xã Quốc Oai", "commune"],
+  ["Xã Hưng Đạo", "commune"],
+  ["Xã Kiều Phú", "commune"],
+  ["Xã Phù Cát", "commune"],
+  ["Xã Hoài Đức", "commune"],
+  ["Xã Dương Hòa", "commune"],
+  ["Xã Sơn Đồng", "commune"],
+  ["Xã An Khánh", "commune"],
+  ["Xã Đan Phượng", "commune"],
+  ["Xã Ô Diên", "commune"],
+  ["Xã Liên Minh", "commune"],
+  ["Xã Gia Lâm", "commune"],
+  ["Xã Thuận An", "commune"],
+  ["Xã Bát Tràng", "commune"],
+  ["Xã Phù Đổng", "commune"],
+  ["Xã Thư Lâm", "commune"],
+  ["Xã Đông Anh", "commune"],
+  ["Xã Phúc Thịnh", "commune"],
+  ["Xã Thiên Lộc", "commune"],
+  ["Xã Vĩnh Thanh", "commune"],
+  ["Xã Mê Linh", "commune"],
+  ["Xã Yên Lãng", "commune"],
+  ["Xã Tiến Thắng", "commune"],
+  ["Xã Quang Minh", "commune"],
+  ["Xã Sóc Sơn", "commune"],
+  ["Xã Đa Phúc", "commune"],
+  ["Xã Nội Bài", "commune"],
+  ["Xã Trung Giã", "commune"],
+  ["Xã Kim Anh", "commune"],
+  ["Phường Hoàn Kiếm", "ward"],
+  ["Phường Cửa Nam", "ward"],
+  ["Phường Ba Đình", "ward"],
+  ["Phường Ngọc Hà", "ward"],
+  ["Phường Giảng Võ", "ward"],
+  ["Phường Hai Bà Trưng", "ward"],
+  ["Phường Vĩnh Tuy", "ward"],
+  ["Phường Bạch Mai", "ward"],
+  ["Phường Đống Đa", "ward"],
+  ["Phường Kim Liên", "ward"],
+  ["Phường Văn Miếu - Quốc Tử Giám", "ward"],
+  ["Phường Láng", "ward"],
+  ["Phường Ô Chợ Dừa", "ward"],
+  ["Phường Hồng Hà", "ward"],
+  ["Phường Lĩnh Nam", "ward"],
+  ["Phường Hoàng Mai", "ward"],
+  ["Phường Vĩnh Hưng", "ward"],
+  ["Phường Tương Mai", "ward"],
+  ["Phường Định Công", "ward"],
+  ["Phường Hoàng Liệt", "ward"],
+  ["Phường Yên Sở", "ward"],
+  ["Phường Thanh Xuân", "ward"],
+  ["Phường Khương Đình", "ward"],
+  ["Phường Phương Liệt", "ward"],
+  ["Phường Cầu Giấy", "ward"],
+  ["Phường Nghĩa Đô", "ward"],
+  ["Phường Yên Hòa", "ward"],
+  ["Phường Tây Hồ", "ward"],
+  ["Phường Phú Thượng", "ward"],
+  ["Phường Tây Tựu", "ward"],
+  ["Phường Phú Diễn", "ward"],
+  ["Phường Xuân Đỉnh", "ward"],
+  ["Phường Đông Ngạc", "ward"],
+  ["Phường Thượng Cát", "ward"],
+  ["Phường Từ Liêm", "ward"],
+  ["Phường Xuân Phương", "ward"],
+  ["Phường Tây Mỗ", "ward"],
+  ["Phường Đại Mỗ", "ward"],
+  ["Phường Long Biên", "ward"],
+  ["Phường Bồ Đề", "ward"],
+  ["Phường Việt Hưng", "ward"],
+  ["Phường Phúc Lợi", "ward"],
+  ["Phường Hà Đông", "ward"],
+  ["Phường Dương Nội", "ward"],
+  ["Phường Yên Nghĩa", "ward"],
+  ["Phường Phú Lương", "ward"],
+  ["Phường Kiến Hưng", "ward"],
+  ["Phường Thanh Liệt", "ward"],
+  ["Phường Chương Mỹ", "ward"],
+  ["Phường Sơn Tây", "ward"],
+  ["Phường Tùng Thiện", "ward"],
+] as const;
+
+const imageCatalog = {
+  badminton: [
+    {
+      url: "https://images.pexels.com/photos/3660204/pexels-photo-3660204.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      altText: "Vợt và cầu lông trên mặt sân xanh",
+    },
+    {
+      url: "https://images.pexels.com/photos/8007493/pexels-photo-8007493.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      altText: "Hai vợt cầu lông trên sân đỏ trong nhà",
+    },
+  ],
+  pickleball: [
+    {
+      url: "https://images.pexels.com/photos/29820786/pexels-photo-29820786.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      altText: "Sân pickleball ngoài trời với lưới và vạch sân",
+    },
+    {
+      url: "https://images.pexels.com/photos/35214630/pexels-photo-35214630.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      altText: "Lưới trên sân thể thao xanh ngoài trời",
+    },
+  ],
+  billiards: [
+    {
+      url: "https://images.pexels.com/photos/7403960/pexels-photo-7403960.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      altText: "Người chơi bida trên bàn xanh trong phòng ánh sáng thấp",
+    },
+    {
+      url: "https://images.pexels.com/photos/10627128/pexels-photo-10627128.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      altText: "Bóng bida trên bàn xanh trong phòng chơi",
+    },
+  ],
+};
+
+const players = [
   {
     email: "player.anh@sportlife.local",
-    displayName: "Nguyễn Anh",
+    name: "Nguyễn Minh Anh",
     phone: "0900000001",
-    areaIndex: 13,
-    status: UserStatus.ACTIVE,
+    area: "Phường Cầu Giấy",
     sports: [
-      { sport: "Cầu lông", level: "Trung bình" },
-      { sport: "Pickleball", level: "Mới chơi" },
+      ["Cầu lông", "Trung bình"],
+      ["Pickleball", "Mới chơi"],
     ],
+    availability: "Tối thứ 3, thứ 5 và sáng Chủ nhật.",
+    introduction: "Thích đánh đôi cầu lông sau giờ làm, ưu tiên kèo vui vẻ và đúng giờ.",
   },
   {
     email: "player.binh@sportlife.local",
-    displayName: "Trần Bình",
+    name: "Trần Đức Bình",
     phone: "0900000002",
-    areaIndex: 16,
-    status: UserStatus.ACTIVE,
+    area: "Phường Láng",
     sports: [
-      { sport: "Cầu lông", level: "Khá giỏi" },
-      { sport: "Bida", level: "Trung bình" },
+      ["Bida", "Khá giỏi"],
+      ["Cầu lông", "Trung bình"],
     ],
+    availability: "Tối trong tuần sau 19:00.",
+    introduction: "Chơi bida 9 bi và thỉnh thoảng tìm bạn cầu lông khu Đống Đa.",
   },
   {
     email: "player.chi@sportlife.local",
-    displayName: "Lê Chi",
+    name: "Lê Mai Chi",
     phone: "0900000003",
-    areaIndex: 21,
-    status: UserStatus.ACTIVE,
+    area: "Phường Hà Đông",
     sports: [
-      { sport: "Pickleball", level: "Trung bình" },
-      { sport: "Cầu lông", level: "Mới chơi" },
+      ["Pickleball", "Trung bình"],
+      ["Cầu lông", "Mới chơi"],
     ],
+    availability: "Sáng thứ 7 và Chủ nhật.",
+    introduction: "Đang tập pickleball, thích các buổi chơi kỹ thuật nhẹ và có hướng dẫn.",
   },
   {
     email: "player.duy@sportlife.local",
-    displayName: "Phạm Duy",
+    name: "Phạm Anh Duy",
     phone: "0900000004",
-    areaIndex: 31,
-    status: UserStatus.ACTIVE,
+    area: "Phường Tây Hồ",
     sports: [
-      { sport: "Bida", level: "Khá giỏi" },
-      { sport: "Pickleball", level: "Trung bình" },
+      ["Pickleball", "Khá giỏi"],
+      ["Bida", "Trung bình"],
     ],
+    availability: "Cuối tuần hoặc tối thứ 6.",
+    introduction: "Ưu tiên pickleball nhịp nhanh, có thể tham gia cả kèo giao lưu.",
   },
   {
     email: "player.ha@sportlife.local",
-    displayName: "Đỗ Hà",
+    name: "Đỗ Ngọc Hà",
     phone: "0900000005",
-    areaIndex: 44,
-    status: UserStatus.ACTIVE,
+    area: "Phường Thanh Xuân",
     sports: [
-      { sport: "Cầu lông", level: "Mới chơi" },
-      { sport: "Bida", level: "Mới chơi" },
+      ["Cầu lông", "Mới chơi"],
+      ["Bida", "Mới chơi"],
     ],
+    availability: "Tối thứ 2 và thứ 4.",
+    introduction: "Người mới, muốn tìm nhóm thân thiện để luyện đều.",
   },
   {
     email: "player.linh@sportlife.local",
-    displayName: "Vũ Linh",
+    name: "Vũ Quang Linh",
     phone: "0900000006",
-    areaIndex: 49,
-    status: UserStatus.ACTIVE,
+    area: "Phường Long Biên",
     sports: [
-      { sport: "Pickleball", level: "Khá giỏi" },
-      { sport: "Cầu lông", level: "Trung bình" },
+      ["Cầu lông", "Khá giỏi"],
+      ["Pickleball", "Trung bình"],
     ],
+    availability: "Sáng sớm các ngày trong tuần.",
+    introduction: "Thích các trận có nhịp độ ổn định, ưu tiên khu Long Biên.",
   },
-];
+  {
+    email: "player.trang@sportlife.local",
+    name: "Hoàng Thu Trang",
+    phone: "0900000007",
+    area: "Phường Hoàng Mai",
+    sports: [["Cầu lông", "Trung bình"]],
+    availability: "Sau 18:30 các ngày thường.",
+    introduction: "Tìm bạn đánh đôi nữ hoặc đôi nam nữ khu Hoàng Mai.",
+  },
+  {
+    email: "player.khoa@sportlife.local",
+    name: "Bùi Minh Khoa",
+    phone: "0900000008",
+    area: "Phường Bồ Đề",
+    sports: [["Bida", "Trung bình"]],
+    availability: "Tối thứ 7.",
+    introduction: "Chơi bida giải trí, ưu tiên bàn sạch và không gian yên tĩnh.",
+  },
+] as const;
 
-const generatedPlayers = Array.from({ length: 54 }).map((_, i) => ({
-  email: `player.gen${i + 1}@sportlife.local`,
-  displayName: `Người chơi tự động ${i + 1}`,
-  phone: `0901000${(i + 1).toString().padStart(3, "0")}`,
-  areaIndex: i % 145,
-  status: i % 5 === 0 ? UserStatus.LOCKED : UserStatus.ACTIVE,
-  sports: [{ sport: initialSports[i % 3], level: defaultLevels[i % 3] }],
-}));
+const owners = [
+  {
+    email: "owner.caugiay@sportlife.local",
+    businessName: "SportHub Cầu Giấy",
+    phone: "0910000001",
+  },
+  {
+    email: "owner.hadong@sportlife.local",
+    businessName: "Hà Đông Active Club",
+    phone: "0910000002",
+  },
+  {
+    email: "owner.longbien@sportlife.local",
+    businessName: "Long Biên Sports Center",
+    phone: "0910000003",
+  },
+  {
+    email: "owner.tayho@sportlife.local",
+    businessName: "Tây Hồ Racket Club",
+    phone: "0910000004",
+  },
+] as const;
 
-const demoPlayers = [...explicitPlayers, ...generatedPlayers];
-
-const explicitOwners = [
-  { email: "owner.caugiay@sportlife.local", businessName: "Trung tâm Thể thao Cầu Giấy", phone: "0910000001" },
-  { email: "owner.hadong@sportlife.local", businessName: "Câu lạc bộ Năng động Hà Đông", phone: "0910000002" },
-  { email: "owner.longbien@sportlife.local", businessName: "Cụm Sân Long Biên", phone: "0910000003" },
-];
-
-const generatedOwners = Array.from({ length: 9 }).map((_, i) => ({
-  email: `owner.gen${i + 1}@sportlife.local`,
-  businessName: `Chủ sân demo ${i + 1}`,
-  phone: `0911000${(i + 1).toString().padStart(3, "0")}`,
-}));
-
-const demoOwners = [...explicitOwners, ...generatedOwners];
-
-const demoEmails = [...demoPlayers.map((player) => player.email), ...demoOwners.map((owner) => owner.email)];
-
-function addDays(days: number, hour: number) {
+function addDays(days: number, hour: number, minute = 0) {
   const date = new Date();
   date.setDate(date.getDate() + days);
-  date.setHours(hour, 0, 0, 0);
+  date.setHours(hour, minute, 0, 0);
   return date;
 }
 
-function orderedChatUserIds(userId: string, otherUserId: string) {
-  return [userId, otherUserId].sort() as [string, string];
+function orderedPair(userAId: string, userBId: string) {
+  return [userAId, userBId].sort() as [string, string];
 }
 
-async function seedDemoData() {
-  await prisma.user.deleteMany({ where: { email: { in: demoEmails } } });
+async function seedConfig() {
+  for (const sportName of sports) {
+    const sport = await prisma.sport.upsert({
+      where: { name: sportName },
+      update: { status: ConfigStatus.ACTIVE },
+      create: { name: sportName },
+    });
 
-  const passwordHash = await bcrypt.hash(demoPassword, 12);
-  const sports = await prisma.sport.findMany({ include: { skillLevels: true } });
-  const areas = await prisma.area.findMany({
-    where: { city: "Hanoi", status: "ACTIVE" },
-    orderBy: [{ type: "desc" }, { name: "asc" }],
+    for (const [index, levelName] of levels.entries()) {
+      await prisma.skillLevel.upsert({
+        where: { sportId_name: { sportId: sport.id, name: levelName } },
+        update: { order: index + 1, status: ConfigStatus.ACTIVE },
+        create: { sportId: sport.id, name: levelName, order: index + 1 },
+      });
+    }
+  }
+
+  await prisma.area.updateMany({
+    where: { city: "Hanoi" },
+    data: { status: ConfigStatus.INACTIVE },
   });
-  const sportByName = new Map(sports.map((sport) => [sport.name, sport]));
-  const areaAt = (index: number) => areas[index % areas.length];
-  const levelId = (sportName: string, levelName: string) => {
+
+  for (const [name, type] of hanoiAreas) {
+    await prisma.area.upsert({
+      where: { city_name_type: { city: "Hanoi", name, type } },
+      update: { status: ConfigStatus.ACTIVE },
+      create: { city: "Hanoi", name, type, status: ConfigStatus.ACTIVE },
+    });
+  }
+}
+
+async function seedUsers(passwordHash: string) {
+  await prisma.user.deleteMany({
+    where: {
+      role: { in: [UserRole.PLAYER, UserRole.VENUE_OWNER] },
+      email: { endsWith: "@sportlife.local" },
+    },
+  });
+
+  const areas = await prisma.area.findMany({ where: { city: "Hanoi", status: ConfigStatus.ACTIVE } });
+  const sportRows = await prisma.sport.findMany({ include: { skillLevels: true } });
+  const areaByName = new Map(areas.map((area) => [area.name, area]));
+  const sportByName = new Map(sportRows.map((sport) => [sport.name, sport]));
+
+  const findLevel = (sportName: string, levelName: string) => {
     const sport = sportByName.get(sportName);
     const level = sport?.skillLevels.find((item) => item.name === levelName);
 
     if (!sport || !level) {
-      throw new Error(`Missing seed config for ${sportName}/${levelName}`);
+      throw new Error(`Missing sport level: ${sportName}/${levelName}`);
     }
 
     return { sportId: sport.id, skillLevelId: level.id };
   };
 
-  const players: { id: string }[] = [];
+  const findArea = (areaName: string) => {
+    const area = areaByName.get(areaName);
 
-  for (const player of demoPlayers) {
+    if (!area) {
+      throw new Error(`Missing area: ${areaName}`);
+    }
+
+    return area;
+  };
+
+  const createdPlayers = new Map<string, { id: string; email: string }>();
+  const createdOwners = new Map<string, { id: string; email: string }>();
+
+  for (const player of players) {
     const user = await prisma.user.create({
       data: {
         email: player.email,
         emailVerified: new Date(),
         passwordHash,
         role: UserRole.PLAYER,
-        status: player.status ?? UserStatus.ACTIVE,
-        name: player.displayName,
+        status: UserStatus.ACTIVE,
+        name: player.name,
         playerProfile: {
           create: {
-            displayName: player.displayName,
+            displayName: player.name,
             phone: player.phone,
-            areaId: areaAt(player.areaIndex).id,
-            availability: "Các buổi tối trong tuần và sáng cuối tuần",
-            introduction: `${player.displayName} đang tìm kiếm những trận đấu giao lưu thân thiện và chia sẻ về thể thao.`,
+            areaId: findArea(player.area).id,
+            availability: player.availability,
+            introduction: player.introduction,
             contactInfo: { phone: player.phone },
             sportLevels: {
-              create: player.sports.map((item) => levelId(item.sport, item.level)),
+              create: player.sports.map(([sportName, levelName]) => findLevel(sportName, levelName)),
             },
           },
         },
       },
-      include: { playerProfile: true },
     });
 
-    players.push(user);
+    createdPlayers.set(player.email, user);
   }
 
-  const owners: { id: string }[] = [];
-
-  for (const owner of demoOwners) {
+  for (const owner of owners) {
     const user = await prisma.user.create({
       data: {
         email: owner.email,
@@ -330,237 +422,275 @@ async function seedDemoData() {
           },
         },
       },
-      include: { venueOwnerProfile: true },
     });
 
-    owners.push(user);
+    createdOwners.set(owner.email, user);
   }
 
+  return { createdPlayers, createdOwners, findArea, sportByName, findLevel };
+}
+
+async function seedVenues(input: Awaited<ReturnType<typeof seedUsers>>) {
   const venueSeeds = [
-    [owners[0], "Sân Cầu lông Cầu Giấy", "Cầu lông", areaAt(13), "0920000001", "12 Trần Thái Tông", "120,000 VNĐ/giờ", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
-    [owners[0], "Quán Bida Láng", "Bida", areaAt(16), "0920000002", "45 Đường Láng", "90,000 VNĐ/giờ", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
-    [owners[1], "Sân Pickleball Hà Đông", "Pickleball", areaAt(44), "0920000003", "8 Tô Hiệu", "180,000 VNĐ/giờ", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
-    [owners[1], "Câu lạc bộ Cầu lông Văn Quán", "Cầu lông", areaAt(45), "0920000004", "22 Văn Quán", "110,000 VNĐ/giờ", ApprovalStatus.PENDING_APPROVAL, VisibilityStatus.ACTIVE, null],
-    [owners[2], "Sân Đa Năng Long Biên", "Pickleball", areaAt(11), "0920000005", "5 Nguyễn Văn Cừ", "160,000 VNĐ/giờ", ApprovalStatus.APPROVED, VisibilityStatus.ACTIVE, null],
-    [owners[2], "Bida Bồ Đề", "Bida", areaAt(8), "0920000006", "31 Bồ Đề", "100,000 VNĐ/giờ", ApprovalStatus.REJECTED, VisibilityStatus.ACTIVE, "Thiếu thông tin giờ mở cửa rõ ràng."],
-  ] as const;
-
-  for (const [owner, name, sportName, area, phone, address, price, approvalStatus, visibilityStatus, rejectionReason] of venueSeeds) {
-    const sport = sportByName.get(sportName);
-
-    if (!sport) throw new Error(`Missing sport ${sportName}`);
-
-    await prisma.venue.create({
-      data: {
-        ownerId: owner.id,
-        name,
-        address,
-        areaId: area.id,
-        phone,
-        description: `${name} là sân demo để duyệt thử chức năng và tìm kiếm.`,
-        availabilityNote: "Giờ trống được chủ sân cập nhật hàng ngày.",
-        openingHours: { text: "08:00 - 22:00" },
-        referencePrice: price,
-        contactInfo: { phone },
-        approvalStatus,
-        visibilityStatus,
-        rejectionReason,
-        sports: { create: [{ sportId: sport.id }] },
-        images: {
-          create: [{ url: `https://placehold.co/800x500?text=${encodeURIComponent(name)}`, altText: name }],
-        },
-      },
-    });
-  }
-
-  const approvalCycle = [ApprovalStatus.APPROVED, ApprovalStatus.APPROVED, ApprovalStatus.PENDING_APPROVAL, ApprovalStatus.REJECTED];
-  const visibilityCycle = [VisibilityStatus.ACTIVE, VisibilityStatus.ACTIVE, VisibilityStatus.HIDDEN];
-
-  for (let index = 0; index < 30; index += 1) {
-    const owner = owners[index % owners.length];
-    const sportName = initialSports[index % initialSports.length];
-    const sport = sportByName.get(sportName);
-    const approvalStatus = approvalCycle[index % approvalCycle.length];
-    const visibilityStatus = visibilityCycle[index % visibilityCycle.length];
-    const phone = `0921000${(index + 1).toString().padStart(3, "0")}`;
-    const name = `${sportName} demo ${index + 1}`;
-
-    if (!sport) throw new Error(`Missing sport ${sportName}`);
-
-    await prisma.venue.create({
-      data: {
-        ownerId: owner.id,
-        name,
-        address: `${10 + index} Đường thể thao demo`,
-        areaId: areaAt(index * 3).id,
-        phone,
-        description: `${name} có dữ liệu demo để kiểm thử danh sách, lọc và kiểm duyệt.`,
-        availabilityNote: index % 3 === 0 ? "Còn khung tối trong tuần." : "Cuối tuần thường khan chỗ, vui lòng liên hệ trước.",
-        openingHours: { text: index % 2 === 0 ? "07:00 - 22:00" : "09:00 - 23:00" },
-        referencePrice: `${90 + (index % 6) * 20},000 VNĐ/giờ`,
-        contactInfo: { phone },
-        approvalStatus,
-        visibilityStatus,
-        rejectionReason: approvalStatus === ApprovalStatus.REJECTED ? "Dữ liệu demo: cần bổ sung thông tin liên hệ hoặc giờ mở cửa." : null,
-        viewCount: 15 + index * 7,
-        contactCount: 2 + (index % 8),
-        sports: { create: [{ sportId: sport.id }] },
-        images: {
-          create: [{ url: `https://placehold.co/800x500?text=${encodeURIComponent(name)}`, altText: name }],
-        },
-      },
-    });
-  }
-
-  const matchSeeds = [
     {
-      owner: players[0],
+      owner: "owner.caugiay@sportlife.local",
+      name: "Cầu lông Cầu Giấy Arena",
       sport: "Cầu lông",
-      area: areaAt(13),
-      time: addDays(1, 19),
-      requiredPlayers: 2,
-      levels: ["Mới chơi", "Trung bình"],
-      description: "Giao lưu đánh đôi sau giờ làm. Vui lòng mang theo vợt.",
-      requests: [
-        { player: players[1], status: JoinRequestStatus.APPROVED, message: "Tôi có thể tham gia sau 18:30." },
-        { player: players[4], status: JoinRequestStatus.PENDING, message: "Mình mới tập chơi nhưng rất nhiệt tình." },
-      ],
+      area: "Phường Cầu Giấy",
+      address: "12 Trần Thái Tông, Cầu Giấy",
+      phone: "0920000001",
+      price: "120,000 - 160,000 VNĐ/giờ",
+      availability: "Còn sân sau 20:00 các ngày thứ 2 đến thứ 5.",
+      description: "Cụm sân trong nhà, ánh sáng đều, phù hợp đánh đôi sau giờ làm.",
+      approvalStatus: ApprovalStatus.APPROVED,
+      visibilityStatus: VisibilityStatus.ACTIVE,
+      images: imageCatalog.badminton,
     },
     {
-      owner: players[2],
-      sport: "Pickleball",
-      area: areaAt(44),
-      time: addDays(2, 8),
-      requiredPlayers: 3,
-      levels: ["Trung bình"],
-      description: "Tập luyện pickleball buổi sáng, đánh nhẹ nhàng giao lưu.",
-      requests: [{ player: players[5], status: JoinRequestStatus.APPROVED, message: "Mình có sẵn bóng nhé." }],
-    },
-    {
-      owner: players[3],
+      owner: "owner.caugiay@sportlife.local",
+      name: "Bida Láng 9 Ball Club",
       sport: "Bida",
-      area: areaAt(16),
-      time: addDays(3, 20),
-      requiredPlayers: 1,
-      levels: ["Khá giỏi"],
-      description: "Cần tìm 1 bạn trình độ khá để luyện tập bida lỗ 9 bóng.",
-      requests: [{ player: players[1], status: JoinRequestStatus.PENDING, message: "Chạm 7 không bạn?" }],
+      area: "Phường Láng",
+      address: "45 Đường Láng, Đống Đa",
+      phone: "0920000002",
+      price: "90,000 - 120,000 VNĐ/giờ",
+      availability: "Buổi chiều thường vắng, tối cuối tuần nên đặt trước.",
+      description: "Không gian yên tĩnh, bàn 9 bi và 10 bi cho người chơi luyện tập.",
+      approvalStatus: ApprovalStatus.APPROVED,
+      visibilityStatus: VisibilityStatus.ACTIVE,
+      images: imageCatalog.billiards,
     },
     {
-      owner: players[5],
+      owner: "owner.hadong@sportlife.local",
+      name: "Pickleball Hà Đông Club",
       sport: "Pickleball",
-      area: areaAt(11),
-      time: addDays(4, 18),
-      requiredPlayers: 2,
-      levels: ["Trung bình", "Khá giỏi"],
-      description: "Các trận đấu nhịp độ nhanh khu vực Long Biên.",
-      requests: [
-        { player: players[2], status: JoinRequestStatus.APPROVED, message: "Hẹn gặp lại ở sân." },
-        { player: players[0], status: JoinRequestStatus.APPROVED, message: "Mình có thể chơi 90 phút." },
-      ],
+      area: "Phường Hà Đông",
+      address: "8 Tô Hiệu, Hà Đông",
+      phone: "0920000003",
+      price: "180,000 - 220,000 VNĐ/giờ",
+      availability: "Sáng cuối tuần còn vài khung 7:00 - 10:00.",
+      description: "Sân ngoài trời có lưới cố định, phù hợp nhóm mới tập và trung bình.",
+      approvalStatus: ApprovalStatus.APPROVED,
+      visibilityStatus: VisibilityStatus.ACTIVE,
+      images: imageCatalog.pickleball,
+    },
+    {
+      owner: "owner.longbien@sportlife.local",
+      name: "Long Biên Pickleball Yard",
+      sport: "Pickleball",
+      area: "Phường Long Biên",
+      address: "5 Nguyễn Văn Cừ, Long Biên",
+      phone: "0920000004",
+      price: "160,000 - 200,000 VNĐ/giờ",
+      availability: "Có lớp nhập môn vào sáng thứ 7.",
+      description: "Sân rộng, có khu ngồi chờ và cho thuê vợt pickleball.",
+      approvalStatus: ApprovalStatus.APPROVED,
+      visibilityStatus: VisibilityStatus.ACTIVE,
+      images: [imageCatalog.pickleball[1]],
+    },
+    {
+      owner: "owner.tayho@sportlife.local",
+      name: "Tây Hồ Badminton House",
+      sport: "Cầu lông",
+      area: "Phường Tây Hồ",
+      address: "28 Xuân Diệu, Tây Hồ",
+      phone: "0920000005",
+      price: "140,000 VNĐ/giờ",
+      availability: "Đang chờ admin duyệt trước khi hiển thị công khai.",
+      description: "Sân mới cập nhật, đang trong hàng đợi kiểm duyệt.",
+      approvalStatus: ApprovalStatus.PENDING_APPROVAL,
+      visibilityStatus: VisibilityStatus.ACTIVE,
+      images: [imageCatalog.badminton[1]],
+    },
+    {
+      owner: "owner.longbien@sportlife.local",
+      name: "Bida Bồ Đề Corner",
+      sport: "Bida",
+      area: "Phường Bồ Đề",
+      address: "31 Bồ Đề, Long Biên",
+      phone: "0920000006",
+      price: "100,000 VNĐ/giờ",
+      availability: "Cần bổ sung ảnh mặt tiền và giờ mở cửa chi tiết.",
+      description: "Sân mẫu dùng để test trạng thái bị từ chối trong dashboard chủ sân.",
+      approvalStatus: ApprovalStatus.REJECTED,
+      visibilityStatus: VisibilityStatus.ACTIVE,
+      rejectionReason: "Thiếu thông tin giờ mở cửa rõ ràng và ảnh chưa đủ chất lượng.",
+      images: [imageCatalog.billiards[1]],
+    },
+    {
+      owner: "owner.hadong@sportlife.local",
+      name: "Thanh Xuân Shuttle Center",
+      sport: "Cầu lông",
+      area: "Phường Thanh Xuân",
+      address: "19 Nguyễn Trãi, Thanh Xuân",
+      phone: "0920000007",
+      price: "100,000 - 130,000 VNĐ/giờ",
+      availability: "Khung trống nhiều nhất vào trưa và đầu giờ chiều.",
+      description: "Sân cầu lông dễ đi từ tuyến metro, có gửi xe máy.",
+      approvalStatus: ApprovalStatus.APPROVED,
+      visibilityStatus: VisibilityStatus.HIDDEN,
+      images: [imageCatalog.badminton[0]],
     },
   ];
 
-  for (const seed of matchSeeds) {
-    const sport = sportByName.get(seed.sport);
-    if (!sport) throw new Error(`Missing sport ${seed.sport}`);
+  const createdVenues = new Map<string, { id: string; ownerId: string }>();
 
-    const expectedLevelIds = seed.levels.map((level) => levelId(seed.sport, level).skillLevelId);
-    const approvedCount = seed.requests.filter((request) => request.status === JoinRequestStatus.APPROVED).length;
-    const match = await prisma.match.create({
+  for (const seed of venueSeeds) {
+    const owner = input.createdOwners.get(seed.owner);
+    const sport = input.sportByName.get(seed.sport);
+
+    if (!owner || !sport) {
+      throw new Error(`Missing venue relation: ${seed.name}`);
+    }
+
+    const venue = await prisma.venue.create({
       data: {
-        ownerId: seed.owner.id,
-        sportId: sport.id,
-        areaId: seed.area.id,
-        time: seed.time,
-        detailedAddress: `${seed.area.name}, sân demo`,
-        requiredPlayers: seed.requiredPlayers,
-        expectedLevelId: expectedLevelIds[0] ?? null,
-        status: approvedCount >= seed.requiredPlayers ? MatchStatus.FULL : MatchStatus.OPEN,
+        ownerId: owner.id,
+        name: seed.name,
+        address: seed.address,
+        areaId: input.findArea(seed.area).id,
+        phone: seed.phone,
         description: seed.description,
-        expectedLevels: { create: expectedLevelIds.map((skillLevelId) => ({ skillLevelId })) },
+        availabilityNote: seed.availability,
+        openingHours: { text: "07:00 - 22:00" },
+        referencePrice: seed.price,
+        contactInfo: { phone: seed.phone },
+        approvalStatus: seed.approvalStatus,
+        visibilityStatus: seed.visibilityStatus,
+        rejectionReason: "rejectionReason" in seed ? seed.rejectionReason : null,
+        viewCount: seed.approvalStatus === ApprovalStatus.APPROVED ? 42 + createdVenues.size * 9 : 0,
+        contactCount: seed.approvalStatus === ApprovalStatus.APPROVED ? 5 + createdVenues.size : 0,
+        sports: { create: [{ sportId: sport.id }] },
+        images: {
+          create: seed.images.map((image, index) => ({
+            url: image.url,
+            altText: image.altText,
+            sortOrder: index + 1,
+          })),
+        },
       },
     });
 
-    for (const request of seed.requests) {
-      const joinRequest = await prisma.matchJoinRequest.create({
-        data: {
-          matchId: match.id,
-          requesterId: request.player.id,
-          status: request.status,
-          message: request.message,
-        },
-      });
-
-      await prisma.notification.create({
-        data: {
-          recipientId: seed.owner.id,
-          type: NotificationType.MATCH_JOIN_REQUESTED,
-          referenceId: joinRequest.id,
-        },
-      });
-
-      if (request.status === JoinRequestStatus.APPROVED) {
-        await prisma.notification.create({
-          data: {
-            recipientId: request.player.id,
-            type: NotificationType.MATCH_JOIN_APPROVED,
-            referenceId: joinRequest.id,
-          },
-        });
-      }
-    }
+    createdVenues.set(seed.name, venue);
   }
 
-  const joinStatusCycle: JoinRequestStatus[] = [JoinRequestStatus.PENDING, JoinRequestStatus.APPROVED, JoinRequestStatus.REJECTED];
+  return createdVenues;
+}
 
-  for (let index = 0; index < 36; index += 1) {
-    const owner = players[index % players.length];
-    const sportName = initialSports[index % initialSports.length];
-    const sport = sportByName.get(sportName);
-    const selectedLevels = [defaultLevels[index % defaultLevels.length], defaultLevels[(index + 1) % defaultLevels.length]];
-    const expectedLevelIds = [...new Set(selectedLevels.map((level) => levelId(sportName, level).skillLevelId))];
-    const requiredPlayers = (index % 3) + 1;
-    const requestCount = (index % 4) + 1;
-    const requests: { requester: { id: string }; status: JoinRequestStatus }[] = [];
+async function seedMatches(input: Awaited<ReturnType<typeof seedUsers>>) {
+  const matchSeeds = [
+    {
+      owner: "player.anh@sportlife.local",
+      sport: "Cầu lông",
+      area: "Phường Cầu Giấy",
+      time: addDays(1, 19, 30),
+      requiredPlayers: 2,
+      levels: ["Mới chơi", "Trung bình"],
+      address: "Cầu lông Cầu Giấy Arena, 12 Trần Thái Tông",
+      description: "Đánh đôi nhẹ sau giờ làm, ưu tiên đúng giờ và vui vẻ.",
+      requests: [
+        ["player.binh@sportlife.local", JoinRequestStatus.APPROVED, "Mình có thể đến sau 19:15."],
+        ["player.ha@sportlife.local", JoinRequestStatus.PENDING, "Mình mới chơi nhưng muốn tham gia học hỏi."],
+      ],
+    },
+    {
+      owner: "player.chi@sportlife.local",
+      sport: "Pickleball",
+      area: "Phường Hà Đông",
+      time: addDays(2, 8),
+      requiredPlayers: 3,
+      levels: ["Mới chơi", "Trung bình"],
+      address: "Pickleball Hà Đông Club, 8 Tô Hiệu",
+      description: "Kèo buổi sáng cho người mới và trung bình, có thể đổi cặp liên tục.",
+      requests: [["player.duy@sportlife.local", JoinRequestStatus.APPROVED, "Mình có bóng và có thể đến sớm khởi động."]],
+    },
+    {
+      owner: "player.binh@sportlife.local",
+      sport: "Bida",
+      area: "Phường Láng",
+      time: addDays(3, 20),
+      requiredPlayers: 1,
+      levels: ["Trung bình", "Khá giỏi"],
+      address: "Bida Láng 9 Ball Club, 45 Đường Láng",
+      description: "Tìm một bạn chơi 9 bi, tập trung luyện break và safety.",
+      requests: [["player.khoa@sportlife.local", JoinRequestStatus.PENDING, "Mình chơi trung bình, muốn giao lưu."]],
+    },
+    {
+      owner: "player.linh@sportlife.local",
+      sport: "Pickleball",
+      area: "Phường Long Biên",
+      time: addDays(4, 18),
+      requiredPlayers: 2,
+      levels: ["Trung bình", "Khá giỏi"],
+      address: "Long Biên Pickleball Yard, 5 Nguyễn Văn Cừ",
+      description: "Kèo nhịp nhanh, đánh đôi đổi cặp sau mỗi set.",
+      requests: [
+        ["player.chi@sportlife.local", JoinRequestStatus.APPROVED, "Mình tham gia được."],
+        ["player.duy@sportlife.local", JoinRequestStatus.APPROVED, "Cho mình một slot nhé."],
+      ],
+    },
+    {
+      owner: "player.trang@sportlife.local",
+      sport: "Cầu lông",
+      area: "Phường Hoàng Mai",
+      time: addDays(5, 18, 30),
+      requiredPlayers: 2,
+      levels: ["Mới chơi", "Trung bình"],
+      address: "Khu thể thao Linh Đàm",
+      description: "Tìm thêm bạn nữ hoặc đôi nam nữ để đánh giao lưu.",
+      requests: [],
+    },
+    {
+      owner: "player.khoa@sportlife.local",
+      sport: "Bida",
+      area: "Phường Bồ Đề",
+      time: addDays(6, 20, 30),
+      requiredPlayers: 1,
+      levels: ["Mới chơi", "Trung bình"],
+      address: "Bida Bồ Đề Corner",
+      description: "Kèo bida giải trí, không đặt nặng thắng thua.",
+      requests: [["player.binh@sportlife.local", JoinRequestStatus.REJECTED, "Mình muốn ghép thử một ván."]],
+    },
+  ] as const;
 
-    for (let requestIndex = 0; requestIndex < requestCount; requestIndex += 1) {
-      const requester = players[(index + requestIndex + 7) % players.length];
+  const createdMatches = new Map<string, { id: string; ownerId: string }>();
 
-      if (requester.id !== owner.id) {
-        requests.push({
-          requester,
-          status: joinStatusCycle[(index + requestIndex) % joinStatusCycle.length],
-        });
-      }
+  for (const seed of matchSeeds) {
+    const owner = input.createdPlayers.get(seed.owner);
+    const sport = input.sportByName.get(seed.sport);
+
+    if (!owner || !sport) {
+      throw new Error(`Missing match relation: ${seed.description}`);
     }
-    const approvedCount = requests.filter((request) => request.status === JoinRequestStatus.APPROVED).length;
 
-    if (!sport) throw new Error(`Missing sport ${sportName}`);
-
+    const approvedCount = seed.requests.filter(([, status]) => status === JoinRequestStatus.APPROVED).length;
+    const expectedLevels = seed.levels.map((level) => input.findLevel(seed.sport, level));
     const match = await prisma.match.create({
       data: {
         ownerId: owner.id,
         sportId: sport.id,
-        areaId: areaAt(index * 2).id,
-        time: addDays((index % 14) + 1, 7 + (index % 14)),
-        detailedAddress: `${24 + index} Ngõ demo, ${areaAt(index * 2).name}`,
-        requiredPlayers,
-        expectedLevelId: expectedLevelIds[0] ?? null,
-        status: approvedCount >= requiredPlayers ? MatchStatus.FULL : MatchStatus.OPEN,
-        description: `Kèo ${sportName} demo ${index + 1} để kiểm thử danh sách, lọc, duyệt và thông báo.`,
-        expectedLevels: { create: expectedLevelIds.map((skillLevelId) => ({ skillLevelId })) },
+        areaId: input.findArea(seed.area).id,
+        time: seed.time,
+        detailedAddress: seed.address,
+        requiredPlayers: seed.requiredPlayers,
+        expectedLevelId: expectedLevels[0]?.skillLevelId ?? null,
+        status: approvedCount >= seed.requiredPlayers ? MatchStatus.FULL : MatchStatus.OPEN,
+        description: seed.description,
+        expectedLevels: {
+          create: expectedLevels.map((item) => ({ skillLevelId: item.skillLevelId })),
+        },
       },
     });
 
-    for (const request of requests) {
+    for (const [requesterEmail, status, message] of seed.requests) {
+      const requester = input.createdPlayers.get(requesterEmail);
+
+      if (!requester) {
+        throw new Error(`Missing requester: ${requesterEmail}`);
+      }
+
       const joinRequest = await prisma.matchJoinRequest.create({
-        data: {
-          matchId: match.id,
-          requesterId: request.requester.id,
-          status: request.status,
-          message: `Yêu cầu tham gia demo ${index + 1}.`,
-        },
+        data: { matchId: match.id, requesterId: requester.id, status, message },
       });
 
       await prisma.notification.create({
@@ -568,166 +698,199 @@ async function seedDemoData() {
           recipientId: owner.id,
           type: NotificationType.MATCH_JOIN_REQUESTED,
           referenceId: joinRequest.id,
-          readAt: index % 5 === 0 ? new Date() : null,
         },
       });
 
-      if (request.status === JoinRequestStatus.APPROVED) {
+      if (status === JoinRequestStatus.APPROVED) {
         await prisma.notification.create({
           data: {
-            recipientId: request.requester.id,
+            recipientId: requester.id,
             type: NotificationType.MATCH_JOIN_APPROVED,
             referenceId: joinRequest.id,
           },
         });
       }
 
-      if (request.status === JoinRequestStatus.REJECTED) {
+      if (status === JoinRequestStatus.REJECTED) {
         await prisma.notification.create({
           data: {
-            recipientId: request.requester.id,
+            recipientId: requester.id,
             type: NotificationType.MATCH_JOIN_REJECTED,
             referenceId: joinRequest.id,
           },
         });
       }
     }
+
+    createdMatches.set(seed.description, match);
   }
 
+  return createdMatches;
+}
+
+async function seedCommunity(input: Awaited<ReturnType<typeof seedUsers>>) {
   const postSeeds = [
     {
-      author: players[0],
-      title: "Loại cầu lông nào tốt nhất cho sân trong nhà?",
+      author: "player.anh@sportlife.local",
+      title: "Nên chọn cầu lông loại nào cho sân trong nhà?",
       sport: "Cầu lông",
       type: CommunityPostType.ADVICE,
-      area: areaAt(13),
+      area: "Phường Cầu Giấy",
       status: ContentStatus.VISIBLE,
-      content: "Mình thường chơi trong nhà ở Cầu Giấy. Loại cầu nào bền và phù hợp cho đánh đôi trình độ trung bình?",
+      content: "Nhóm mình đánh đôi trong nhà 2 buổi mỗi tuần. Mọi người đang dùng loại cầu nào bền, bay ổn và giá vừa phải?",
       comments: [
-        { author: players[1], content: "Cầu Victor Gold khá ổn định cho nhóm mình." },
-        { author: players[4], content: "Nếu quan tâm chi phí, bạn có thể thử Lining A+60." },
+        ["player.binh@sportlife.local", "Victor Gold ổn nếu nhóm đánh trung bình."],
+        ["player.ha@sportlife.local", "Nếu mới chơi, mình thấy Lining A+60 dễ kiểm soát chi phí hơn."],
       ],
     },
     {
-      author: players[2],
-      title: "Vợt Pickleball cho lối đánh kiểm soát",
+      author: "player.chi@sportlife.local",
+      title: "Vợt pickleball cho lối đánh kiểm soát",
       sport: "Pickleball",
       type: CommunityPostType.ADVICE,
-      area: areaAt(44),
+      area: "Phường Hà Đông",
       status: ContentStatus.VISIBLE,
-      content: "Mình thích lối đánh mềm mại và dink hơn là đánh sức mạnh. Mọi người gợi ý vợt nào dễ mua ở Hà Nội nhé.",
-      comments: [{ author: players[5], content: "Bạn tìm vợt dày 16mm nhé. Rất hữu ích khi đánh trên lưới (kitchen)." }],
+      content: "Mình thích dink và kiểm soát bóng hơn là smash mạnh. Có mẫu vợt nào dễ mua ở Hà Nội không?",
+      comments: [["player.duy@sportlife.local", "Bạn thử vợt 16mm, mặt carbon nhám nhẹ. Dễ kiểm soát hơn khi đánh gần kitchen."]],
     },
     {
-      author: players[3],
-      title: "Ý tưởng tổ chức giải Bida 9 bóng nhỏ",
+      author: "player.binh@sportlife.local",
+      title: "Ý tưởng tổ chức giải bida 9 bi mini",
       sport: "Bida",
       type: CommunityPostType.EVENT,
-      area: areaAt(16),
+      area: "Phường Láng",
       status: ContentStatus.PENDING,
-      content: "Mình đang tính tổ chức giải 9 bóng cuối tuần, quy mô từ 8-12 người. Ai có gợi ý về thể thức thi đấu không?",
+      content: "Mình muốn tổ chức giải nhỏ 8-12 người, không đặt nặng giải thưởng. Mọi người góp ý thể thức thi đấu giúp mình.",
       comments: [],
     },
     {
-      author: players[5],
-      title: "Tập di chuyển chân trong Pickleball ở đâu?",
+      author: "player.linh@sportlife.local",
+      title: "Bài tập chân nào hữu ích cho pickleball?",
       sport: "Pickleball",
       type: CommunityPostType.DISCUSSION,
-      area: areaAt(11),
+      area: "Phường Long Biên",
       status: ContentStatus.VISIBLE,
-      content: "Mình muốn tập các bước split step và di chuyển ngang. Bài tập nào hiệu quả với mọi người?",
+      content: "Mình muốn cải thiện split step và di chuyển ngang. Ai có bài tập đơn giản trước trận không?",
       comments: [
-        { author: players[2], content: "Khởi động di chuyển chân không (shadow drills) khoảng 10 phút trước trận là ổn." },
-        { author: players[0], content: "Các bài tập chân của Cầu lông áp dụng sang cũng rất tốt." },
+        ["player.chi@sportlife.local", "Shadow drill 10 phút trước trận giúp mình vào nhịp nhanh hơn."],
+        ["player.anh@sportlife.local", "Một số bài footwork cầu lông áp dụng sang pickleball khá tốt."],
       ],
     },
     {
-      author: players[4],
-      title: "Câu hỏi về quấn cán vợt cầu lông cho người mới",
+      author: "player.trang@sportlife.local",
+      title: "Người mới nên thay quấn cán vợt bao lâu một lần?",
       sport: "Cầu lông",
       type: CommunityPostType.GENERAL,
-      area: areaAt(31),
+      area: "Phường Hoàng Mai",
       status: ContentStatus.PENDING,
-      content: "Cho mình hỏi nếu chơi 2 lần một tuần thì bao lâu nên thay quấn cán vợt 1 lần?",
+      content: "Mình chơi 2 buổi mỗi tuần, tay khá ra mồ hôi. Không biết bao lâu nên thay quấn cán để đỡ trơn?",
       comments: [],
     },
-  ];
+    {
+      author: "player.khoa@sportlife.local",
+      title: "Quán bida yên tĩnh cho người tập một mình",
+      sport: "Bida",
+      type: CommunityPostType.DISCUSSION,
+      area: "Phường Bồ Đề",
+      status: ContentStatus.VISIBLE,
+      content: "Mình muốn tìm nơi tập một mình vào buổi chiều, bàn ổn và không quá ồn. Có gợi ý nào khu Long Biên không?",
+      comments: [["player.binh@sportlife.local", "Bạn thử các khung trước 17:00, thường vắng và giá mềm hơn."]],
+    },
+  ] as const;
 
   for (const seed of postSeeds) {
-    const sport = sportByName.get(seed.sport);
-    if (!sport) throw new Error(`Missing sport ${seed.sport}`);
+    const author = input.createdPlayers.get(seed.author);
+    const sport = input.sportByName.get(seed.sport);
+
+    if (!author || !sport) {
+      throw new Error(`Missing community relation: ${seed.title}`);
+    }
 
     await prisma.communityPost.create({
       data: {
-        authorId: seed.author.id,
+        authorId: author.id,
         title: seed.title,
         sportId: sport.id,
         postType: seed.type,
-        areaId: seed.area.id,
+        areaId: input.findArea(seed.area).id,
         status: seed.status,
         content: seed.content,
         comments: {
-          create: seed.comments.map((comment) => ({
-            authorId: comment.author.id,
-            content: comment.content,
-          })),
+          create: seed.comments.map(([authorEmail, content]) => {
+            const commentAuthor = input.createdPlayers.get(authorEmail);
+
+            if (!commentAuthor) {
+              throw new Error(`Missing comment author: ${authorEmail}`);
+            }
+
+            return { authorId: commentAuthor.id, content };
+          }),
         },
       },
     });
   }
+}
 
-  const postTypes = [CommunityPostType.DISCUSSION, CommunityPostType.ADVICE, CommunityPostType.EVENT, CommunityPostType.GENERAL];
-  const postStatuses = [ContentStatus.VISIBLE, ContentStatus.VISIBLE, ContentStatus.PENDING];
+async function seedChat(input: Awaited<ReturnType<typeof seedUsers>>, venues: Map<string, { id: string; ownerId: string }>) {
+  const chatSeeds = [
+    {
+      userA: "player.anh@sportlife.local",
+      userB: "owner.caugiay@sportlife.local",
+      venue: "Cầu lông Cầu Giấy Arena",
+      messages: [
+        ["player.anh@sportlife.local", "Chào chủ sân, tối nay sau 20:00 còn sân cầu lông không?"],
+        ["owner.caugiay@sportlife.local", "Chào bạn, còn một sân từ 20:30 đến 22:00 nhé."],
+      ],
+    },
+    {
+      userA: "player.chi@sportlife.local",
+      userB: "owner.hadong@sportlife.local",
+      venue: "Pickleball Hà Đông Club",
+      messages: [
+        ["player.chi@sportlife.local", "Sáng Chủ nhật còn khung pickleball cho nhóm mới chơi không ạ?"],
+        ["owner.hadong@sportlife.local", "Còn khung 8:00 - 9:30, bên mình có cho thuê vợt."],
+      ],
+    },
+    {
+      userA: "player.anh@sportlife.local",
+      userB: "player.binh@sportlife.local",
+      messages: [
+        ["player.binh@sportlife.local", "Mai mình được duyệt vào kèo cầu lông rồi, bạn mang cầu hay mình mang?"],
+        ["player.anh@sportlife.local", "Bạn mang giúp mình nhé, mai gặp ở sân."],
+      ],
+    },
+  ] as const;
 
-  for (let index = 0; index < 36; index += 1) {
-    const sportName = initialSports[index % initialSports.length];
-    const sport = sportByName.get(sportName);
-    const commentCount = index % 5;
+  for (const seed of chatSeeds) {
+    const userA = input.createdPlayers.get(seed.userA) ?? input.createdOwners.get(seed.userA);
+    const userB = input.createdPlayers.get(seed.userB) ?? input.createdOwners.get(seed.userB);
 
-    if (!sport) throw new Error(`Missing sport ${sportName}`);
+    if (!userA || !userB) {
+      throw new Error(`Missing chat users: ${seed.userA}/${seed.userB}`);
+    }
 
-    await prisma.communityPost.create({
-      data: {
-        authorId: players[index % players.length].id,
-        title: `Bài viết demo ${index + 1} về ${sportName}`,
-        sportId: sport.id,
-        postType: postTypes[index % postTypes.length],
-        areaId: areaAt(index * 4).id,
-        status: postStatuses[index % postStatuses.length],
-        content: `Nội dung demo ${index + 1} cho cộng đồng ${sportName}. Bài này giúp kiểm thử feed, tab bài của tôi, bộ lọc, chi tiết và kiểm duyệt.`,
-        comments: {
-          create: Array.from({ length: commentCount }).map((_, commentIndex) => ({
-            authorId: players[(index + commentIndex + 3) % players.length].id,
-            content: `Bình luận demo ${commentIndex + 1} cho bài viết ${index + 1}.`,
-          })),
-        },
-      },
-    });
-  }
-
-  const chatPairs = [
-    { a: players[0], b: owners[0], messages: ["Chào chủ sân, tối nay còn sân cầu lông không?", "Chào bạn, sau 20:00 còn một khung trống nhé."] },
-    { a: players[1], b: players[0], messages: ["Trận mai mình được duyệt rồi, bạn mang cầu hay mình mang?", "Bạn mang giúp mình nhé, mai gặp ở sân."] },
-    { a: players[2], b: owners[1], messages: ["Sân pickleball cuối tuần còn khung sáng không?", "Sáng Chủ nhật còn 9:00 - 10:30."] },
-  ];
-
-  for (const pair of chatPairs) {
-    const [userAId, userBId] = orderedChatUserIds(pair.a.id, pair.b.id);
+    const [userAId, userBId] = orderedPair(userA.id, userB.id);
     const conversation = await prisma.conversation.create({
       data: {
         userAId,
         userBId,
+        venueContextId: "venue" in seed ? venues.get(seed.venue)?.id : null,
       },
     });
 
-    for (const [messageIndex, content] of pair.messages.entries()) {
-      const senderId = messageIndex % 2 === 0 ? pair.a.id : pair.b.id;
+    for (const [senderEmail, content] of seed.messages) {
+      const sender = input.createdPlayers.get(senderEmail) ?? input.createdOwners.get(senderEmail);
+
+      if (!sender) {
+        throw new Error(`Missing message sender: ${senderEmail}`);
+      }
+
       const message = await prisma.chatMessage.create({
         data: {
           conversationId: conversation.id,
-          senderId,
+          senderId: sender.id,
           content,
-          readAt: messageIndex === 0 ? new Date() : null,
+          readAt: sender.id === userA.id ? new Date() : null,
         },
       });
 
@@ -735,85 +898,69 @@ async function seedDemoData() {
         where: { id: conversation.id },
         data: { lastMessageAt: message.createdAt },
       });
-    }
-  }
 
-  console.log("Mật khẩu tài khoản demo:", demoPassword);
-  console.log("Tài khoản người chơi demo:", demoPlayers[0].email);
-  console.log("Tài khoản chủ sân demo:", demoOwners[0].email);
-}
-
-async function main() {
-  for (const sportName of initialSports) {
-    const sport = await prisma.sport.upsert({
-      where: { name: sportName },
-      update: { status: "ACTIVE" },
-      create: { name: sportName },
-    });
-
-    for (const [index, levelName] of defaultLevels.entries()) {
-      await prisma.skillLevel.upsert({
-        where: {
-          sportId_name: {
-            sportId: sport.id,
-            name: levelName,
-          },
-        },
-        update: { order: index + 1, status: "ACTIVE" },
-        create: {
-          sportId: sport.id,
-          name: levelName,
-          order: index + 1,
+      await prisma.notification.create({
+        data: {
+          recipientId: sender.id === userA.id ? userB.id : userA.id,
+          type: NotificationType.CHAT_MESSAGE,
+          referenceId: message.id,
         },
       });
     }
   }
+}
 
-  await prisma.area.updateMany({
-    where: {
-      city: "Hanoi",
-      type: "district-placeholder",
+async function seedAdmin(passwordHash: string) {
+  const adminEmail = process.env.ADMIN_SEED_EMAIL ?? "admin@sportlife.local";
+
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      role: UserRole.ADMIN,
+      status: UserStatus.ACTIVE,
+      emailVerified: new Date(),
+      passwordHash,
+      name: "SportLife Admin",
     },
-    data: { status: "INACTIVE" },
+    create: {
+      email: adminEmail,
+      emailVerified: new Date(),
+      passwordHash,
+      role: UserRole.ADMIN,
+      status: UserStatus.ACTIVE,
+      name: "SportLife Admin",
+    },
   });
+}
 
-  for (const areaName of initialAreas) {
-    await prisma.area.upsert({
-      where: {
-        city_name_type: {
-          city: "Hanoi",
-          name: areaName,
-          type: areaType(areaName),
-        },
-      },
-      update: { status: "ACTIVE" },
-      create: {
-        city: "Hanoi",
-        name: areaName,
-        type: areaType(areaName),
-      },
-    });
-  }
+async function main() {
+  const passwordHash = await bcrypt.hash(process.env.ADMIN_SEED_PASSWORD ?? demoPassword, 12);
 
-  const adminEmail = process.env.ADMIN_SEED_EMAIL;
-  const adminPassword = process.env.ADMIN_SEED_PASSWORD;
+  await seedConfig();
+  await seedAdmin(passwordHash);
 
-  if (adminEmail && adminPassword) {
-    await prisma.user.upsert({
-      where: { email: adminEmail },
-      update: { role: UserRole.ADMIN, status: UserStatus.ACTIVE, emailVerified: new Date() },
-      create: {
-        email: adminEmail,
-        emailVerified: new Date(),
-        passwordHash: await bcrypt.hash(adminPassword, 12),
-        role: UserRole.ADMIN,
-        status: UserStatus.ACTIVE,
-        name: "SportLife Admin",
-      },
-    });
-  }
+  const userContext = await seedUsers(await bcrypt.hash(demoPassword, 12));
+  const venues = await seedVenues(userContext);
+  await seedMatches(userContext);
+  await seedCommunity(userContext);
+  await seedChat(userContext, venues);
 
-  await seedDemoData();
+  const [areaCount, userCount, venueCount, matchCount, postCount, conversationCount] = await Promise.all([
+    prisma.area.count({ where: { city: "Hanoi", status: ConfigStatus.ACTIVE } }),
+    prisma.user.count(),
+    prisma.venue.count(),
+    prisma.match.count(),
+    prisma.communityPost.count(),
+    prisma.conversation.count(),
+  ]);
+
+  console.log("Seed data ready.");
+  console.log(
+    `Counts: ${areaCount} active Hanoi areas, ${userCount} users, ${venueCount} venues, ${matchCount} matches, ${postCount} posts, ${conversationCount} conversations.`,
+  );
+  console.log(`Admin: ${process.env.ADMIN_SEED_EMAIL ?? "admin@sportlife.local"} / ${process.env.ADMIN_SEED_PASSWORD ?? demoPassword}`);
+  console.log(`Player: ${players[0].email} / ${demoPassword}`);
+  console.log(`Venue owner: ${owners[0].email} / ${demoPassword}`);
 }
 
 main()
