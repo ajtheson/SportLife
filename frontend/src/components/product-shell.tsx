@@ -46,8 +46,8 @@ type NavItem =
 
 const primaryNav: NavItem[] = [
   { label: "Tìm sân", href: "/venues", icon: Search, enabled: true },
-  { label: "Tìm trận", href: "/matches", icon: CalendarPlus, enabled: true, roles: [UserRole.PLAYER] },
-  { label: "Cộng đồng", href: "/community", icon: MessageSquareText, enabled: true, roles: [UserRole.PLAYER] },
+  { label: "Tìm trận", href: "/matches", icon: CalendarPlus, enabled: true },
+  { label: "Cộng đồng", href: "/community", icon: MessageSquareText, enabled: true },
   { label: "Nhắn tin", href: "/chat", icon: Bell, enabled: true, roles: [UserRole.PLAYER, UserRole.VENUE_OWNER] },
   { label: "Thông báo", href: "/notifications", icon: ShieldCheck, enabled: true, roles: [UserRole.PLAYER, UserRole.VENUE_OWNER] },
 ];

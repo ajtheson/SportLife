@@ -43,6 +43,9 @@ services:
       ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-ChangeMe123!}
       TZ: Asia/Ho_Chi_Minh
     command: sh -c "npm run prisma:generate && npm run db:push -- --accept-data-loss && npm run db:seed"
+    volumes:
+      - ./frontend:/app
+      - sportlife-frontend-node-modules:/app/node_modules
     restart: "no"
 
   frontend:
@@ -74,7 +77,7 @@ services:
       WATCHPACK_POLLING: "true"
     ports:
       - "3000:3000"
-    command: sh -c "npm run prisma:generate && npm run dev -- --hostname 0.0.0.0 --port 3000"
+    command: sh -c "npm run prisma:generate && node scripts/clean-next-dev-cache.mjs && npm run dev -- --hostname 0.0.0.0 --port 3000"
     volumes:
       - ./frontend:/app
       - sportlife-frontend-node-modules:/app/node_modules

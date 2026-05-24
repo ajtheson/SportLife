@@ -26,7 +26,7 @@ Product routes use a left-sidebar shell for navigation across venue discovery, m
 The Compose stack starts:
 
 - `postgres`: PostgreSQL 16 with persistent Docker volume
-- `migrate`: Prisma generate, schema sync, and seed
+- `migrate`: Prisma generate, schema sync, and seed from the current `frontend/` source through a bind mount
 - `frontend`: Next.js development server
 
 Current completed phase:
@@ -105,6 +105,8 @@ Reset database data:
 docker compose down -v
 docker compose up --build
 ```
+
+During local development, `migrate` reads the current repository source, so recreating the database volume reseeds with the latest `frontend/prisma/seed.ts` instead of an older cached image copy.
 
 ## Local Development Without Docker
 

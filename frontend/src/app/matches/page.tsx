@@ -57,8 +57,8 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
               Khám phá các trận đang mở, gửi yêu cầu tham gia và quản lý trận của bạn.
             </p>
           </div>
-          <Link className={buttonVariants({ size: "lg" })} href="/matches/new">
-            Tạo trận
+          <Link className={buttonVariants({ size: "lg" })} href={session?.user ? "/matches/new" : "/login"}>
+            {session?.user ? "Tạo trận" : "Đăng nhập để tạo trận"}
           </Link>
         </header>
 

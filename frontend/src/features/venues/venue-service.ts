@@ -191,12 +191,8 @@ export async function listPublicVenues(filters: { sportId?: string; areaId?: str
 }
 
 export async function getPublicVenue(venueId: string) {
-  return prisma.venue.findFirst({
-    where: {
-      id: venueId,
-      approvalStatus: ApprovalStatus.APPROVED,
-      visibilityStatus: VisibilityStatus.ACTIVE,
-    },
+  const venue = await prisma.venue.findUnique({
+    where: { id: venueId },
     include: {
       area: true,
       sports: { include: { sport: true } },
@@ -204,4 +200,10 @@ export async function getPublicVenue(venueId: string) {
       owner: { select: { venueOwnerProfile: true } },
     },
   });
+
+  if (venue?.approvalStatus !== ApprovalStatus.APPROVED || venue.visibilityStatus !== VisibilityStatus.ACTIVE) {
+    return null;
+  }
+
+  return venue;
 }
