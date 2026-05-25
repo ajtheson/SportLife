@@ -1,6 +1,10 @@
 import type { Area, Sport, Venue, VenueImage, VenueSport } from "@prisma/client";
 
 import { saveVenueAction } from "@/features/venues/venue-actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type VenueWithRelations = (Venue & { sports: VenueSport[]; images: VenueImage[] }) | null;
 
@@ -13,45 +17,45 @@ type VenueFormProps = {
 
 export function VenueForm({ areas, sports, venue, defaultPhone }: VenueFormProps) {
   const selectedSportId = venue?.sports[0]?.sportId ?? "";
-  const imageUrls = venue?.images.map((image) => image.url).join("\n") ?? "";
+  const imageUrls = venue?.images.map((image) => image.url) ?? [];
   const openingHours =
     venue?.openingHours && typeof venue.openingHours === "object" && "text" in venue.openingHours
       ? String(venue.openingHours.text)
       : "";
 
   return (
-    <form action={saveVenueAction} className="grid gap-5 rounded-lg border border-[#d9d2c1] bg-white p-6">
+    <form action={saveVenueAction} className="grid gap-6 rounded-xl border border-border bg-card p-6 shadow-sm">
       {venue ? <input name="venueId" type="hidden" value={venue.id} /> : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="grid gap-2 text-sm font-medium">
-          Venue name
-          <input className="rounded-md border border-[#d9d2c1] px-3 py-2" name="name" defaultValue={venue?.name ?? ""} required maxLength={120} />
-        </label>
-        <label className="grid gap-2 text-sm font-medium">
-          Phone number
-          <input
-            className="rounded-md border border-[#d9d2c1] px-3 py-2"
+        <div className="grid gap-2">
+          <Label>Tên sân</Label>
+          <Input name="name" defaultValue={venue?.name ?? ""} required maxLength={120} placeholder="Nhập tên sân..." />
+        </div>
+        <div className="grid gap-2">
+          <Label>Số điện thoại liên hệ</Label>
+          <Input
             name="phone"
             defaultValue={venue?.phone ?? defaultPhone}
             inputMode="numeric"
             pattern="\d{10}"
             maxLength={10}
             required
+            placeholder="Ví dụ: 0912345678"
           />
-        </label>
+        </div>
       </div>
 
-      <label className="grid gap-2 text-sm font-medium">
-        Address
-        <input className="rounded-md border border-[#d9d2c1] px-3 py-2" name="address" defaultValue={venue?.address ?? ""} required maxLength={240} />
-      </label>
+      <div className="grid gap-2">
+        <Label>Địa chỉ chi tiết</Label>
+        <Input name="address" defaultValue={venue?.address ?? ""} required maxLength={240} placeholder="Số nhà, ngõ, đường..." />
+      </div>
 
-      <label className="grid gap-2 text-sm font-medium">
-        Hanoi ward/commune
-        <select className="rounded-md border border-[#d9d2c1] px-3 py-2" name="areaId" defaultValue={venue?.areaId ?? ""} required>
+      <div className="grid gap-2">
+        <Label>Khu vực (Hà Nội)</Label>
+        <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" name="areaId" defaultValue={venue?.areaId ?? ""} required>
           <option value="" disabled>
-            Select an area
+            Chọn khu vực
           </option>
           {areas.map((area) => (
             <option key={area.id} value={area.id}>
@@ -59,13 +63,13 @@ export function VenueForm({ areas, sports, venue, defaultPhone }: VenueFormProps
             </option>
           ))}
         </select>
-      </label>
+      </div>
 
-      <label className="grid gap-2 text-sm font-medium">
-        Sport
-        <select className="rounded-md border border-[#d9d2c1] px-3 py-2" name="sportId" defaultValue={selectedSportId} required>
+      <div className="grid gap-2">
+        <Label>Môn thể thao</Label>
+        <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" name="sportId" defaultValue={selectedSportId} required>
           <option value="" disabled>
-            Select a sport
+            Chọn môn thể thao
           </option>
           {sports.map((sport) => (
             <option key={sport.id} value={sport.id}>
@@ -73,48 +77,83 @@ export function VenueForm({ areas, sports, venue, defaultPhone }: VenueFormProps
             </option>
           ))}
         </select>
-      </label>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="grid gap-2 text-sm font-medium">
-          Opening hours
-          <input className="rounded-md border border-[#d9d2c1] px-3 py-2" name="openingHours" defaultValue={openingHours} maxLength={300} />
-        </label>
-        <label className="grid gap-2 text-sm font-medium">
-          Reference price
-          <input className="rounded-md border border-[#d9d2c1] px-3 py-2" name="referencePrice" defaultValue={venue?.referencePrice ?? ""} maxLength={120} />
-        </label>
       </div>
 
-      <label className="grid gap-2 text-sm font-medium">
-        Availability note
-        <textarea
-          className="min-h-24 rounded-md border border-[#d9d2c1] px-3 py-2"
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-2">
+          <Label>Giờ mở cửa</Label>
+          <Input name="openingHours" defaultValue={openingHours} maxLength={300} placeholder="Ví dụ: 06:00 - 22:00 hằng ngày" />
+        </div>
+        <div className="grid gap-2">
+          <Label>Giá tham khảo</Label>
+          <Input name="referencePrice" defaultValue={venue?.referencePrice ?? ""} maxLength={120} placeholder="Ví dụ: 100k - 200k/giờ" />
+        </div>
+      </div>
+
+      <div className="grid gap-2">
+        <Label>Ghi chú hoạt động</Label>
+        <Textarea
+          className="min-h-24"
           name="availabilityNote"
           defaultValue={venue?.availabilityNote ?? ""}
           maxLength={300}
-          placeholder="Example: Weekday evenings usually available, call before coming."
+          placeholder="Ví dụ: Thường trống sân vào các tối ngày thường, vui lòng gọi trước."
         />
-      </label>
+      </div>
 
-      <label className="grid gap-2 text-sm font-medium">
-        Description
-        <textarea className="min-h-28 rounded-md border border-[#d9d2c1] px-3 py-2" name="description" defaultValue={venue?.description ?? ""} maxLength={1000} />
-      </label>
+      <div className="grid gap-2">
+        <Label>Mô tả chi tiết</Label>
+        <Textarea className="min-h-28" name="description" defaultValue={venue?.description ?? ""} maxLength={1000} placeholder="Thông tin thêm về sân, tiện ích, chỗ để xe..." />
+      </div>
 
-      <label className="grid gap-2 text-sm font-medium">
-        Image URLs
-        <textarea
-          className="min-h-24 rounded-md border border-[#d9d2c1] px-3 py-2"
-          name="imageUrls"
-          defaultValue={imageUrls}
-          placeholder="https://example.com/image.jpg"
-        />
-      </label>
+      <div className="grid gap-3">
+        <Label>Ảnh sân</Label>
+        {venue?.images.length ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {venue.images.slice(0, 5).map((image) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={image.id}
+                alt={image.altText ?? venue.name}
+                className="aspect-video w-full rounded-md border border-border object-cover"
+                src={image.url}
+              />
+            ))}
+          </div>
+        ) : null}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="grid gap-1.5">
+              <Label className="text-xs text-muted-foreground">Ảnh từ máy {index + 1}</Label>
+              <Input name="venueImages" type="file" accept="image/jpeg,image/png,image/webp" />
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Có thể tải tối đa 5 ảnh JPG, PNG hoặc WEBP, mỗi ảnh không quá 5MB. Nếu chọn ảnh mới từ máy, danh sách ảnh hiện tại sẽ được thay bằng ảnh vừa tải.
+        </p>
+      </div>
 
-      <button className="rounded-md bg-[#0f6b4f] px-4 py-2 font-medium text-white hover:bg-[#0b573f]" type="submit">
-        Submit for approval
-      </button>
+      <div className="grid gap-3">
+        <Label>URL ảnh hiện tại hoặc ảnh ngoài</Label>
+        <div className="grid gap-3">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Input
+              key={index}
+              name="imageUrls"
+              defaultValue={imageUrls[index] ?? ""}
+              placeholder={`https://example.com/hinh-anh-${index + 1}.jpg`}
+            />
+          ))}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Nếu không chọn ảnh từ máy, hệ thống sẽ dùng các URL ảnh bên trên.
+        </p>
+      </div>
+
+      <Button type="submit" size="lg" className="w-full sm:w-auto sm:justify-self-start">
+        Gửi yêu cầu duyệt
+      </Button>
     </form>
   );
 }

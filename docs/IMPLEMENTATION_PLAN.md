@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0  
 **Date:** 2026-05-19  
-**Status:** Phase 5 complete  
+**Status:** Phase 7B complete  
 **Source Requirements:** [SRS_SportLife_v1.0.0.md](./SRS_SportLife_v1.0.0.md)
 
 ---
@@ -112,7 +112,7 @@ docker compose up --build
 
 - Apply the shell to venue discovery, Player workspace, Venue Owner workspace, and Admin workspace routes.
 - Keep the public home/auth pages simple.
-- Show future tabs such as chat as disabled placeholders until their phases are implemented.
+- Chat is available as a first-class sidebar tab for verified, active Player and Venue Owner users.
 - Render role-specific workspace entries only for the current role.
 
 **Rationale:** This gives users a stable app navigation model now and lets later phases attach real screens without redesigning every page.
@@ -175,7 +175,7 @@ Exit criteria:
 
 Outcome: Players can create and edit sport profile data using configured sports, levels, and areas.
 
-Status: complete. Player profile onboarding/edit is implemented for display name, unique 10-digit phone number, Hanoi ward/commune, sports, per-sport skill levels, availability, and introduction. Player users are redirected to complete the profile after login before reaching the home page. Seed data uses the 126 Hanoi commune-level administrative units listed for 2025 by Vietnamese legal/government reference sources. Admin configuration screens are implemented for sports, skill levels, and Hanoi areas, including create, edit, reorder skill levels, and Active/Inactive status management. Avatar upload is intentionally deferred until the storage/image workflow is implemented.
+Status: complete. Player profile onboarding/edit is implemented for display name, avatar upload, unique 10-digit phone number, Hanoi ward/commune, sports, per-sport skill levels, availability, and introduction. Player users are redirected to complete the profile after login before reaching the home page. Seed data uses the 126 Hanoi commune-level administrative units listed for 2025 by Vietnamese legal/government reference sources. Admin configuration screens are implemented for sports, skill levels, and Hanoi areas, including create, edit, reorder skill levels, and Active/Inactive status management.
 
 Tasks:
 
@@ -183,7 +183,7 @@ Tasks:
 - [x] Add unique 10-digit Player phone number requirement.
 - [x] Seed the 126 Hanoi wards/communes and disable old placeholder area rows.
 - [x] Build profile onboarding/edit screen.
-- [ ] Add avatar upload after storage/image workflow is available.
+- [x] Add avatar upload after storage/image workflow is available.
 - [x] Add selectors for area, sports, and skill levels.
 - [x] Add server-side validation for active sport, active level, and active area.
 - [x] Force Player users without a profile to complete `/player/profile` after login.
@@ -199,7 +199,7 @@ Exit criteria:
 
 Outcome: Venue Owners can submit venues; Admin can approve/reject; Players can search approved venues.
 
-Status: complete. Venue Owner profile onboarding is implemented with unique 10-digit phone numbers. Venue Owners can submit and edit venue listings with phone contact, active Hanoi area, exactly one active sport, availability note, text opening hours, reference price, description, and optional image URLs. New and edited venues enter Pending Approval. Admin venue review supports approve, reject with reason, hide, and restore. Public venue discovery shows only Approved and Active venues with sport, area, and text filters. Product routes now use a left-sidebar app shell. View/contact count tracking is deferred and optional because contact information is currently displayed directly.
+Status: complete. Venue Owner profile onboarding is implemented with unique 10-digit phone numbers. Venue Owners can submit and edit venue listings with phone contact, active Hanoi area, exactly one active sport, availability note, text opening hours, reference price, description, optional external image URLs, and local venue photo uploads. New and edited venues enter Pending Approval. Admin venue review supports approve, reject with reason, hide, and restore. Public venue discovery shows only Approved and Active venues with sport, area, and text filters. Product routes now use a left-sidebar app shell. View/contact count tracking is deferred and optional because contact information is currently displayed directly.
 
 Tasks:
 
@@ -223,7 +223,7 @@ Exit criteria:
 
 Outcome: Players can create matches, request to join, and receive in-app notifications.
 
-Status: complete. Player-only match creation is implemented with sport, area, optional detailed address, future time, required players, optional expected levels for the selected sport, and description. Required players means additional players beyond the owner. Players can browse matches, request to join, and match owners can approve or reject pending requests. Approved requests count toward required players and automatically move the match to Full when enough players are approved. Match owners can close their own Full matches or matches after the scheduled time, and can cancel their own matches before the scheduled time. Close/cancel clears pending requests by marking them Canceled. In-app notifications are created for requested, approved, and rejected join request events. Editing an existing match is deferred as an optional follow-up because the core SRS flow is complete and manually tested.
+Status: complete. Player-only match creation is implemented with sport, area, optional detailed address, future time, required players, optional expected levels for the selected sport, and description. Required players means additional players beyond the owner. Players can browse matches, request to join, and match owners can approve or reject pending requests. Approved requests count toward required players and automatically move the match to Full when enough players are approved. Match owners can close their own Full matches or matches after the scheduled time, and can cancel their own matches before the scheduled time. Close/cancel clears pending requests by marking them Canceled. In-app notifications are created for requested, approved, and rejected join request events. Match owners can edit open/full matches; editing resets the match to Open, replaces expected levels, cancels existing join requests, and notifies affected players.
 
 Tasks:
 
@@ -272,6 +272,85 @@ Exit criteria:
 - [x] Admin can approve or delete community posts.
 - [x] Community posts do not duplicate match scheduling fields such as match time/location.
 
+### Phase 6 - Localization and UI Polish (Part A-E Complete)
+
+Outcome: The entire application uses a cohesive design system (`shadcn/ui`) and is fully localized into Vietnamese.
+
+Status: complete for Phase 6A-6E. The design system is installed (green earth theme). All pages (Auth, Matches, Venues, Community, Admin) and seed data are localized to Vietnamese. Admin statistical dashboard, Admin user management with role filters and pagination, and Player match editing are implemented. Remaining polish tasks are tracked separately: broader pagination for remaining long lists and comprehensive testing/CI.
+
+Tasks:
+
+- [x] Install and configure `shadcn/ui` with custom green earth theme.
+- [x] Configure Google Fonts (Be Vietnam Pro).
+- [x] Localize auth pages (login, register, forgot/reset password).
+- [x] Localize product shell, sidebar, and landing page.
+- [x] Localize all player exploration pages (matches, venues, community).
+- [x] Localize venue owner dashboard and venue forms.
+- [x] Localize admin moderation and configuration pages.
+- [x] Format all dates and times to `vi-VN` locale.
+- [x] Implement Admin user management.
+- [x] Implement Admin statistical dashboard.
+- [x] Allow Player to edit matches.
+- [x] Add pagination to Admin user management.
+- [x] Implement image/avatar upload.
+- [ ] Implement pagination for remaining long lists.
+- [ ] Add comprehensive E2E testing and CI/CD pipelines.
+
+Exit criteria:
+
+- [x] No English text remains on the UI.
+- [x] The UI is fully responsive and uses modern components.
+- [x] Admin can manage users and view statistics.
+- [x] Players can upload avatars.
+- [x] Players can edit matches.
+
+### Phase 7A - Direct In-App Chat (Complete)
+
+Outcome: Verified, active Player and Venue Owner users can exchange direct in-app messages where product rules allow contact.
+
+Status: complete. Direct 1:1 conversations are implemented with server-side membership checks. Players can start chat with Venue Owners from approved public venue detail pages. Match owners and approved participants can start Player-to-Player chat from match detail pages after a join request is approved. Messages are stored in PostgreSQL, limited to 1000 characters, and create in-app notifications for recipients. The first version uses normal server actions and page refresh rather than WebSocket realtime.
+
+Tasks:
+
+- [x] Add Conversation and ChatMessage data model.
+- [x] Add `/chat` conversation list and `/chat/[conversationId]` message thread.
+- [x] Add Player-to-Venue Owner chat entry point from approved venue detail.
+- [x] Add Player-to-Player chat entry point for approved match participants.
+- [x] Create in-app notification when a new chat message is sent.
+- [x] Seed sample chat conversations for UI review.
+- [ ] Add polling or realtime refresh if the current refresh-based experience feels too static.
+
+Exit criteria:
+
+- [x] Users outside a conversation cannot read or send messages.
+- [x] Users cannot chat with themselves.
+- [x] Player users must have completed profile before using chat.
+- [x] Venue Owner users must have completed profile before using chat.
+- [x] Admin users do not participate in chat.
+
+### Phase 7B - Local Image Uploads (Complete)
+
+Outcome: Players can upload avatars and Venue Owners can upload venue photos while the app is running through Docker Compose.
+
+Status: complete. The Next.js server stores uploaded images under `frontend/public/uploads/` through the Docker bind mount and stores only image URLs in PostgreSQL. Uploaded files are ignored by git. This is the local development adapter; production should use S3-compatible object storage.
+
+Tasks:
+
+- [x] Add shared local image storage helper.
+- [x] Add Player avatar upload to `/player/profile`.
+- [x] Add Venue photo upload to venue create/edit forms.
+- [x] Keep external venue image URLs supported for existing/demo data.
+- [x] Enforce JPG/PNG/WEBP validation.
+- [x] Enforce avatar maximum 2MB.
+- [x] Enforce venue maximum 5 photos and 5MB per photo.
+
+Exit criteria:
+
+- [x] Player profile can save and display uploaded avatar.
+- [x] Venue form can save uploaded photos as `VenueImage` rows.
+- [x] Selecting new venue photos replaces the submitted venue image list.
+- [x] Upload files are not committed to git.
+
 ---
 
 ## 4. Proposed Project Structure
@@ -297,6 +376,7 @@ src/
     matches/
     community/
     notifications/
+    chat/
     admin/
   lib/
     auth/
@@ -353,6 +433,8 @@ Player:
 - `/community/new`
 - `/community/[postId]`
 - `/notifications`
+- `/chat`
+- `/chat/[conversationId]`
 
 Venue Owner:
 
@@ -472,10 +554,12 @@ Validation:
 Authorization rules:
 
 - Guest can access only public/auth routes.
-- Player can manage own profile, matches, join requests, posts, comments, and notifications.
+- Player can manage own profile, matches, join requests, posts, comments, notifications, and allowed chat conversations.
 - Venue Owner can manage own venue listings.
+- Venue Owner can manage allowed chat conversations started from approved venue contact.
 - Admin can manage users, venues, community moderation, sports, levels, and areas.
 - Admin can view operational dashboards.
+- Admin user lock/unlock actions cannot lock the current admin account or other admin accounts.
 
 ---
 
@@ -524,9 +608,9 @@ These do not block scaffolding, but should be resolved before production deploym
 | --- | --- | --- |
 | Package manager | `npm` unless user chooses otherwise | Confirm `npm` vs `pnpm` |
 | Email provider | Console/dev adapter or SMTP app password through env | Confirm SMTP provider vs Resend/SendGrid |
-| Storage provider | Local/mock adapter | S3, R2, or MinIO |
+| Storage provider | Local upload adapter under `frontend/public/uploads/` | S3, R2, or MinIO |
 | Hanoi ward/commune source | 126 Hanoi commune-level units seeded from 2025 public legal/government references | Confirm update process when administrative data changes |
-| Chat scope | Direct contact info only | Decide whether in-app chat is required |
+| Chat scope | Direct in-app 1:1 chat for approved venue contact and approved match participants | Realtime/polling can be added later if needed |
 | Database schema sync | `prisma db push` in Docker Compose | Prisma migrations for production |
 
 ---

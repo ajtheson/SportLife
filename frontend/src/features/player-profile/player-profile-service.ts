@@ -100,6 +100,7 @@ export async function savePlayerProfile(userId: string, input: PlayerProfileInpu
     areaId: input.areaId,
     introduction: input.introduction || null,
     availability: input.availability || null,
+    ...(input.avatarUrl ? { avatarUrl: input.avatarUrl } : {}),
   };
 
   await prisma.$transaction(async (tx) => {

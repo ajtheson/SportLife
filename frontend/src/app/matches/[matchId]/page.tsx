@@ -10,7 +10,12 @@ import {
   rejectJoinRequestAction,
   requestJoinMatchAction,
 } from "@/features/matches/match-actions";
+import { startMatchChatAction } from "@/features/chat/chat-actions";
 import { getMatchDetail } from "@/features/matches/match-service";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
 type MatchDetailPageProps = {
   params: Promise<{ matchId: string }>;
@@ -20,20 +25,34 @@ type MatchDetailPageProps = {
 async function pageMessage(searchParams: Promise<Record<string, string | string[] | undefined>>) {
   const params = await searchParams;
 
-  if (params.status === "requested") return "Join request sent.";
-  if (params.status === "approved") return "Join request approved.";
-  if (params.status === "rejected") return "Join request rejected.";
-  if (params.status === "closed") return "Match closed.";
-  if (params.status === "canceled") return "Match canceled.";
-  if (params.error === "self_join") return "You cannot request to join your own match.";
-  if (params.error === "match_not_open") return "This match is not open for new requests.";
-  if (params.error === "duplicate_join_request") return "You already requested to join this match.";
-  if (params.error === "match_cannot_close_yet") return "You can close a match only when it is full or after match time.";
-  if (params.error === "match_cannot_cancel_after_start") return "You can cancel a match only before match time.";
-  if (params.error) return "The request could not be completed.";
+  if (params.status === "requested") return "Đã gửi yêu cầu tham gia.";
+  if (params.status === "approved") return "Yêu cầu tham gia đã được duyệt.";
+  if (params.status === "rejected") return "Yêu cầu tham gia đã bị từ chối.";
+  if (params.status === "closed") return "Trận đấu đã đóng.";
+  if (params.status === "canceled") return "Trận đấu đã hủy.";
+  if (params.error === "self_join") return "Bạn không thể xin tham gia trận đấu của chính mình.";
+  if (params.error === "match_not_open") return "Trận đấu này không còn mở để nhận thêm yêu cầu.";
+  if (params.error === "duplicate_join_request") return "Bạn đã gửi yêu cầu tham gia trận đấu này rồi.";
+  if (params.error === "match_cannot_close_yet") return "Bạn chỉ có thể đóng trận đấu khi đã đủ người hoặc sau thời gian diễn ra.";
+  if (params.error === "match_cannot_cancel_after_start") return "Bạn chỉ có thể hủy trận đấu trước thời gian diễn ra.";
+  if (params.error) return "Không thể thực hiện yêu cầu.";
 
   return null;
 }
+
+const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+  OPEN: { label: "Đang mở", variant: "default" },
+  FULL: { label: "Đã đủ người", variant: "secondary" },
+  CLOSED: { label: "Đã đóng", variant: "outline" },
+  CANCELED: { label: "Đã hủy", variant: "destructive" },
+};
+
+const requestStatusMap: Record<string, string> = {
+  PENDING: "Chờ duyệt",
+  APPROVED: "Đã duyệt",
+  REJECTED: "Từ chối",
+  CANCELED: "Đã hủy",
+};
 
 export default async function MatchDetailPage({ params, searchParams }: MatchDetailPageProps) {
   const session = await auth();
@@ -48,127 +67,173 @@ export default async function MatchDetailPage({ params, searchParams }: MatchDet
   const isPlayer = session?.user.role === UserRole.PLAYER;
   const isOwner = session?.user.id === match.ownerId;
   const approvedRequests = match.joinRequests.filter((request) => request.status === JoinRequestStatus.APPROVED);
+  const approvedParticipantIds = new Set([match.ownerId, ...approvedRequests.map((request) => request.requesterId)]);
   const remaining = Math.max(match.requiredPlayers - approvedRequests.length, 0);
   const canRequest = isPlayer && !isOwner && match.status === MatchStatus.OPEN && !viewerRequest;
   const expectedLevels =
     match.expectedLevels.length > 0
       ? match.expectedLevels.map((item) => item.skillLevel.name).join(", ")
-      : "Any level";
+      : "Mọi trình độ";
+
+  const statusInfo = statusMap[match.status] ?? { label: match.status, variant: "outline" };
 
   return (
-    <main className="min-h-screen px-6 py-10">
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto grid w-full max-w-4xl gap-6">
-        <Link className="w-fit rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium" href="/matches">
-          Back to matches
+        <Link className={buttonVariants({ variant: "outline", className: "w-fit" })} href="/matches">
+          ← Quay lại danh sách
         </Link>
 
-        {message ? <div className="rounded-md border border-[#d9d2c1] bg-white p-4 text-sm">{message}</div> : null}
+        {message ? <div className="rounded-md border border-border bg-muted p-4 text-sm text-foreground">{message}</div> : null}
 
-        <article className="rounded-lg border border-[#d9d2c1] bg-white p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-semibold">{match.sport.name} match</h1>
-              <p className="mt-3 text-[#5f6b63]">{match.area.name}</p>
-              {match.detailedAddress ? <p className="mt-2 text-sm text-[#5f6b63]">{match.detailedAddress}</p> : null}
-              <p className="mt-2 text-sm text-[#5f6b63]">{match.time.toLocaleString()}</p>
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle className="text-3xl font-bold text-primary">Trận {match.sport.name}</CardTitle>
+                <CardDescription className="mt-2 text-base text-foreground">{match.area.name}</CardDescription>
+                {match.detailedAddress ? <CardDescription>{match.detailedAddress}</CardDescription> : null}
+                <CardDescription className="font-medium text-primary">
+                  {match.time.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}
+                </CardDescription>
+              </div>
+              <Badge variant={statusInfo.variant} className="w-fit text-sm">{statusInfo.label}</Badge>
             </div>
-            <div className="rounded-md bg-[#eef1ec] px-3 py-2 text-sm font-semibold">{match.status}</div>
-          </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 rounded-xl border border-border bg-muted/30 p-6 text-sm sm:grid-cols-3">
+              <div>
+                <h2 className="font-semibold text-primary">Chủ trận</h2>
+                <p className="mt-2 text-muted-foreground">{match.owner.playerProfile?.displayName ?? match.owner.email}</p>
+              </div>
+              <div>
+                <h2 className="font-semibold text-primary">Cần tuyển</h2>
+                <p className="mt-2 text-muted-foreground">{remaining} người</p>
+              </div>
+              <div>
+                <h2 className="font-semibold text-primary">Trình độ mong muốn</h2>
+                <p className="mt-2 text-muted-foreground">{expectedLevels}</p>
+              </div>
+            </div>
 
-          <div className="mt-6 grid gap-4 text-sm sm:grid-cols-3">
-            <div>
-              <h2 className="font-semibold">Owner</h2>
-              <p className="mt-2">{match.owner.playerProfile?.displayName ?? match.owner.email}</p>
-            </div>
-            <div>
-              <h2 className="font-semibold">Needed</h2>
-              <p className="mt-2">{remaining} more player{remaining === 1 ? "" : "s"}</p>
-            </div>
-            <div>
-              <h2 className="font-semibold">Expected level</h2>
-              <p className="mt-2">{expectedLevels}</p>
-            </div>
-          </div>
+            {match.description ? <p className="mt-8 leading-7 text-muted-foreground">{match.description}</p> : null}
 
-          {match.description ? <p className="mt-6 leading-7 text-[#445049]">{match.description}</p> : null}
-
-          {isOwner && (match.status === MatchStatus.OPEN || match.status === MatchStatus.FULL) ? (
-            <div className="mt-6 flex flex-wrap gap-2">
-              <form action={closeMatchAction}>
-                <input name="matchId" type="hidden" value={match.id} />
-                <button className="rounded-md bg-[#1d2520] px-3 py-2 text-sm font-medium text-white" type="submit">
-                  Close match
-                </button>
-              </form>
-              <form action={cancelMatchAction}>
-                <input name="matchId" type="hidden" value={match.id} />
-                <button className="rounded-md border border-[#d9d2c1] px-3 py-2 text-sm font-medium" type="submit">
-                  Cancel match
-                </button>
-              </form>
-            </div>
-          ) : null}
-        </article>
+            {isOwner && (match.status === MatchStatus.OPEN || match.status === MatchStatus.FULL) ? (
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href={`/matches/${match.id}/edit`}
+                  className={buttonVariants({ variant: "default" })}
+                >
+                  Sửa trận đấu
+                </Link>
+                <form action={closeMatchAction}>
+                  <input name="matchId" type="hidden" value={match.id} />
+                  <Button type="submit" variant="secondary">
+                    Đóng trận
+                  </Button>
+                </form>
+                <form action={cancelMatchAction}>
+                  <input name="matchId" type="hidden" value={match.id} />
+                  <Button type="submit" variant="destructive">
+                    Hủy trận
+                  </Button>
+                </form>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
 
         {viewerRequest ? (
-          <div className="rounded-lg border border-[#d9d2c1] bg-white p-5 text-sm">
-            Your request status: <span className="font-semibold">{viewerRequest.status}</span>
+          <div className="rounded-lg border border-border bg-card p-5 text-sm shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                Trạng thái yêu cầu của bạn: <span className="font-semibold text-primary">{requestStatusMap[viewerRequest.status] ?? viewerRequest.status}</span>
+              </div>
+              {viewerRequest.status === JoinRequestStatus.APPROVED ? (
+                <form action={startMatchChatAction}>
+                  <input name="matchId" type="hidden" value={match.id} />
+                  <input name="userId" type="hidden" value={match.ownerId} />
+                  <Button type="submit" size="sm">
+                    Nhắn tin với chủ trận
+                  </Button>
+                </form>
+              ) : null}
+            </div>
           </div>
         ) : null}
 
         {canRequest ? (
-          <form action={requestJoinMatchAction} className="grid gap-3 rounded-lg border border-[#d9d2c1] bg-white p-5">
-            <input name="matchId" type="hidden" value={match.id} />
-            <label className="grid gap-2 text-sm font-medium">
-              Message
-              <textarea className="min-h-24 rounded-md border border-[#d9d2c1] px-3 py-2" name="message" maxLength={500} />
-            </label>
-            <button className="rounded-md bg-[#0f6b4f] px-4 py-2 font-medium text-white" type="submit">
-              Request to join
-            </button>
-          </form>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Đăng ký tham gia</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form action={requestJoinMatchAction} className="grid gap-4">
+                <input name="matchId" type="hidden" value={match.id} />
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Lời nhắn (không bắt buộc)</label>
+                  <Textarea name="message" maxLength={500} placeholder="Gửi lời nhắn cho chủ trận..." />
+                </div>
+                <Button type="submit" className="w-fit">
+                  Gửi yêu cầu tham gia
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         ) : null}
 
         {isOwner ? (
-          <section className="rounded-lg border border-[#d9d2c1] bg-white p-5">
-            <h2 className="text-xl font-semibold">Join requests</h2>
-            <div className="mt-4 grid gap-3">
-              {match.joinRequests.map((request) => (
-                <div key={request.id} className="grid gap-3 rounded-md border border-[#ece5d8] p-4 md:grid-cols-[minmax(0,1fr)_auto]">
-                  <div>
-                    <p className="font-medium">
-                      {request.requester.playerProfile?.displayName ?? request.requester.email}
-                    </p>
-                    <p className="mt-1 text-sm text-[#5f6b63]">{request.status}</p>
-                    {request.message ? <p className="mt-2 text-sm text-[#445049]">{request.message}</p> : null}
-                  </div>
-
-                  {request.status === JoinRequestStatus.PENDING ? (
-                    <div className="flex gap-2">
-                      <form action={approveJoinRequestAction}>
-                        <input name="matchId" type="hidden" value={match.id} />
-                        <input name="joinRequestId" type="hidden" value={request.id} />
-                        <button className="rounded-md bg-[#0f6b4f] px-3 py-2 text-sm font-medium text-white" type="submit">
-                          Approve
-                        </button>
-                      </form>
-                      <form action={rejectJoinRequestAction}>
-                        <input name="matchId" type="hidden" value={match.id} />
-                        <input name="joinRequestId" type="hidden" value={request.id} />
-                        <button className="rounded-md border border-[#d9d2c1] px-3 py-2 text-sm font-medium" type="submit">
-                          Reject
-                        </button>
-                      </form>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Yêu cầu tham gia</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {match.joinRequests.map((request) => (
+                  <div key={request.id} className="grid gap-4 rounded-xl border border-border bg-muted/20 p-5 md:grid-cols-[minmax(0,1fr)_auto]">
+                    <div>
+                      <p className="font-semibold text-foreground">
+                        {request.requester.playerProfile?.displayName ?? request.requester.email}
+                      </p>
+                      <Badge variant="outline" className="mt-2">{requestStatusMap[request.status] ?? request.status}</Badge>
+                      {request.message ? <p className="mt-3 text-sm text-muted-foreground">{request.message}</p> : null}
                     </div>
-                  ) : null}
-                </div>
-              ))}
 
-              {match.joinRequests.length === 0 ? (
-                <p className="text-sm text-[#5f6b63]">No join requests yet.</p>
-              ) : null}
-            </div>
-          </section>
+                    {request.status === JoinRequestStatus.PENDING ? (
+                      <div className="flex items-start gap-2">
+                        <form action={approveJoinRequestAction}>
+                          <input name="matchId" type="hidden" value={match.id} />
+                          <input name="joinRequestId" type="hidden" value={request.id} />
+                          <Button type="submit">
+                            Duyệt
+                          </Button>
+                        </form>
+                        <form action={rejectJoinRequestAction}>
+                          <input name="matchId" type="hidden" value={match.id} />
+                          <input name="joinRequestId" type="hidden" value={request.id} />
+                          <Button type="submit" variant="outline">
+                            Từ chối
+                          </Button>
+                        </form>
+                      </div>
+                    ) : request.status === JoinRequestStatus.APPROVED && approvedParticipantIds.has(session?.user.id ?? "") ? (
+                      <form action={startMatchChatAction}>
+                        <input name="matchId" type="hidden" value={match.id} />
+                        <input name="userId" type="hidden" value={request.requesterId} />
+                        <Button type="submit" variant="outline">
+                          Nhắn tin
+                        </Button>
+                      </form>
+                    ) : null}
+                  </div>
+                ))}
+
+                {match.joinRequests.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Chưa có yêu cầu tham gia nào.</p>
+                ) : null}
+              </div>
+            </CardContent>
+          </Card>
         ) : null}
       </div>
     </main>

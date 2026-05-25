@@ -9,6 +9,11 @@ import {
   deleteCommunityPostAction,
 } from "@/features/community/community-actions";
 import { getCommunityPost } from "@/features/community/community-service";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { postTypeLabel } from "../page";
 
 type CommunityPostPageProps = {
   params: Promise<{ postId: string }>;
@@ -35,96 +40,101 @@ export default async function CommunityPostPage({ params, searchParams }: Commun
   const canComment = isPlayer && post.status === ContentStatus.VISIBLE;
 
   return (
-    <main className="min-h-screen px-6 py-10">
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto grid w-full max-w-4xl gap-6">
-        <Link className="w-fit rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium" href="/community">
-          Back to community
+        <Link className={buttonVariants({ variant: "outline", className: "w-fit" })} href="/community">
+          ← Quay lại cộng đồng
         </Link>
 
-        {message ? <div className="rounded-md border border-[#d9d2c1] bg-white p-4 text-sm">{message}</div> : null}
+        {message ? <div className="rounded-md border border-border bg-muted p-4 text-sm text-foreground">{message}</div> : null}
 
-        <article className="rounded-lg border border-[#d9d2c1] bg-white p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <div className="flex flex-wrap gap-2 text-xs font-semibold">
-                <span className="rounded-md bg-[#eef1ec] px-2 py-1">{post.sport.name}</span>
-                <span className="rounded-md bg-[#f0ece2] px-2 py-1">{postTypeLabel(post.postType)}</span>
-                {post.area ? <span className="rounded-md bg-white px-2 py-1 ring-1 ring-[#d9d2c1]">{post.area.name}</span> : null}
-                <span className="rounded-md bg-white px-2 py-1 ring-1 ring-[#d9d2c1]">{post.status}</span>
-              </div>
-              <h1 className="mt-4 text-3xl font-semibold">{post.title}</h1>
-              <p className="mt-3 text-sm text-[#5f6b63]">
-                {post.author.playerProfile?.displayName ?? post.author.email} Â· {post.createdAt.toLocaleString()}
-              </p>
-            </div>
-            {isOwner ? (
-              <div className="flex flex-wrap gap-2">
-                <Link className="rounded-md border border-[#d9d2c1] px-3 py-2 text-sm font-medium" href={`/community/${post.id}/edit`}>
-                  Edit
-                </Link>
-                <form action={deleteCommunityPostAction}>
-                  <input name="postId" type="hidden" value={post.id} />
-                  <button className="rounded-md border border-[#d9d2c1] px-3 py-2 text-sm font-medium" type="submit">
-                    Delete
-                  </button>
-                </form>
-              </div>
-            ) : null}
-          </div>
-
-          {post.status === ContentStatus.PENDING ? (
-            <p className="mt-5 rounded-md bg-[#fff8e6] p-3 text-sm text-[#7a5a12]">
-              This post is waiting for admin approval.
-            </p>
-          ) : null}
-
-          <p className="mt-6 whitespace-pre-wrap leading-7 text-[#1d2520]">{post.content}</p>
-        </article>
-
-        <section className="rounded-lg border border-[#d9d2c1] bg-white p-5">
-          <h2 className="text-xl font-semibold">Comments</h2>
-
-          {canComment ? (
-            <form action={createCommentAction} className="mt-4 grid gap-3">
-              <input name="postId" type="hidden" value={post.id} />
-              <textarea className="min-h-24 rounded-md border border-[#d9d2c1] px-3 py-2" maxLength={1000} name="content" required />
-              <button className="w-fit rounded-md bg-[#0f6b4f] px-4 py-2 font-medium text-white" type="submit">
-                Comment
-              </button>
-            </form>
-          ) : null}
-
-          <div className="mt-5 grid gap-3">
-            {post.comments.map((comment) => {
-              const ownComment = session?.user.id === comment.authorId;
-
-              return (
-                <div key={comment.id} className="rounded-md border border-[#ece5d8] p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <p className="text-sm font-medium">
-                      {comment.author.playerProfile?.displayName ?? comment.author.email}
-                      <span className="ml-2 font-normal text-[#5f6b63]">{comment.createdAt.toLocaleString()}</span>
-                    </p>
-                    {ownComment ? (
-                      <div className="flex flex-wrap gap-2">
-                        <form action={deleteCommentAction}>
-                          <input name="postId" type="hidden" value={post.id} />
-                          <input name="commentId" type="hidden" value={comment.id} />
-                          <button className="rounded-md border border-[#d9d2c1] px-2 py-1 text-xs font-medium" type="submit">
-                            Delete
-                          </button>
-                        </form>
-                      </div>
-                    ) : null}
-                  </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#445049]">{comment.content}</p>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                  <Badge variant="secondary">{post.sport.name}</Badge>
+                  <Badge variant="outline">{postTypeLabel(post.postType)}</Badge>
+                  {post.area ? <Badge variant="outline">{post.area.name}</Badge> : null}
+                  <Badge variant="secondary">{post.status}</Badge>
                 </div>
-              );
-            })}
+                <h1 className="mt-4 text-3xl font-bold text-primary">{post.title}</h1>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {post.author.playerProfile?.displayName ?? post.author.email} · {post.createdAt.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}
+                </p>
+              </div>
+              {isOwner ? (
+                <div className="flex flex-wrap gap-2">
+                  <Link className={buttonVariants({ variant: "outline" })} href={`/community/${post.id}/edit`}>
+                    Sửa
+                  </Link>
+                  <form action={deleteCommunityPostAction}>
+                    <input name="postId" type="hidden" value={post.id} />
+                    <Button type="submit" variant="destructive">
+                      Xóa
+                    </Button>
+                  </form>
+                </div>
+              ) : null}
+            </div>
 
-            {post.comments.length === 0 ? <p className="text-sm text-[#5f6b63]">No comments yet.</p> : null}
-          </div>
-        </section>
+            {post.status === ContentStatus.PENDING ? (
+              <p className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                Bài viết này đang chờ Admin duyệt.
+              </p>
+            ) : null}
+
+            <p className="mt-8 whitespace-pre-wrap leading-7 text-foreground">{post.content}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Bình luận</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {canComment ? (
+              <form action={createCommentAction} className="grid gap-4">
+                <input name="postId" type="hidden" value={post.id} />
+                <Textarea className="min-h-[6rem]" maxLength={1000} name="content" required placeholder="Viết bình luận..." />
+                <Button type="submit" className="w-fit">
+                  Bình luận
+                </Button>
+              </form>
+            ) : null}
+
+            <div className="mt-8 grid gap-4">
+              {post.comments.map((comment) => {
+                const ownComment = session?.user.id === comment.authorId;
+
+                return (
+                  <div key={comment.id} className="rounded-xl border border-border bg-muted/20 p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <p className="text-sm font-semibold text-foreground">
+                        {comment.author.playerProfile?.displayName ?? comment.author.email}
+                        <span className="ml-2 font-normal text-muted-foreground">{comment.createdAt.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}</span>
+                      </p>
+                      {ownComment ? (
+                        <div className="flex flex-wrap gap-2">
+                          <form action={deleteCommentAction}>
+                            <input name="postId" type="hidden" value={post.id} />
+                            <input name="commentId" type="hidden" value={comment.id} />
+                            <Button type="submit" variant="outline" size="sm">
+                              Xóa
+                            </Button>
+                          </form>
+                        </div>
+                      ) : null}
+                    </div>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{comment.content}</p>
+                  </div>
+                );
+              })}
+
+              {post.comments.length === 0 ? <p className="text-sm text-muted-foreground">Chưa có bình luận nào.</p> : null}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );
@@ -133,20 +143,12 @@ export default async function CommunityPostPage({ params, searchParams }: Commun
 async function pageMessage(searchParams: Promise<Record<string, string | string[] | undefined>>) {
   const params = await searchParams;
 
-  if (params.status === "created_pending") return "Post submitted and waiting for admin approval.";
-  if (params.status === "updated_pending") return "Post updated and waiting for admin approval.";
-  if (params.status === "commented") return "Comment added.";
-  if (params.status === "comment_deleted") return "Comment deleted.";
-  if (params.error === "invalid_input") return "Please check the submitted values.";
-  if (params.error) return "The request could not be completed.";
+  if (params.status === "created_pending") return "Bài viết đã được gửi và đang chờ Admin duyệt.";
+  if (params.status === "updated_pending") return "Bài viết đã được cập nhật và đang chờ Admin duyệt.";
+  if (params.status === "commented") return "Đã thêm bình luận.";
+  if (params.status === "comment_deleted") return "Đã xóa bình luận.";
+  if (params.error === "invalid_input") return "Vui lòng kiểm tra lại thông tin.";
+  if (params.error) return "Không thể thực hiện yêu cầu.";
 
   return null;
-}
-
-function postTypeLabel(postType: string) {
-  return postType
-    .toLowerCase()
-    .split("_")
-    .map((part) => part[0].toUpperCase() + part.slice(1))
-    .join(" ");
 }

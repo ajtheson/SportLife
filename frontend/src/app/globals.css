@@ -1,19 +1,204 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #f7f4ed;
-  --foreground: #1d2520;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: "Be Vietnam Pro", "Inter", "Segoe UI", Arial, sans-serif;
   --font-mono: "Cascadia Mono", Consolas, monospace;
+  --font-heading: var(--font-sans);
+
+  /* SportLife brand colors */
+  --color-sport-green: var(--sport-green);
+  --color-sport-green-light: var(--sport-green-light);
+  --color-sport-green-dark: var(--sport-green-dark);
+  --color-sport-cream: var(--sport-cream);
+  --color-sport-sand: var(--sport-sand);
+  --color-sport-bark: var(--sport-bark);
+
+  /* shadcn theme tokens */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/*
+ * SportLife Light Theme — Green Earth Palette
+ *
+ * Primary green: #0f6b4f → refined to warm emerald
+ * Background: #f7f4ed → warm cream
+ * Cards: white with warm borders
+ * Text: #1d2520 → deep forest
+ */
+:root {
+  /* Core surfaces */
+  --background: oklch(0.972 0.006 145);
+  --foreground: oklch(0.20 0.02 160);
+
+  /* Cards & popovers */
+  --card: oklch(0.995 0.002 125);
+  --card-foreground: oklch(0.20 0.02 160);
+  --popover: oklch(0.995 0.002 90);
+  --popover-foreground: oklch(0.20 0.02 160);
+
+  /* Primary — SportLife green */
+  --primary: oklch(0.43 0.12 158);
+  --primary-foreground: oklch(0.98 0 0);       /* white */
+
+  /* Secondary — warm sand */
+  --secondary: oklch(0.94 0.025 210);
+  --secondary-foreground: oklch(0.30 0.02 160);
+
+  /* Muted — subtle beige */
+  --muted: oklch(0.95 0.012 145);
+  --muted-foreground: oklch(0.44 0.02 160);
+
+  /* Accent — soft sage */
+  --accent: oklch(0.93 0.035 155);
+  --accent-foreground: oklch(0.25 0.05 160);
+
+  /* Destructive */
+  --destructive: oklch(0.577 0.245 27.325);
+
+  /* Borders & inputs */
+  --border: oklch(0.87 0.012 145);
+  --input: oklch(0.84 0.015 145);
+  --ring: oklch(0.45 0.12 160);                /* matches primary */
+
+  /* Charts — green spectrum */
+  --chart-1: oklch(0.45 0.12 160);
+  --chart-2: oklch(0.58 0.12 215);
+  --chart-3: oklch(0.68 0.14 70);
+  --chart-4: oklch(0.62 0.12 25);
+  --chart-5: oklch(0.56 0.10 285);
+
+  --radius: 0.625rem;
+
+  /* Sidebar */
+  --sidebar: oklch(0.985 0.006 145);
+  --sidebar-foreground: oklch(0.20 0.02 160);
+  --sidebar-primary: oklch(0.45 0.12 160);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.93 0.03 155);
+  --sidebar-accent-foreground: oklch(0.25 0.03 160);
+  --sidebar-border: oklch(0.87 0.012 145);
+  --sidebar-ring: oklch(0.45 0.12 160);
+
+  /* SportLife brand tokens */
+  --sport-green: oklch(0.45 0.12 160);         /* primary green */
+  --sport-green-light: oklch(0.93 0.03 155);   /* light green bg */
+  --sport-green-dark: oklch(0.35 0.10 160);    /* darker green */
+  --sport-cream: oklch(0.965 0.008 90);        /* background cream */
+  --sport-sand: oklch(0.88 0.01 80);           /* border/divider */
+  --sport-bark: oklch(0.50 0.02 60);           /* warm brown text */
+}
+
+.dark {
+  --background: oklch(0.16 0.015 160);
+  --foreground: oklch(0.96 0.005 90);
+
+  --card: oklch(0.20 0.015 160);
+  --card-foreground: oklch(0.96 0.005 90);
+  --popover: oklch(0.20 0.015 160);
+  --popover-foreground: oklch(0.96 0.005 90);
+
+  --primary: oklch(0.60 0.14 160);
+  --primary-foreground: oklch(0.16 0.015 160);
+
+  --secondary: oklch(0.25 0.015 160);
+  --secondary-foreground: oklch(0.96 0.005 90);
+
+  --muted: oklch(0.25 0.015 160);
+  --muted-foreground: oklch(0.65 0.02 160);
+
+  --accent: oklch(0.25 0.03 160);
+  --accent-foreground: oklch(0.96 0.005 90);
+
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(0.96 0 0 / 10%);
+  --input: oklch(0.96 0 0 / 15%);
+  --ring: oklch(0.60 0.14 160);
+
+  --chart-1: oklch(0.60 0.14 160);
+  --chart-2: oklch(0.50 0.10 155);
+  --chart-3: oklch(0.40 0.08 150);
+  --chart-4: oklch(0.65 0.06 145);
+  --chart-5: oklch(0.75 0.04 140);
+
+  --sidebar: oklch(0.18 0.015 160);
+  --sidebar-foreground: oklch(0.96 0.005 90);
+  --sidebar-primary: oklch(0.60 0.14 160);
+  --sidebar-primary-foreground: oklch(0.96 0.005 90);
+  --sidebar-accent: oklch(0.25 0.02 160);
+  --sidebar-accent-foreground: oklch(0.96 0.005 90);
+  --sidebar-border: oklch(0.96 0 0 / 10%);
+  --sidebar-ring: oklch(0.60 0.14 160);
+
+  --sport-green: oklch(0.60 0.14 160);
+  --sport-green-light: oklch(0.25 0.03 160);
+  --sport-green-dark: oklch(0.50 0.12 160);
+  --sport-cream: oklch(0.16 0.015 160);
+  --sport-sand: oklch(0.30 0.015 160);
+  --sport-bark: oklch(0.65 0.02 60);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    text-rendering: optimizeLegibility;
+  }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+  select {
+    @apply min-h-10 rounded-lg border-input bg-card transition-colors duration-200 hover:border-primary/30 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50;
+  }
+  main {
+    background:
+      linear-gradient(180deg, color-mix(in oklch, var(--accent) 28%, transparent), transparent 22rem),
+      var(--background);
+  }
 }

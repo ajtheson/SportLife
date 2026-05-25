@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+
+import { Toaster } from "@/components/ui/sonner";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "SportLife",
-  description: "Find venues, matches, and local sport players in Hanoi.",
+  description: "Tìm sân, trận đấu và người chơi thể thao tại Hà Nội.",
 };
 
 export default function RootLayout({
@@ -12,8 +15,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="vi" className="h-full antialiased" suppressHydrationWarning>
+      <body className="flex min-h-full flex-col font-sans">
+        {children}
+        <Toaster position="top-right" richColors closeButton />
+      </body>
     </html>
   );
 }

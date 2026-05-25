@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { getMatchFormData } from "@/features/matches/match-service";
+import { buttonVariants } from "@/components/ui/button";
 
 import { MatchForm } from "./match-form";
 
@@ -13,7 +14,7 @@ type NewMatchPageProps = {
 
 async function pageMessage(searchParams: Promise<Record<string, string | string[] | undefined>>) {
   const params = await searchParams;
-  return params.error === "invalid_input" ? "Please check match information and try again." : null;
+  return params.error === "invalid_input" ? "Vui lòng kiểm tra lại thông tin trận đấu và thử lại." : null;
 }
 
 export default async function NewMatchPage({ searchParams }: NewMatchPageProps) {
@@ -37,19 +38,19 @@ export default async function NewMatchPage({ searchParams }: NewMatchPageProps) 
   }
 
   return (
-    <main className="min-h-screen px-6 py-10">
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto grid w-full max-w-3xl gap-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold">Create match</h1>
-            <p className="mt-3 text-[#5f6b63]">Required players means players needed beyond the owner.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-primary">Tạo trận đấu</h1>
+            <p className="mt-3 text-muted-foreground">Số lượng người cần tuyển thêm (không bao gồm chủ trận).</p>
           </div>
-          <Link className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium" href="/matches">
-            Matches
+          <Link className={buttonVariants({ variant: "outline" })} href="/matches">
+            Danh sách trận
           </Link>
         </div>
 
-        {message ? <div className="rounded-md border border-[#d9d2c1] bg-white p-4 text-sm">{message}</div> : null}
+        {message ? <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">{message}</div> : null}
 
         <MatchForm areas={areas} sports={sports} />
       </div>

@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { listOwnerVenues } from "@/features/venues/venue-service";
 import { userHasVenueOwnerProfile } from "@/features/venue-owner-profile/venue-owner-profile-service";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 type VenueOwnerPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -12,8 +15,19 @@ type VenueOwnerPageProps = {
 
 async function pageMessage(searchParams: Promise<Record<string, string | string[] | undefined>>) {
   const params = await searchParams;
-  return params.status === "submitted" ? "Venue submitted for admin approval." : null;
+  return params.status === "submitted" ? "Sân đã được gửi lên để chờ admin duyệt." : null;
 }
+
+const approvalStatusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+  PENDING_APPROVAL: { label: "CHỜ DUYỆT", variant: "default" },
+  APPROVED: { label: "ĐÃ DUYỆT", variant: "secondary" },
+  REJECTED: { label: "TỪ CHỐI", variant: "destructive" },
+};
+
+const visibilityStatusMap: Record<string, { label: string; variant: "default" | "outline" }> = {
+  ACTIVE: { label: "HOẠT ĐỘNG", variant: "default" },
+  HIDDEN: { label: "BỊ ẨN", variant: "outline" },
+};
 
 export default async function VenueOwnerPage({ searchParams }: VenueOwnerPageProps) {
   const session = await auth();
@@ -33,57 +47,73 @@ export default async function VenueOwnerPage({ searchParams }: VenueOwnerPagePro
   const [venues, message] = await Promise.all([listOwnerVenues(session.user.id), pageMessage(searchParams)]);
 
   return (
-    <main className="min-h-screen bg-[#f7f4ed] px-6 py-10 text-[#1d2520]">
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto grid w-full max-w-6xl gap-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold">My venues</h1>
-            <p className="mt-3 text-[#5f6b63]">Submit venues and track approval status.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-primary">Sân của tôi</h1>
+            <p className="mt-3 text-muted-foreground">Đăng ký sân và theo dõi trạng thái kiểm duyệt.</p>
           </div>
           <div className="flex gap-2">
-            <Link className="rounded-md bg-[#0f6b4f] px-3 py-2 text-sm font-medium text-white" href="/venue-owner/venues/new">
-              New venue
+            <Link className={buttonVariants()} href="/venue-owner/venues/new">
+              Thêm sân mới
             </Link>
           </div>
         </div>
 
-        {message ? <div className="rounded-md border border-[#d9d2c1] bg-white p-4 text-sm">{message}</div> : null}
+        {message ? <div className="rounded-md border border-primary/50 bg-primary/10 p-4 text-sm text-primary">{message}</div> : null}
 
         <div className="grid gap-4">
-          {venues.map((venue) => (
-            <article key={venue.id} className="rounded-lg border border-[#d9d2c1] bg-white p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold">{venue.name}</h2>
-                  <p className="mt-2 text-sm text-[#5f6b63]">{venue.address}</p>
-                  <p className="mt-2 text-sm text-[#5f6b63]">
-                    {venue.area.name} · {venue.sports.map((item) => item.sport.name).join(", ")}
-                  </p>
-                  {venue.availabilityNote ? (
-                    <p className="mt-3 rounded-md bg-[#eef7f1] p-3 text-sm text-[#26563b]">
-                      Availability: {venue.availabilityNote}
-                    </p>
-                  ) : null}
-                  {venue.rejectionReason ? (
-                    <p className="mt-3 rounded-md bg-[#fff5f0] p-3 text-sm text-[#8a3b1f]">
-                      Rejection reason: {venue.rejectionReason}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="grid gap-2 text-sm">
-                  <span>{venue.approvalStatus}</span>
-                  <span>{venue.visibilityStatus}</span>
-                  <Link className="rounded-md border border-[#d9d2c1] px-3 py-2 text-center" href={`/venue-owner/venues/${venue.id}/edit`}>
-                    Edit
-                  </Link>
-                </div>
-              </div>
-            </article>
-          ))}
+          {venues.map((venue) => {
+            const appStatus = approvalStatusMap[venue.approvalStatus];
+            const visStatus = visibilityStatusMap[venue.visibilityStatus];
+
+            return (
+              <Card key={venue.id}>
+                <CardContent className="p-6">
+                  <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h2 className="text-xl font-bold text-primary">{venue.name}</h2>
+                      <p className="mt-2 text-sm text-muted-foreground">{venue.address}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Badge variant="secondary">{venue.area.name}</Badge>
+                        {venue.sports.map((item) => (
+                          <Badge key={item.sport.id} variant="outline">
+                            {item.sport.name}
+                          </Badge>
+                        ))}
+                      </div>
+                      {venue.availabilityNote ? (
+                        <p className="mt-4 rounded-md bg-muted/50 p-3 text-sm text-foreground">
+                          <span className="font-semibold">Trạng thái phục vụ:</span> {venue.availabilityNote}
+                        </p>
+                      ) : null}
+                      {venue.rejectionReason ? (
+                        <p className="mt-4 rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+                          <span className="font-semibold">Lý do từ chối:</span> {venue.rejectionReason}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="grid gap-3 text-sm">
+                      <Badge variant={appStatus?.variant ?? "default"} className="justify-center">
+                        {appStatus?.label ?? venue.approvalStatus}
+                      </Badge>
+                      <Badge variant={visStatus?.variant ?? "default"} className="justify-center">
+                        {visStatus?.label ?? venue.visibilityStatus}
+                      </Badge>
+                      <Link className={buttonVariants({ variant: "outline", className: "w-full mt-2" })} href={`/venue-owner/venues/${venue.id}/edit`}>
+                        Sửa thông tin
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
 
           {venues.length === 0 ? (
-            <div className="rounded-lg border border-[#d9d2c1] bg-white p-5 text-sm text-[#5f6b63]">
-              No venues submitted yet.
+            <div className="rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
+              Bạn chưa đăng sân nào.
             </div>
           ) : null}
         </div>

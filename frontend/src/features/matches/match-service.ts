@@ -9,7 +9,7 @@ import {
 import { prisma } from "@/lib/db/prisma";
 import { createMatchNotification } from "@/features/notifications/notification-service";
 
-import type { MatchFormInput } from "./match-schemas";
+import type { MatchFormInput, EditMatchInput } from "./match-schemas";
 
 export async function getMatchFormData(userId: string) {
   const [areas, sports, profile] = await Promise.all([
@@ -96,6 +96,96 @@ export async function createMatch(ownerId: string, input: MatchFormInput) {
         data: expectedLevelIds.map((skillLevelId) => ({
           matchId: match.id,
           skillLevelId,
+        })),
+      });
+    }
+  });
+}
+
+export async function editMatch(ownerId: string, input: EditMatchInput) {
+  const expectedLevelIds = [...new Set(input.expectedLevelIds ?? [])];
+  const [profile, area, sport, levels, existingMatch] = await Promise.all([
+    prisma.playerProfile.findUnique({ where: { userId: ownerId }, select: { id: true } }),
+    prisma.area.findFirst({
+      where: { id: input.areaId, city: "Hanoi", status: ConfigStatus.ACTIVE },
+      select: { id: true },
+    }),
+    prisma.sport.findFirst({
+      where: { id: input.sportId, status: ConfigStatus.ACTIVE },
+      select: { id: true },
+    }),
+    expectedLevelIds.length > 0
+      ? prisma.skillLevel.findMany({
+          where: {
+            id: { in: expectedLevelIds },
+            sportId: input.sportId,
+            status: ConfigStatus.ACTIVE,
+          },
+          select: { id: true },
+        })
+      : [],
+    prisma.match.findUnique({
+      where: { id: input.matchId },
+      include: {
+        joinRequests: {
+          where: { status: { in: [JoinRequestStatus.PENDING, JoinRequestStatus.APPROVED] } },
+        },
+      },
+    }),
+  ]);
+
+  if (!profile) throw new Error("PROFILE_REQUIRED");
+  if (!area) throw new Error("INVALID_AREA");
+  if (!sport) throw new Error("INVALID_SPORT");
+  if (levels.length !== expectedLevelIds.length) throw new Error("INVALID_LEVEL");
+  
+  if (!existingMatch || existingMatch.ownerId !== ownerId) {
+    throw new Error("MATCH_NOT_FOUND");
+  }
+
+  if (existingMatch.status === MatchStatus.CLOSED || existingMatch.status === MatchStatus.CANCELED) {
+    throw new Error("MATCH_NOT_EDITABLE");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    // 1. Cập nhật thông tin trận đấu và chuyển về trạng thái OPEN
+    await tx.match.update({
+      where: { id: input.matchId },
+      data: {
+        sportId: input.sportId,
+        areaId: input.areaId,
+        time: input.time,
+        detailedAddress: input.detailedAddress || null,
+        requiredPlayers: input.requiredPlayers,
+        expectedLevelId: expectedLevelIds[0] || null,
+        description: input.description || null,
+        status: MatchStatus.OPEN, // Đặt lại thành OPEN trong trường hợp đã FULL
+      },
+    });
+
+    // 2. Cập nhật trình độ
+    await tx.matchExpectedLevel.deleteMany({ where: { matchId: input.matchId } });
+    if (expectedLevelIds.length > 0) {
+      await tx.matchExpectedLevel.createMany({
+        data: expectedLevelIds.map((skillLevelId) => ({
+          matchId: input.matchId,
+          skillLevelId,
+        })),
+      });
+    }
+
+    // 3. Hủy các request cũ và tạo thông báo
+    if (existingMatch.joinRequests.length > 0) {
+      await tx.matchJoinRequest.updateMany({
+        where: { id: { in: existingMatch.joinRequests.map(r => r.id) } },
+        data: { status: JoinRequestStatus.CANCELED },
+      });
+
+      await tx.notification.createMany({
+        data: existingMatch.joinRequests.map((request) => ({
+          recipientId: request.requesterId,
+          type: NotificationType.MATCH_UPDATED,
+          referenceId: input.matchId,
         })),
       });
     }

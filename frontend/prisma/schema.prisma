@@ -70,6 +70,8 @@ enum NotificationType {
   MATCH_JOIN_REQUESTED
   MATCH_JOIN_APPROVED
   MATCH_JOIN_REJECTED
+  MATCH_UPDATED
+  CHAT_MESSAGE
 }
 
 model User {
@@ -94,6 +96,9 @@ model User {
   communityPosts       CommunityPost[]
   comments             Comment[]
   notifications        Notification[]       @relation("NotificationRecipient")
+  conversationsAsA     Conversation[]       @relation("ConversationUserA")
+  conversationsAsB     Conversation[]       @relation("ConversationUserB")
+  chatMessages         ChatMessage[]
   verificationTokens   VerificationToken[]
   passwordResetTokens  PasswordResetToken[]
 }
@@ -269,6 +274,7 @@ model Venue {
   area   Area         @relation(fields: [areaId], references: [id])
   sports VenueSport[]
   images VenueImage[]
+  chatConversations Conversation[] @relation("ConversationVenueContext")
 
   @@index([areaId, approvalStatus, visibilityStatus])
 }
@@ -315,6 +321,7 @@ model Match {
   expectedLevel SkillLevel?        @relation(fields: [expectedLevelId], references: [id])
   expectedLevels MatchExpectedLevel[]
   joinRequests  MatchJoinRequest[]
+  chatConversations Conversation[] @relation("ConversationMatchContext")
 
   @@index([sportId, areaId, time, status])
 }
@@ -389,4 +396,42 @@ model Notification {
   recipient User @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
 
   @@index([recipientId, readAt, createdAt])
+}
+
+model Conversation {
+  id              String   @id @default(cuid())
+  userAId         String
+  userBId         String
+  venueContextId  String?
+  matchContextId  String?
+  lastMessageAt   DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userA        User          @relation("ConversationUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB        User          @relation("ConversationUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  venueContext Venue?        @relation("ConversationVenueContext", fields: [venueContextId], references: [id], onDelete: SetNull)
+  matchContext Match?        @relation("ConversationMatchContext", fields: [matchContextId], references: [id], onDelete: SetNull)
+  messages     ChatMessage[]
+
+  @@unique([userAId, userBId])
+  @@index([userAId, lastMessageAt])
+  @@index([userBId, lastMessageAt])
+  @@index([venueContextId])
+  @@index([matchContextId])
+}
+
+model ChatMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId, createdAt])
 }

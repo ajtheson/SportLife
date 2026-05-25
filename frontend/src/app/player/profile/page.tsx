@@ -4,6 +4,11 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { savePlayerProfileAction } from "@/features/player-profile/player-profile-actions";
 import { getPlayerProfileFormData } from "@/features/player-profile/player-profile-service";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 
 type PlayerProfilePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -11,15 +16,19 @@ type PlayerProfilePageProps = {
 
 function profileMessage(searchParams: Record<string, string | string[] | undefined>) {
   if (searchParams.status === "saved") {
-    return "Profile saved.";
+    return "Đã lưu hồ sơ thành công.";
   }
 
   if (searchParams.error === "phone_exists") {
-    return "Phone number is already used by another player.";
+    return "Số điện thoại này đã được sử dụng bởi người chơi khác.";
   }
 
   if (searchParams.error === "invalid_input") {
-    return "Please check your profile information and try again.";
+    return "Vui lòng kiểm tra lại thông tin hồ sơ và thử lại.";
+  }
+
+  if (searchParams.error === "invalid_avatar") {
+    return "Ảnh đại diện phải là JPG, PNG hoặc WEBP và không quá 2MB.";
   }
 
   return null;
@@ -43,128 +52,157 @@ export default async function PlayerProfilePage({ searchParams }: PlayerProfileP
   const selectedSportLevelBySport = new Map(profile?.sportLevels.map((item) => [item.sportId, item.skillLevelId]));
 
   return (
-    <main className="min-h-screen bg-[#f7f4ed] px-6 py-10 text-[#1d2520]">
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto w-full max-w-3xl">
         <div className="mb-8 grid gap-4">
-          <h1 className="text-3xl font-semibold">Player profile</h1>
-          <p className="text-[#5f6b63]">Complete this profile before using player features in SportLife.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">Hồ sơ người chơi</h1>
+          <p className="text-muted-foreground">Hoàn thiện hồ sơ để trải nghiệm đầy đủ các tính năng của SportLife.</p>
         </div>
 
         {message ? (
-          <div className="mb-6 rounded-md border border-[#d9d2c1] bg-white p-4 text-sm">{message}</div>
+          <div className={`mb-6 rounded-md border p-4 text-sm ${message.includes("thành công") ? "border-primary/50 bg-primary/10 text-primary" : "border-destructive/50 bg-destructive/10 text-destructive"}`}>
+            {message}
+          </div>
         ) : null}
 
-        <form action={savePlayerProfileAction} className="grid gap-6 rounded-lg border border-[#d9d2c1] bg-white p-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-medium">
-              Display name
-              <input
-                className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2"
-                name="displayName"
-                defaultValue={profile?.displayName ?? ""}
-                minLength={2}
-                maxLength={80}
-                required
-              />
-            </label>
-
-            <label className="grid gap-2 text-sm font-medium">
-              Phone number
-              <input
-                className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2"
-                name="phone"
-                defaultValue={profile?.phone ?? ""}
-                inputMode="numeric"
-                pattern="\d{10}"
-                maxLength={10}
-                placeholder="0912345678"
-                required
-              />
-            </label>
-          </div>
-
-          <label className="grid gap-2 text-sm font-medium">
-            Hanoi ward/commune
-            <select
-              className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2"
-              name="areaId"
-              defaultValue={profile?.areaId ?? ""}
-              required
-            >
-              <option value="" disabled>
-                Select an area
-              </option>
-              {areas.map((area) => (
-                <option key={area.id} value={area.id}>
-                  {area.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <fieldset className="grid gap-4">
-            <legend className="text-sm font-medium">Sports and skill levels</legend>
-            <div className="grid gap-3">
-              {sports.map((sport) => {
-                const selectedLevelId = selectedSportLevelBySport.get(sport.id);
-
-                return (
-                  <div
-                    key={sport.id}
-                    className="grid gap-3 rounded-md border border-[#e6dfd0] p-4 md:grid-cols-[minmax(0,1fr)_220px]"
-                  >
-                    <label className="flex items-center gap-2 text-sm font-medium">
-                      <input
-                        name="sportIds"
-                        type="checkbox"
-                        value={sport.id}
-                        defaultChecked={Boolean(selectedLevelId)}
-                      />
-                      {sport.name}
-                    </label>
-                    <select
-                      aria-label={`${sport.name} skill level`}
-                      className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm"
-                      name={`skillLevel_${sport.id}`}
-                      defaultValue={selectedLevelId ?? ""}
-                    >
-                      <option value="">Select level</option>
-                      {sport.skillLevels.map((level) => (
-                        <option key={level.id} value={level.id}>
-                          {level.name}
-                        </option>
-                      ))}
-                    </select>
+        <Card>
+          <CardContent className="pt-6">
+            <form action={savePlayerProfileAction} className="grid gap-6">
+              <div className="grid gap-3">
+                <Label>Ảnh đại diện</Label>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  {profile?.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      alt={profile.displayName}
+                      className="size-20 rounded-full border border-border object-cover"
+                      src={profile.avatarUrl}
+                    />
+                  ) : (
+                    <div className="flex size-20 items-center justify-center rounded-full border border-dashed border-border bg-muted text-sm text-muted-foreground">
+                      Avatar
+                    </div>
+                  )}
+                  <div className="grid flex-1 gap-2">
+                    <Input name="avatar" type="file" accept="image/jpeg,image/png,image/webp" />
+                    <p className="text-sm text-muted-foreground">
+                      JPG, PNG hoặc WEBP, tối đa 2MB. Chọn ảnh mới sẽ thay ảnh hiện tại.
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          </fieldset>
+                </div>
+              </div>
 
-          <label className="grid gap-2 text-sm font-medium">
-            Availability
-            <textarea
-              className="min-h-24 rounded-md border border-[#d9d2c1] bg-white px-3 py-2"
-              name="availability"
-              defaultValue={profile?.availability ?? ""}
-              maxLength={300}
-            />
-          </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label>Tên hiển thị</Label>
+                  <Input
+                    name="displayName"
+                    defaultValue={profile?.displayName ?? ""}
+                    minLength={2}
+                    maxLength={80}
+                    required
+                  />
+                </div>
 
-          <label className="grid gap-2 text-sm font-medium">
-            Introduction
-            <textarea
-              className="min-h-28 rounded-md border border-[#d9d2c1] bg-white px-3 py-2"
-              name="introduction"
-              defaultValue={profile?.introduction ?? ""}
-              maxLength={500}
-            />
-          </label>
+                <div className="grid gap-2">
+                  <Label>Số điện thoại</Label>
+                  <Input
+                    name="phone"
+                    defaultValue={profile?.phone ?? ""}
+                    inputMode="numeric"
+                    pattern="\d{10}"
+                    maxLength={10}
+                    placeholder="0912345678"
+                    required
+                  />
+                </div>
+              </div>
 
-          <button className="rounded-md bg-[#0f6b4f] px-4 py-2 font-medium text-white hover:bg-[#0b573f]" type="submit">
-            Save profile
-          </button>
-        </form>
+              <div className="grid gap-2">
+                <Label>Quận/huyện/phường tại Hà Nội</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  name="areaId"
+                  defaultValue={profile?.areaId ?? ""}
+                  required
+                >
+                  <option value="" disabled>
+                    Chọn khu vực
+                  </option>
+                  {areas.map((area) => (
+                    <option key={area.id} value={area.id}>
+                      {area.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <fieldset className="grid gap-4 rounded-xl border border-border p-4">
+                <legend className="-ml-1 bg-card px-1 text-sm font-semibold">Môn thể thao & Trình độ</legend>
+                <div className="grid gap-3">
+                  {sports.map((sport) => {
+                    const selectedLevelId = selectedSportLevelBySport.get(sport.id);
+
+                    return (
+                      <div
+                        key={sport.id}
+                        className="grid gap-3 rounded-md border border-input p-4 md:grid-cols-[minmax(0,1fr)_220px]"
+                      >
+                        <Label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+                          <input
+                            className="size-4 accent-primary"
+                            name="sportIds"
+                            type="checkbox"
+                            value={sport.id}
+                            defaultChecked={Boolean(selectedLevelId)}
+                          />
+                          {sport.name}
+                        </Label>
+                        <select
+                          aria-label={`Trình độ ${sport.name}`}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          name={`skillLevel_${sport.id}`}
+                          defaultValue={selectedLevelId ?? ""}
+                        >
+                          <option value="">Chọn trình độ</option>
+                          {sport.skillLevels.map((level) => (
+                            <option key={level.id} value={level.id}>
+                              {level.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
+              </fieldset>
+
+              <div className="grid gap-2">
+                <Label>Lịch rảnh</Label>
+                <Textarea
+                  className="min-h-24"
+                  name="availability"
+                  defaultValue={profile?.availability ?? ""}
+                  maxLength={300}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Giới thiệu bản thân</Label>
+                <Textarea
+                  className="min-h-28"
+                  name="introduction"
+                  defaultValue={profile?.introduction ?? ""}
+                  maxLength={500}
+                />
+              </div>
+
+              <Button type="submit" className="w-full sm:w-fit">
+                Lưu hồ sơ
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

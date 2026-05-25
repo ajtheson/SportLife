@@ -5,6 +5,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import {
+  isUploadedFile,
+  saveLocalImageFiles,
+  VENUE_IMAGE_MAX_BYTES,
+  VENUE_IMAGE_MAX_COUNT,
+} from "@/lib/storage/storage-service";
 
 import { rejectVenueSchema, venueFormSchema, venueIdSchema } from "./venue-schemas";
 import { approveVenue, rejectVenue, saveOwnerVenue, setVenueVisibility } from "./venue-service";
@@ -28,10 +34,9 @@ function redirectWith(path: string, key: "error" | "status", value: string): nev
 }
 
 function imageUrlsFromForm(formData: FormData) {
-  const raw = String(formData.get("imageUrls") ?? "");
-
-  return raw
-    .split(/\r?\n/)
+  return formData
+    .getAll("imageUrls")
+    .flatMap((value) => String(value).split(/\r?\n/))
     .map((url) => url.trim())
     .filter(Boolean);
 }
@@ -43,6 +48,30 @@ function venueFormTarget(formData: FormData) {
 
 export async function saveVenueAction(formData: FormData) {
   const user = await requireRole(UserRole.VENUE_OWNER);
+  const target = venueFormTarget(formData);
+  const uploadedImageFiles = formData.getAll("venueImages").filter(isUploadedFile);
+  let imageUrls = imageUrlsFromForm(formData);
+
+  if (uploadedImageFiles.length > 0) {
+    if (uploadedImageFiles.length > VENUE_IMAGE_MAX_COUNT) {
+      redirectWith(target, "error", "invalid_images");
+    }
+
+    try {
+      const uploadedImages = await saveLocalImageFiles(uploadedImageFiles, "venues", VENUE_IMAGE_MAX_BYTES);
+      imageUrls = uploadedImages.map((image) => image.url);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message === "INVALID_IMAGE_TYPE" || error.message === "IMAGE_TOO_LARGE")
+      ) {
+        redirectWith(target, "error", "invalid_images");
+      }
+
+      throw error;
+    }
+  }
+
   const parsed = venueFormSchema.safeParse({
     venueId: String(formData.get("venueId") ?? "") || undefined,
     name: formData.get("name"),
@@ -54,9 +83,8 @@ export async function saveVenueAction(formData: FormData) {
     openingHours: formData.get("openingHours") || undefined,
     referencePrice: formData.get("referencePrice") || undefined,
     sportId: formData.get("sportId"),
-    imageUrls: imageUrlsFromForm(formData),
+    imageUrls,
   });
-  const target = venueFormTarget(formData);
 
   if (!parsed.success) {
     redirectWith(target, "error", "invalid_input");

@@ -1,9 +1,29 @@
 import { UserRole } from "@prisma/client";
+import type { LucideIcon } from "lucide-react";
+import {
+  Bell,
+  Building2,
+  CalendarPlus,
+  CheckSquare,
+  ClipboardList,
+  Gauge,
+  Home,
+  MessageSquareText,
+  Search,
+  Settings,
+  ShieldCheck,
+  User,
+  Users,
+} from "lucide-react";
 import type { Session } from "next-auth";
 import Link from "next/link";
 
 import { auth } from "@/auth";
 import { logoutAction } from "@/features/auth/auth-actions";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { MobileSidebar } from "@/components/mobile-sidebar";
 
 type ProductShellProps = {
   children: React.ReactNode;
@@ -13,74 +33,96 @@ type NavItem =
   | {
       label: string;
       href: string;
-      marker: string;
+      icon: LucideIcon;
       enabled: true;
       roles?: UserRole[];
     }
   | {
       label: string;
-      marker: string;
+      icon: LucideIcon;
       enabled: false;
       roles?: UserRole[];
     };
 
 const primaryNav: NavItem[] = [
-  { label: "Find venues", href: "/venues", marker: "V", enabled: true },
-  { label: "Find matches", href: "/matches", marker: "M", enabled: true, roles: [UserRole.PLAYER] },
-  { label: "Community", href: "/community", marker: "C", enabled: true, roles: [UserRole.PLAYER] },
-  { label: "Chat", marker: "T", enabled: false },
-  { label: "Notifications", href: "/notifications", marker: "N", enabled: true, roles: [UserRole.PLAYER] },
+  { label: "Tìm sân", href: "/venues", icon: Search, enabled: true },
+  { label: "Tìm trận", href: "/matches", icon: CalendarPlus, enabled: true },
+  { label: "Cộng đồng", href: "/community", icon: MessageSquareText, enabled: true },
+  { label: "Nhắn tin", href: "/chat", icon: Bell, enabled: true, roles: [UserRole.PLAYER, UserRole.VENUE_OWNER] },
+  { label: "Thông báo", href: "/notifications", icon: ShieldCheck, enabled: true, roles: [UserRole.PLAYER, UserRole.VENUE_OWNER] },
 ];
 
 const roleNav: NavItem[] = [
-  { label: "Player profile", href: "/player/profile", marker: "P", enabled: true, roles: [UserRole.PLAYER] },
-  { label: "My venues", href: "/venue-owner", marker: "O", enabled: true, roles: [UserRole.VENUE_OWNER] },
-  { label: "Owner profile", href: "/venue-owner/profile", marker: "B", enabled: true, roles: [UserRole.VENUE_OWNER] },
-  { label: "Venue review", href: "/admin/venues", marker: "R", enabled: true, roles: [UserRole.ADMIN] },
-  { label: "Community mod", href: "/admin/community", marker: "C", enabled: true, roles: [UserRole.ADMIN] },
-  { label: "Configuration", href: "/admin/config", marker: "A", enabled: true, roles: [UserRole.ADMIN] },
+  { label: "Hồ sơ cá nhân", href: "/player/profile", icon: User, enabled: true, roles: [UserRole.PLAYER] },
+  { label: "Sân của tôi", href: "/venue-owner", icon: Building2, enabled: true, roles: [UserRole.VENUE_OWNER] },
+  { label: "Hồ sơ chủ sân", href: "/venue-owner/profile", icon: ClipboardList, enabled: true, roles: [UserRole.VENUE_OWNER] },
+  { label: "Tổng quan", href: "/admin", icon: Gauge, enabled: true, roles: [UserRole.ADMIN] },
+  { label: "Người dùng", href: "/admin/users", icon: Users, enabled: true, roles: [UserRole.ADMIN] },
+  { label: "Duyệt sân", href: "/admin/venues", icon: CheckSquare, enabled: true, roles: [UserRole.ADMIN] },
+  { label: "Kiểm duyệt", href: "/admin/community", icon: MessageSquareText, enabled: true, roles: [UserRole.ADMIN] },
+  { label: "Cấu hình", href: "/admin/config", icon: Settings, enabled: true, roles: [UserRole.ADMIN] },
 ];
 
 export async function ProductShell({ children }: ProductShellProps) {
   const session = await auth();
 
-  return (
-    <div className="min-h-screen bg-[#f7f4ed] text-[#1d2520] lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="border-b border-[#d9d2c1] bg-[#fcfbf8] lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
-        <div className="flex h-full flex-col gap-6 px-4 py-5">
-          <div className="flex items-center justify-between gap-3">
-            <Link className="text-xl font-semibold" href="/">
-              SportLife
+  const sidebarContent = (
+    <div className="flex h-full flex-col gap-5 px-4 py-5">
+      <Link
+        className="flex min-h-12 items-center gap-3 rounded-xl bg-primary/10 p-2 text-xl font-bold tracking-tight text-primary ring-1 ring-primary/15 transition-colors hover:bg-primary/15"
+        href="/"
+      >
+        <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+          <Home className="size-5" aria-hidden="true" />
+        </span>
+        SportLife
+      </Link>
+
+      <SessionSummary session={session} />
+
+      <Separator />
+
+      <nav className="flex flex-1 flex-col gap-5">
+        <NavSection items={primaryNav} role={session?.user.role} title="Khám phá" />
+        <NavSection items={roleNav} role={session?.user.role} title="Không gian làm việc" />
+      </nav>
+
+      <div className="grid gap-2">
+        {session?.user ? (
+          <form action={logoutAction}>
+            <Button className="w-full" variant="outline" type="submit">
+              Đăng xuất
+            </Button>
+          </form>
+        ) : (
+          <>
+            <Link href="/login" className={buttonVariants({ variant: "outline", className: "w-full" })}>
+              Đăng nhập
             </Link>
-          </div>
+            <Link href="/register" className={buttonVariants({ className: "w-full" })}>
+              Đăng ký
+            </Link>
+          </>
+        )}
+      </div>
+    </div>
+  );
 
-          <SessionSummary session={session} />
-
-          <nav className="grid gap-5">
-            <NavSection items={primaryNav} role={session?.user.role} title="Explore" />
-            <NavSection items={roleNav} role={session?.user.role} title="Workspace" />
-          </nav>
-
-          <div className="mt-auto hidden gap-2 lg:grid">
-            {session?.user ? (
-              <form action={logoutAction}>
-                <button className="w-full rounded-md bg-[#1d2520] px-3 py-2 text-sm font-medium text-white" type="submit">
-                  Logout
-                </button>
-              </form>
-            ) : (
-              <div className="grid gap-2">
-                <Link className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2 text-sm font-medium" href="/login">
-                  Login
-                </Link>
-                <Link className="rounded-md bg-[#0f6b4f] px-3 py-2 text-sm font-medium text-white" href="/register">
-                  Register
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
+  return (
+    <div className="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[292px_minmax(0,1fr)]">
+      <aside className="hidden border-r border-sidebar-border bg-sidebar/95 lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto">
+        {sidebarContent}
       </aside>
+
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-sidebar/95 px-4 py-3 backdrop-blur lg:hidden">
+        <Link className="flex min-h-10 items-center gap-2 text-lg font-bold tracking-tight text-primary" href="/">
+          <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Home className="size-4" aria-hidden="true" />
+          </span>
+          SportLife
+        </Link>
+        <MobileSidebar>{sidebarContent}</MobileSidebar>
+      </header>
 
       <div className="min-w-0">{children}</div>
     </div>
@@ -90,16 +132,22 @@ export async function ProductShell({ children }: ProductShellProps) {
 function SessionSummary({ session }: { session: Session | null }) {
   if (!session?.user) {
     return (
-      <div className="rounded-lg border border-[#d9d2c1] bg-white p-3 text-sm text-[#5f6b63]">
-        Sign in to manage profiles, venues, matches, and community activity.
+      <div className="rounded-xl border border-border bg-card p-4 text-sm leading-6 text-muted-foreground shadow-sm">
+        Đăng nhập để quản lý hồ sơ, sân, trận đấu và hoạt động cộng đồng.
       </div>
     );
   }
 
+  const roleLabels: Record<string, string> = {
+    PLAYER: "Người chơi",
+    VENUE_OWNER: "Chủ sân",
+    ADMIN: "Quản trị viên",
+  };
+
   return (
-    <div className="rounded-lg border border-[#d9d2c1] bg-white p-3 text-sm">
-      <div className="font-medium">{session.user.role?.replace("_", " ")}</div>
-      <div className="mt-1 truncate text-[#5f6b63]">{session.user.email}</div>
+    <div className="rounded-xl border border-border bg-card p-4 text-sm shadow-sm">
+      <div className="font-semibold text-foreground">{roleLabels[session.user.role ?? ""] ?? session.user.role}</div>
+      <div className="mt-1 truncate text-muted-foreground">{session.user.email}</div>
     </div>
   );
 }
@@ -112,38 +160,44 @@ function NavSection({ items, role, title }: { items: NavItem[]; role?: UserRole;
   }
 
   return (
-    <section className="grid gap-2">
-      <h2 className="px-2 text-xs font-semibold uppercase tracking-wide text-[#6d766f]">{title}</h2>
-      <div className="grid gap-1">
-        {visibleItems.map((item) => (
-          <NavEntry item={item} key={item.label} />
-        ))}
-      </div>
+    <section className="grid gap-1">
+      <h2 className="mb-2 px-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{title}</h2>
+      {visibleItems.map((item) => (
+        <NavEntry item={item} key={item.label} />
+      ))}
     </section>
   );
 }
 
 function NavEntry({ item }: { item: NavItem }) {
+  const Icon = item.icon;
   const content = (
     <>
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#eef1ec] text-xs font-semibold">
-        {item.marker}
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover/link:bg-primary/10 group-hover/link:text-primary">
+        <Icon className="size-4" aria-hidden="true" />
       </span>
       <span className="truncate">{item.label}</span>
-      {!item.enabled ? <span className="ml-auto rounded bg-[#f0ece2] px-2 py-1 text-xs text-[#6d5d42]">Soon</span> : null}
+      {!item.enabled ? (
+        <Badge variant="secondary" className="ml-auto text-[10px]">
+          Sắp ra mắt
+        </Badge>
+      ) : null}
     </>
   );
 
   if (!item.enabled) {
     return (
-      <div className="flex items-center gap-3 rounded-md px-2 py-2 text-sm text-[#8a908b]" aria-disabled="true">
+      <div className="flex min-h-11 items-center gap-3 rounded-xl px-2 py-2 text-sm text-muted-foreground/60" aria-disabled="true">
         {content}
       </div>
     );
   }
 
   return (
-    <Link className="flex items-center gap-3 rounded-md px-2 py-2 text-sm font-medium hover:bg-white" href={item.href}>
+    <Link
+      className="group/link flex min-h-11 items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold text-sidebar-foreground transition-colors duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      href={item.href}
+    >
       {content}
     </Link>
   );

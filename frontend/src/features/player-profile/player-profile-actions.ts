@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { auth } from "@/auth";
+import { AVATAR_IMAGE_MAX_BYTES, isUploadedFile, saveLocalImageFile } from "@/lib/storage/storage-service";
 
 import { playerProfileSchema } from "./player-profile-schemas";
 import { savePlayerProfile } from "./player-profile-service";
@@ -41,8 +42,27 @@ export async function savePlayerProfileAction(formData: FormData) {
     redirectWith("/player/profile", "error", "invalid_input");
   }
 
+  const avatarFile = formData.get("avatar");
+  let avatarUrl: string | undefined;
+
+  if (isUploadedFile(avatarFile)) {
+    try {
+      const uploadedAvatar = await saveLocalImageFile(avatarFile, "avatars", AVATAR_IMAGE_MAX_BYTES);
+      avatarUrl = uploadedAvatar.url;
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message === "INVALID_IMAGE_TYPE" || error.message === "IMAGE_TOO_LARGE")
+      ) {
+        redirectWith("/player/profile", "error", "invalid_avatar");
+      }
+
+      throw error;
+    }
+  }
+
   try {
-    await savePlayerProfile(session.user.id, parsed.data);
+    await savePlayerProfile(session.user.id, { ...parsed.data, avatarUrl });
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === "PHONE_ALREADY_EXISTS") {

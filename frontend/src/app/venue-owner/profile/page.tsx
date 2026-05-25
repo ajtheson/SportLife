@@ -4,6 +4,10 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { saveVenueOwnerProfileAction } from "@/features/venue-owner-profile/venue-owner-profile-actions";
 import { getVenueOwnerProfile } from "@/features/venue-owner-profile/venue-owner-profile-service";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 
 type VenueOwnerProfilePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -11,15 +15,15 @@ type VenueOwnerProfilePageProps = {
 
 function profileMessage(searchParams: Record<string, string | string[] | undefined>) {
   if (searchParams.status === "saved") {
-    return "Profile saved.";
+    return "Đã lưu hồ sơ thành công.";
   }
 
   if (searchParams.error === "phone_exists") {
-    return "Phone number is already used by another venue owner.";
+    return "Số điện thoại này đã được đăng ký bởi một chủ sân khác.";
   }
 
   if (searchParams.error === "invalid_input") {
-    return "Please check your profile information and try again.";
+    return "Vui lòng kiểm tra lại thông tin hồ sơ và thử lại.";
   }
 
   return null;
@@ -39,45 +43,51 @@ export default async function VenueOwnerProfilePage({ searchParams }: VenueOwner
   const [profile, message] = await Promise.all([getVenueOwnerProfile(session.user.id), searchParams.then(profileMessage)]);
 
   return (
-    <main className="min-h-screen bg-[#f7f4ed] px-6 py-10 text-[#1d2520]">
+    <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto w-full max-w-2xl">
         <div className="mb-8 grid gap-4">
-          <h1 className="text-3xl font-semibold">Venue owner profile</h1>
-          <p className="text-[#5f6b63]">Complete this profile before managing venues.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">Hồ sơ chủ sân</h1>
+          <p className="text-muted-foreground">Hoàn thiện hồ sơ để có thể đăng tải và quản lý thông tin sân.</p>
         </div>
 
         {message ? (
-          <div className="mb-6 rounded-md border border-[#d9d2c1] bg-white p-4 text-sm">{message}</div>
+          <div className={`mb-6 rounded-md border p-4 text-sm ${message.includes("thành công") ? "border-primary/50 bg-primary/10 text-primary" : "border-destructive/50 bg-destructive/10 text-destructive"}`}>
+            {message}
+          </div>
         ) : null}
 
-        <form action={saveVenueOwnerProfileAction} className="grid gap-4 rounded-lg border border-[#d9d2c1] bg-white p-6">
-          <label className="grid gap-2 text-sm font-medium">
-            Business name
-            <input
-              className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2"
-              name="businessName"
-              defaultValue={profile?.businessName ?? ""}
-              required
-              maxLength={120}
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-medium">
-            Phone number
-            <input
-              className="rounded-md border border-[#d9d2c1] bg-white px-3 py-2"
-              name="phone"
-              defaultValue={profile?.phone ?? ""}
-              inputMode="numeric"
-              pattern="\d{10}"
-              maxLength={10}
-              placeholder="0912345678"
-              required
-            />
-          </label>
-          <button className="rounded-md bg-[#0f6b4f] px-4 py-2 font-medium text-white hover:bg-[#0b573f]" type="submit">
-            Save profile
-          </button>
-        </form>
+        <Card>
+          <CardContent className="pt-6">
+            <form action={saveVenueOwnerProfileAction} className="grid gap-6">
+              <div className="grid gap-2">
+                <Label>Tên cơ sở kinh doanh</Label>
+                <Input
+                  name="businessName"
+                  defaultValue={profile?.businessName ?? ""}
+                  required
+                  maxLength={120}
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label>Số điện thoại liên hệ</Label>
+                <Input
+                  name="phone"
+                  defaultValue={profile?.phone ?? ""}
+                  inputMode="numeric"
+                  pattern="\d{10}"
+                  maxLength={10}
+                  placeholder="0912345678"
+                  required
+                />
+              </div>
+              
+              <Button type="submit" className="w-full sm:w-fit">
+                Lưu hồ sơ
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );
