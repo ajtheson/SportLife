@@ -29,6 +29,13 @@ The Compose stack starts:
 - `migrate`: Prisma generate, schema sync, and seed from the current `frontend/` source through a bind mount
 - `frontend`: Next.js development server
 
+GCP deployment scaffolding is available for the demo production path:
+
+- `frontend/Dockerfile.prod`: production Next.js container for Cloud Run
+- `cloudbuild.yaml`: Cloud Build CI/CD skeleton
+- `scripts/gcp-start.ps1` and `scripts/gcp-stop.ps1`: Cloud SQL cost-control helpers
+- [docs/DEPLOYMENT_GCP.md](docs/DEPLOYMENT_GCP.md): end-to-end deployment guide
+
 Current completed phase:
 
 - Phase 0: Dockerized project foundation
@@ -75,7 +82,7 @@ The development app stores uploaded images under `frontend/public/uploads/` thro
 - Venue photos: JPG, PNG, or WEBP, maximum 5 photos and 5MB per photo.
 - Venue edit keeps existing image URLs if no new files are selected. Selecting new venue photos replaces the submitted venue image list.
 
-Production should replace the local storage adapter with S3-compatible object storage while continuing to store image URLs in PostgreSQL.
+Production uses the configured storage provider. Local development writes to `frontend/public/uploads/`; the GCP demo uses Cloud Storage when `STORAGE_PROVIDER=gcs` and stores the resulting image URLs in PostgreSQL.
 
 ## Email In Development
 
@@ -119,6 +126,8 @@ npm run dev
 Use Docker for PostgreSQL unless you already have a local database configured.
 
 ## Documentation
+
+- GCP deployment guide: [docs/DEPLOYMENT_GCP.md](docs/DEPLOYMENT_GCP.md)
 
 - [Agent instructions](./AGENTS.md)
 - [Implementation plan](./docs/IMPLEMENTATION_PLAN.md)

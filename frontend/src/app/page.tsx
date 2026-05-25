@@ -40,11 +40,11 @@ const trustSignals = [
 export default async function Home() {
   const session = await auth();
 
-  if (session?.user.role === UserRole.PLAYER && !(await userHasPlayerProfile(session.user.id))) {
+  if (session?.user?.role === UserRole.PLAYER && !(await userHasPlayerProfile(session.user.id))) {
     redirect("/player/profile");
   }
 
-  if (session?.user.role === UserRole.VENUE_OWNER && !(await userHasVenueOwnerProfile(session.user.id))) {
+  if (session?.user?.role === UserRole.VENUE_OWNER && !(await userHasVenueOwnerProfile(session.user.id))) {
     redirect("/venue-owner/profile");
   }
 
