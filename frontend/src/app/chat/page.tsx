@@ -55,7 +55,11 @@ export default async function ChatPage() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <h2 className="font-semibold text-foreground">{chatParticipantName(other)}</h2>
-                        {conversation.venueContext ? (
+                        {conversation.bookingContext ? (
+                          <p className="mt-1 text-xs font-medium text-primary">
+                            Liên quan đến đặt sân: {conversation.bookingContext.venue.name} - {conversation.bookingContext.resource.name}
+                          </p>
+                        ) : conversation.venueContext ? (
                           <p className="mt-1 text-xs font-medium text-primary">Liên quan đến sân: {conversation.venueContext.name}</p>
                         ) : conversation.matchContext ? (
                           <p className="mt-1 text-xs font-medium text-primary">

@@ -13,6 +13,10 @@ function notificationText(type: NotificationType) {
   if (type === NotificationType.MATCH_JOIN_APPROVED) return "Yêu cầu tham gia trận đấu của bạn đã được duyệt.";
   if (type === NotificationType.MATCH_UPDATED) return "Chủ trận đã thay đổi thông tin trận đấu, yêu cầu tham gia của bạn đã bị hủy tự động.";
   if (type === NotificationType.CHAT_MESSAGE) return "Bạn có tin nhắn mới.";
+  if (type === NotificationType.BOOKING_REQUESTED) return "Có yêu cầu đặt sân mới cần bạn xác nhận.";
+  if (type === NotificationType.BOOKING_CONFIRMED) return "Yêu cầu đặt sân của bạn đã được chủ sân xác nhận.";
+  if (type === NotificationType.BOOKING_REJECTED) return "Yêu cầu đặt sân của bạn đã bị từ chối.";
+  if (type === NotificationType.BOOKING_CANCELED) return "Một booking liên quan đến bạn đã bị hủy.";
   return "Yêu cầu tham gia trận đấu của bạn đã bị từ chối.";
 }
 

@@ -20,6 +20,12 @@ export async function listUserNotifications(userId: string) {
   });
 }
 
+export async function countUnreadNotifications(userId: string) {
+  return prisma.notification.count({
+    where: { recipientId: userId, readAt: null },
+  });
+}
+
 export async function markNotificationRead(userId: string, notificationId: string) {
   await prisma.notification.updateMany({
     where: {

@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Bell,
   Building2,
+  CalendarCheck,
   CalendarPlus,
   CheckSquare,
   ClipboardList,
@@ -20,6 +21,8 @@ import Link from "next/link";
 
 import { auth } from "@/auth";
 import { logoutAction } from "@/features/auth/auth-actions";
+import { countUnreadMessages } from "@/features/chat/chat-service";
+import { countUnreadNotifications } from "@/features/notifications/notification-service";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -54,7 +57,9 @@ const primaryNav: NavItem[] = [
 
 const roleNav: NavItem[] = [
   { label: "Hồ sơ cá nhân", href: "/player/profile", icon: User, enabled: true, roles: [UserRole.PLAYER] },
+  { label: "Đặt sân của tôi", href: "/player/bookings", icon: CalendarCheck, enabled: true, roles: [UserRole.PLAYER] },
   { label: "Sân của tôi", href: "/venue-owner", icon: Building2, enabled: true, roles: [UserRole.VENUE_OWNER] },
+  { label: "Quản lý đặt sân", href: "/venue-owner/bookings", icon: CalendarCheck, enabled: true, roles: [UserRole.VENUE_OWNER] },
   { label: "Hồ sơ chủ sân", href: "/venue-owner/profile", icon: ClipboardList, enabled: true, roles: [UserRole.VENUE_OWNER] },
   { label: "Tổng quan", href: "/admin", icon: Gauge, enabled: true, roles: [UserRole.ADMIN] },
   { label: "Người dùng", href: "/admin/users", icon: Users, enabled: true, roles: [UserRole.ADMIN] },
@@ -65,6 +70,14 @@ const roleNav: NavItem[] = [
 
 export async function ProductShell({ children }: ProductShellProps) {
   const session = await auth();
+
+  const [unreadNotifications, unreadMessages] = session?.user
+    ? await Promise.all([countUnreadNotifications(session.user.id), countUnreadMessages(session.user.id)])
+    : [0, 0];
+  const badges: Record<string, number> = {
+    "/notifications": unreadNotifications,
+    "/chat": unreadMessages,
+  };
 
   const sidebarContent = (
     <div className="flex h-full flex-col gap-5 px-4 py-5">
@@ -83,8 +96,8 @@ export async function ProductShell({ children }: ProductShellProps) {
       <Separator />
 
       <nav className="flex flex-1 flex-col gap-5">
-        <NavSection items={primaryNav} role={session?.user.role} title="Khám phá" />
-        <NavSection items={roleNav} role={session?.user.role} title="Không gian làm việc" />
+        <NavSection items={primaryNav} role={session?.user.role} title="Khám phá" badges={badges} />
+        <NavSection items={roleNav} role={session?.user.role} title="Không gian làm việc" badges={badges} />
       </nav>
 
       <div className="grid gap-2">
@@ -152,7 +165,17 @@ function SessionSummary({ session }: { session: Session | null }) {
   );
 }
 
-function NavSection({ items, role, title }: { items: NavItem[]; role?: UserRole; title: string }) {
+function NavSection({
+  items,
+  role,
+  title,
+  badges,
+}: {
+  items: NavItem[];
+  role?: UserRole;
+  title: string;
+  badges?: Record<string, number>;
+}) {
   const visibleItems = items.filter((item) => !item.roles || (role && item.roles.includes(role)));
 
   if (visibleItems.length === 0) {
@@ -163,20 +186,31 @@ function NavSection({ items, role, title }: { items: NavItem[]; role?: UserRole;
     <section className="grid gap-1">
       <h2 className="mb-2 px-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{title}</h2>
       {visibleItems.map((item) => (
-        <NavEntry item={item} key={item.label} />
+        <NavEntry item={item} key={item.label} badgeCount={item.enabled ? badges?.[item.href] ?? 0 : 0} />
       ))}
     </section>
   );
 }
 
-function NavEntry({ item }: { item: NavItem }) {
+function NavEntry({ item, badgeCount = 0 }: { item: NavItem; badgeCount?: number }) {
   const Icon = item.icon;
   const content = (
     <>
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover/link:bg-primary/10 group-hover/link:text-primary">
+      <span className="relative flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover/link:bg-primary/10 group-hover/link:text-primary">
         <Icon className="size-4" aria-hidden="true" />
+        {badgeCount > 0 ? (
+          <span
+            className="absolute -right-1 -top-1 size-2.5 rounded-full bg-destructive ring-2 ring-sidebar"
+            aria-hidden="true"
+          />
+        ) : null}
       </span>
       <span className="truncate">{item.label}</span>
+      {badgeCount > 0 ? (
+        <Badge className="ml-auto min-w-5 justify-center px-1.5 text-[10px]" variant="destructive">
+          {badgeCount > 99 ? "99+" : badgeCount}
+        </Badge>
+      ) : null}
       {!item.enabled ? (
         <Badge variant="secondary" className="ml-auto text-[10px]">
           Sắp ra mắt

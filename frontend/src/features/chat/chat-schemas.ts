@@ -9,6 +9,10 @@ export const startMatchChatSchema = z.object({
   userId: z.string().min(1),
 });
 
+export const startBookingChatSchema = z.object({
+  bookingId: z.string().min(1),
+});
+
 export const sendChatMessageSchema = z.object({
   conversationId: z.string().min(1),
   content: z.string().trim().min(1, "MESSAGE_REQUIRED").max(1000, "MESSAGE_TOO_LONG"),

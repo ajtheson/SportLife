@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0  
 **Date:** 2026-05-19  
-**Status:** Phase 7B complete  
+**Status:** Phase 7D complete  
 **Source Requirements:** [SRS_SportLife_v1.0.0.md](./SRS_SportLife_v1.0.0.md)
 
 ---
@@ -350,6 +350,52 @@ Exit criteria:
 - [x] Venue form can save uploaded photos as `VenueImage` rows.
 - [x] Selecting new venue photos replaces the submitted venue image list.
 - [x] Upload files are not committed to git.
+
+### Phase 7C - Venue Schedule Foundation (Complete)
+
+Outcome: Venue Owners can manage the availability foundation for future booking without adding payment or booking settlement behavior.
+
+Status: complete. Venue Owners can declare venue resources such as courts, tables, or sub-fields, configure weekly operating hours and slot duration, generate available slots for a selected date, and manually block or unblock available slots for maintenance or ad-hoc closures. Generated slots are stored in PostgreSQL and protected from duplicate creation by a resource/start-time unique constraint.
+
+Tasks:
+
+- [x] Add `VenueResource`, `VenueScheduleRule`, and `VenueTimeSlot` models.
+- [x] Add resource status and time-slot status enums.
+- [x] Build `/venue-owner/venues/[venueId]/schedule` for resource declaration, weekly hours, slot generation, and manual blocking.
+- [x] Link venue schedule management from the Venue Owner workspace.
+- [x] Keep online payment, booking settlement, and booking request flows out of this phase.
+
+Exit criteria:
+
+- [x] Venue Owner can create and update courts/tables/sub-fields for an owned venue.
+- [x] Venue Owner can configure operating hours by day of week.
+- [x] Venue Owner can generate availability slots for a selected date.
+- [x] Venue Owner can manually block and unblock available slots.
+
+### Phase 7D - Court Booking and Availability Sync (Complete)
+
+Outcome: Players can request available court slots and Venue Owners can confirm, reject, or cancel those requests, with slot availability kept in sync with booking status. No online payment is included.
+
+Status: complete. A `Booking` model links a player to a specific venue resource time slot. When a Player submits a request, the slot is atomically claimed from `AVAILABLE` to `PENDING_CONFIRMATION` inside a transaction so two players cannot book the same slot. Venue Owners confirm a booking (slot becomes `BOOKED`), reject it with a reason, or cancel a confirmed booking; rejecting or canceling returns the slot to `AVAILABLE`. Players can cancel their own pending or confirmed bookings. Both sides receive in-app notifications for request, confirmation, rejection, and cancellation events. State transitions are isolated in a pure module and covered by unit tests.
+
+Tasks:
+
+- [x] Add `Booking` model, `BookingStatus` enum, and booking `NotificationType` values.
+- [x] Build the booking feature module (schemas, transition logic, service, server actions).
+- [x] Build `/venues/[venueId]/booking` for Players to request available slots.
+- [x] Build `/player/bookings` for Players to track and cancel their bookings.
+- [x] Build `/venue-owner/bookings` dashboard for confirm/reject/cancel with venue and status filters.
+- [x] Keep slot status in sync with booking status and prevent double-booking with an atomic slot claim.
+- [x] Create in-app notifications for booking request, confirmation, rejection, and cancellation.
+- [x] Keep online payment out of this phase.
+
+Exit criteria:
+
+- [x] Player can create a booking from an available slot.
+- [x] A slot cannot be double-booked by two concurrent requests.
+- [x] Venue Owner can confirm, reject, or cancel bookings for owned venues only.
+- [x] Slot status updates correctly when booking status changes.
+- [x] Player and Venue Owner receive booking notifications.
 
 ---
 

@@ -72,6 +72,34 @@ enum NotificationType {
   MATCH_JOIN_REJECTED
   MATCH_UPDATED
   CHAT_MESSAGE
+  BOOKING_REQUESTED
+  BOOKING_CONFIRMED
+  BOOKING_REJECTED
+  BOOKING_CANCELED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  CANCELED_BY_PLAYER
+  CANCELED_BY_OWNER
+  COMPLETED
+}
+
+enum VenueResourceStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
+enum TimeSlotStatus {
+  AVAILABLE
+  HELD
+  PENDING_CONFIRMATION
+  BOOKED
+  BLOCKED
+  CANCELED
 }
 
 model User {
@@ -101,6 +129,7 @@ model User {
   chatMessages         ChatMessage[]
   verificationTokens   VerificationToken[]
   passwordResetTokens  PasswordResetToken[]
+  bookings             Booking[]
 }
 
 model Account {
@@ -274,6 +303,10 @@ model Venue {
   area   Area         @relation(fields: [areaId], references: [id])
   sports VenueSport[]
   images VenueImage[]
+  resources VenueResource[]
+  scheduleRules VenueScheduleRule[]
+  timeSlots VenueTimeSlot[]
+  bookings Booking[]
   chatConversations Conversation[] @relation("ConversationVenueContext")
 
   @@index([areaId, approvalStatus, visibilityStatus])
@@ -299,6 +332,104 @@ model VenueImage {
   createdAt DateTime @default(now())
 
   venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+}
+
+model VenueResource {
+  id          String              @id @default(cuid())
+  venueId     String
+  name        String
+  description String?
+  status      VenueResourceStatus @default(ACTIVE)
+  sortOrder   Int                 @default(0)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  venue     Venue           @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  timeSlots VenueTimeSlot[]
+  bookings  Booking[]
+
+  @@unique([venueId, name])
+  @@index([venueId, status, sortOrder])
+}
+
+model VenueScheduleRule {
+  id                  String   @id @default(cuid())
+  venueId             String
+  dayOfWeek           Int
+  isOpen              Boolean  @default(true)
+  startTime           String
+  endTime             String
+  slotDurationMinutes Int      @default(60)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([venueId, dayOfWeek])
+  @@index([venueId, dayOfWeek])
+}
+
+model VenueTimeSlot {
+  id            String         @id @default(cuid())
+  venueId       String
+  resourceId    String
+  startAt       DateTime
+  endAt         DateTime
+  status        TimeSlotStatus @default(AVAILABLE)
+  blockReason   String?
+  generatedDate DateTime
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  venue    Venue         @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  resource VenueResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@unique([resourceId, startAt])
+  @@index([venueId, generatedDate, status])
+  @@index([resourceId, startAt, endAt])
+}
+
+model Booking {
+  id             String        @id @default(cuid())
+  venueId        String
+  resourceId     String
+  slotId         String
+  playerId       String
+  status         BookingStatus @default(PENDING)
+  playerNote     String?
+  decisionReason String?
+  startAt        DateTime
+  endAt          DateTime
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  venue    Venue         @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  resource VenueResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  slot     VenueTimeSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  player   User          @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  statusHistory                BookingStatusHistory[]
+  conversationsAsBookingContext Conversation[]        @relation("ConversationBookingContext")
+
+  @@index([venueId, status, startAt])
+  @@index([playerId, status, startAt])
+  @@index([slotId])
+}
+
+model BookingStatusHistory {
+  id         String         @id @default(cuid())
+  bookingId  String
+  fromStatus BookingStatus?
+  toStatus   BookingStatus
+  actorId    String
+  actorRole  UserRole
+  reason     String?
+  createdAt  DateTime       @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId, createdAt])
 }
 
 model Match {
@@ -404,6 +535,7 @@ model Conversation {
   userBId         String
   venueContextId  String?
   matchContextId  String?
+  bookingContextId String?
   lastMessageAt   DateTime @default(now())
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -412,6 +544,7 @@ model Conversation {
   userB        User          @relation("ConversationUserB", fields: [userBId], references: [id], onDelete: Cascade)
   venueContext Venue?        @relation("ConversationVenueContext", fields: [venueContextId], references: [id], onDelete: SetNull)
   matchContext Match?        @relation("ConversationMatchContext", fields: [matchContextId], references: [id], onDelete: SetNull)
+  bookingContext Booking?    @relation("ConversationBookingContext", fields: [bookingContextId], references: [id], onDelete: SetNull)
   messages     ChatMessage[]
 
   @@unique([userAId, userBId])
@@ -419,6 +552,7 @@ model Conversation {
   @@index([userBId, lastMessageAt])
   @@index([venueContextId])
   @@index([matchContextId])
+  @@index([bookingContextId])
 }
 
 model ChatMessage {
