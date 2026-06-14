@@ -5,14 +5,21 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 
-import { sendChatMessageSchema, startMatchChatSchema, startVenueChatSchema } from "./chat-schemas";
-import { sendChatMessage, startMatchConversation, startVenueConversation } from "./chat-service";
+import { sendChatMessageSchema, startBookingChatSchema, startMatchChatSchema, startVenueChatSchema } from "./chat-schemas";
+import {
+  sendChatMessage,
+  startBookingConversation,
+  startMatchConversation,
+  startVenueConversation,
+} from "./chat-service";
 
 const knownChatErrors = new Set([
   "CHAT_NOT_ALLOWED",
   "CONVERSATION_NOT_FOUND",
   "MATCH_CHAT_NOT_ALLOWED",
   "MATCH_NOT_FOUND",
+  "BOOKING_NOT_FOUND",
+  "BOOKING_CHAT_NOT_ALLOWED",
   "SELF_CHAT",
   "VENUE_NOT_FOUND",
 ]);
@@ -96,6 +103,47 @@ export async function startMatchChatAction(formData: FormData) {
       }
 
       console.error("Failed to start match chat:", error);
+      redirectWith(target, "error", "chat_unavailable");
+    }
+
+    throw error;
+  }
+
+  redirect(`/chat/${conversationId}`);
+}
+
+export async function startBookingChatAction(formData: FormData) {
+  const user = await requireUser();
+  const parsed = startBookingChatSchema.safeParse(Object.fromEntries(formData));
+  const bookingId = String(formData.get("bookingId") ?? "");
+  const role = String(formData.get("role") ?? "");
+  const detailBase = role === "owner" ? "/venue-owner/bookings" : "/player/bookings";
+  const target = bookingId ? `${detailBase}/${bookingId}` : detailBase;
+
+  if (!parsed.success) {
+    redirectWith(target, "error", "chat_invalid_input");
+  }
+
+  let conversationId: string;
+
+  try {
+    const conversation = await startBookingConversation(user.id, parsed.data.bookingId);
+    conversationId = conversation.id;
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "PLAYER_PROFILE_REQUIRED") {
+        redirect("/player/profile");
+      }
+
+      if (error.message === "VENUE_OWNER_PROFILE_REQUIRED") {
+        redirect("/venue-owner/profile");
+      }
+
+      if (knownChatErrors.has(error.message)) {
+        redirectWith(target, "error", error.message.toLowerCase());
+      }
+
+      console.error("Failed to start booking chat:", error);
       redirectWith(target, "error", "chat_unavailable");
     }
 

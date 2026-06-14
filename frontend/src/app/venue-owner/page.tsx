@@ -3,15 +3,22 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { getOwnerDashboardData } from "@/features/bookings/booking-service";
+import { OwnerOperationsDashboard } from "@/features/bookings/owner-operations-dashboard";
 import { listOwnerVenues } from "@/features/venues/venue-service";
 import { userHasVenueOwnerProfile } from "@/features/venue-owner-profile/venue-owner-profile-service";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge"; // Card/CardContent used in venue list below
 
 type VenueOwnerPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+function todayInHanoi() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
+}
 
 async function pageMessage(searchParams: Promise<Record<string, string | string[] | undefined>>) {
   const params = await searchParams;
@@ -44,10 +51,16 @@ export default async function VenueOwnerPage({ searchParams }: VenueOwnerPagePro
     redirect("/venue-owner/profile");
   }
 
-  const [venues, message] = await Promise.all([listOwnerVenues(session.user.id), pageMessage(searchParams)]);
+  const today = todayInHanoi();
+  const [venues, message, dashboard] = await Promise.all([
+    listOwnerVenues(session.user.id),
+    pageMessage(searchParams),
+    getOwnerDashboardData(session.user.id, today),
+  ]);
 
   return (
     <main className="min-h-screen bg-background px-6 py-10 text-foreground">
+      <AutoRefresh />
       <div className="mx-auto grid w-full max-w-6xl gap-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -55,6 +68,9 @@ export default async function VenueOwnerPage({ searchParams }: VenueOwnerPagePro
             <p className="mt-3 text-muted-foreground">Đăng ký sân và theo dõi trạng thái kiểm duyệt.</p>
           </div>
           <div className="flex gap-2">
+            <Link className={buttonVariants({ variant: "outline" })} href="/venue-owner/bookings">
+              Quản lý đặt sân
+            </Link>
             <Link className={buttonVariants()} href="/venue-owner/venues/new">
               Thêm sân mới
             </Link>
@@ -63,6 +79,7 @@ export default async function VenueOwnerPage({ searchParams }: VenueOwnerPagePro
 
         {message ? <div className="rounded-md border border-primary/50 bg-primary/10 p-4 text-sm text-primary">{message}</div> : null}
 
+        <OwnerOperationsDashboard dashboard={dashboard} />
         <div className="grid gap-4">
           {venues.map((venue) => {
             const appStatus = approvalStatusMap[venue.approvalStatus];
@@ -103,6 +120,9 @@ export default async function VenueOwnerPage({ searchParams }: VenueOwnerPagePro
                       </Badge>
                       <Link className={buttonVariants({ variant: "outline", className: "w-full mt-2" })} href={`/venue-owner/venues/${venue.id}/edit`}>
                         Sửa thông tin
+                      </Link>
+                      <Link className={buttonVariants({ variant: "outline", className: "w-full" })} href={`/venue-owner/venues/${venue.id}/schedule`}>
+                        Lịch sân
                       </Link>
                     </div>
                   </div>

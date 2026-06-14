@@ -18,8 +18,12 @@ docker compose up --build
 Open the app:
 
 ```text
-http://localhost:3000
+http://localhost:4000
 ```
+
+The host port defaults to `4000` because some Windows setups reserve port
+`3000`. To use a different host port, set `FRONTEND_HOST_PORT` before starting
+Compose, and keep `NEXTAUTH_URL` / `APP_BASE_URL` aligned with that URL.
 
 Product routes use a left-sidebar shell for navigation across venue discovery, matches, community, chat, notifications, and role workspaces.
 
@@ -48,6 +52,8 @@ Current completed phase:
 - Phase 6E (Complete): Added Admin statistical dashboard, Admin User Management (Lock/Unlock accounts, pagination, and role filters), and Player Edit Match feature with automatic join request cancellation and notifications.
 - Phase 7A (Complete): Direct in-app chat for Player-to-Venue Owner contact from approved venues and Player-to-Player chat after approved match join requests, with in-app message notifications.
 - Phase 7B (Complete): Local image upload for Player avatars and Venue photos through the Dockerized Next.js app.
+- Phase 7C (Complete): Venue Owner schedule foundation with courts/tables/resources, weekly operating hours, generated availability slots, and manual slot block/unblock controls.
+- Phase 7D (Complete): Court booking flow without online payment. Players request available slots, slots move to Pending Confirmation, and Venue Owners confirm/reject/cancel from a booking dashboard. Slot availability stays in sync with booking status, double-booking is prevented by an atomic slot claim, and both sides receive in-app booking notifications.
 
 Default development admin account:
 

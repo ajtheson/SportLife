@@ -60,6 +60,11 @@ export default async function VenueDetailPage({ params }: VenueDetailPageProps) 
               <div>
                 <h2 className="font-semibold text-primary">Lịch trống</h2>
                 <p className="mt-2 text-sm text-muted-foreground">{venue.availabilityNote ?? "Liên hệ chủ sân để biết lịch trống"}</p>
+                {session?.user.role === UserRole.PLAYER && session.user.id !== venue.ownerId ? (
+                  <Link className={buttonVariants({ size: "sm", className: "mt-3" })} href={`/venues/${venue.id}/booking`}>
+                    Đặt sân
+                  </Link>
+                ) : null}
               </div>
               <div>
                 <h2 className="font-semibold text-primary">Liên hệ</h2>

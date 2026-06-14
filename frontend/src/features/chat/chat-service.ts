@@ -41,7 +41,7 @@ async function assertChatReady(userId: string) {
 export async function getOrCreateConversation(
   userId: string,
   otherUserId: string,
-  context?: { venueId?: string; matchId?: string },
+  context?: { venueId?: string; matchId?: string; bookingId?: string },
 ) {
   if (userId === otherUserId) {
     throw new Error("SELF_CHAT");
@@ -61,12 +61,14 @@ export async function getOrCreateConversation(
     update: {
       venueContextId: context?.venueId ?? undefined,
       matchContextId: context?.matchId ?? undefined,
+      bookingContextId: context?.bookingId ?? undefined,
     },
     create: {
       userAId,
       userBId,
       venueContextId: context?.venueId,
       matchContextId: context?.matchId,
+      bookingContextId: context?.bookingId,
     },
   });
 }
@@ -124,6 +126,32 @@ export async function startMatchConversation(userId: string, matchId: string, ot
   return getOrCreateConversation(userId, otherUserId, { matchId });
 }
 
+export async function startBookingConversation(userId: string, bookingId: string) {
+  await assertChatReady(userId);
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: { id: true, playerId: true, venue: { select: { ownerId: true } } },
+  });
+
+  if (!booking) {
+    throw new Error("BOOKING_NOT_FOUND");
+  }
+
+  const ownerId = booking.venue.ownerId;
+  let otherUserId: string;
+
+  if (userId === booking.playerId) {
+    otherUserId = ownerId;
+  } else if (userId === ownerId) {
+    otherUserId = booking.playerId;
+  } else {
+    throw new Error("BOOKING_CHAT_NOT_ALLOWED");
+  }
+
+  return getOrCreateConversation(userId, otherUserId, { bookingId });
+}
+
 export async function listConversations(userId: string) {
   await assertChatReady(userId);
 
@@ -136,12 +164,34 @@ export async function listConversations(userId: string) {
       userB: { select: { id: true, email: true, playerProfile: true, venueOwnerProfile: true } },
       venueContext: { select: { id: true, name: true } },
       matchContext: { select: { id: true, sport: { select: { name: true } }, area: { select: { name: true } }, time: true } },
+      bookingContext: {
+        select: {
+          id: true,
+          status: true,
+          startAt: true,
+          endAt: true,
+          venue: { select: { name: true } },
+          resource: { select: { name: true } },
+        },
+      },
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
       },
     },
     orderBy: { lastMessageAt: "desc" },
+  });
+}
+
+export async function countUnreadMessages(userId: string) {
+  return prisma.chatMessage.count({
+    where: {
+      senderId: { not: userId },
+      readAt: null,
+      conversation: {
+        OR: [{ userAId: userId }, { userBId: userId }],
+      },
+    },
   });
 }
 
@@ -158,6 +208,17 @@ export async function getConversationDetail(userId: string, conversationId: stri
       userB: { select: { id: true, email: true, playerProfile: true, venueOwnerProfile: true } },
       venueContext: { select: { id: true, name: true } },
       matchContext: { select: { id: true, sport: { select: { name: true } }, area: { select: { name: true } }, time: true } },
+      bookingContext: {
+        select: {
+          id: true,
+          status: true,
+          startAt: true,
+          endAt: true,
+          playerId: true,
+          venue: { select: { name: true } },
+          resource: { select: { name: true } },
+        },
+      },
       messages: {
         include: {
           sender: { select: { id: true, email: true, playerProfile: true, venueOwnerProfile: true } },

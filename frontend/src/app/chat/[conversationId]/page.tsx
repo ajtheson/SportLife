@@ -69,7 +69,18 @@ export default async function ChatDetailPage({ params, searchParams }: ChatDetai
               ← Quay lại tin nhắn
             </Link>
             <h1 className="text-3xl font-bold tracking-tight text-primary">{chatParticipantName(other)}</h1>
-            {conversation.venueContext ? (
+            {conversation.bookingContext ? (
+              <p className="mt-2 text-muted-foreground">
+                Cuộc trò chuyện trực tiếp · Liên quan đến đặt sân:{" "}
+                <Link
+                  className="font-medium text-primary hover:underline"
+                  href={`${session.user.role === "VENUE_OWNER" ? "/venue-owner/bookings" : "/player/bookings"}/${conversation.bookingContext.id}`}
+                >
+                  {conversation.bookingContext.venue.name} - {conversation.bookingContext.resource.name}
+                </Link>{" "}
+                ({conversation.bookingContext.startAt.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })})
+              </p>
+            ) : conversation.venueContext ? (
               <p className="mt-2 text-muted-foreground">
                 Cuộc trò chuyện trực tiếp · Liên quan đến sân:{" "}
                 <Link className="font-medium text-primary hover:underline" href={`/venues/${conversation.venueContext.id}`}>
