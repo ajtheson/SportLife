@@ -258,7 +258,7 @@ export default async function VenueSchedulePage({ params, searchParams }: VenueS
                 <form action={generateVenueSlotsAction}>
                   <input name="venueId" type="hidden" value={venue.id} />
                   <input name="date" type="hidden" value={selectedDate} />
-                  <Button type="submit" disabled={resources.length === 0}>
+                  <Button type="submit" disabled={!resources.some((r) => r.status === VenueResourceStatus.ACTIVE)}>
                     <RefreshCw className="mr-2 size-4" aria-hidden="true" />
                     Sinh slot trống
                   </Button>

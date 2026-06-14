@@ -193,10 +193,16 @@ export async function decideOwnerBooking(ownerId: string, input: OwnerBookingDec
         : NotificationType.BOOKING_CANCELED;
 
   await prisma.$transaction(async (tx) => {
-    await tx.booking.update({
-      where: { id: booking.id },
+    // Guard against concurrent transitions (e.g. Player cancels while Owner confirms).
+    // Only update when the booking is still in the expected status; roll back if stale.
+    const updated = await tx.booking.updateMany({
+      where: { id: booking.id, status: booking.status },
       data: { status: bookingStatus, decisionReason: input.reason || null },
     });
+
+    if (updated.count === 0) {
+      throw new Error("BOOKING_CONCURRENT_TRANSITION");
+    }
 
     await tx.bookingStatusHistory.create({
       data: {
@@ -241,10 +247,16 @@ export async function cancelBookingByPlayer(playerId: string, input: PlayerCance
   const { bookingStatus, slotStatus } = playerCancelTransition();
 
   await prisma.$transaction(async (tx) => {
-    await tx.booking.update({
-      where: { id: booking.id },
+    // Guard against concurrent owner decision (e.g. Owner confirms while Player cancels).
+    // Include playerId + status in WHERE to fail fast if the row was already transitioned.
+    const updated = await tx.booking.updateMany({
+      where: { id: booking.id, playerId: booking.playerId, status: booking.status },
       data: { status: bookingStatus },
     });
+
+    if (updated.count === 0) {
+      throw new Error("BOOKING_NOT_CANCELABLE");
+    }
 
     await tx.bookingStatusHistory.create({
       data: {
