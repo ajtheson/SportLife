@@ -59,9 +59,9 @@ export async function getOrCreateConversation(
       },
     },
     update: {
-      venueContextId: context?.venueId ?? undefined,
-      matchContextId: context?.matchId ?? undefined,
-      bookingContextId: context?.bookingId ?? undefined,
+      venueContextId: context?.venueId ?? null,
+      matchContextId: context?.matchId ?? null,
+      bookingContextId: context?.bookingId ?? null,
     },
     create: {
       userAId,

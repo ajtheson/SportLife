@@ -74,13 +74,16 @@ async function assertOwnerVenue(ownerId: string, venueId: string) {
 }
 
 export async function getOwnerVenueScheduleData(ownerId: string, venueId: string, dateText: string) {
-  await assertOwnerVenue(ownerId, venueId);
+  const venue = await prisma.venue.findFirst({
+    where: { id: venueId, ownerId },
+    select: { id: true, name: true, address: true, approvalStatus: true, visibilityStatus: true },
+  });
 
-  const [venue, resources, savedRules, slots] = await Promise.all([
-    prisma.venue.findUnique({
-      where: { id: venueId },
-      select: { id: true, name: true, address: true, approvalStatus: true, visibilityStatus: true },
-    }),
+  if (!venue) {
+    return null;
+  }
+
+  const [resources, savedRules, slots] = await Promise.all([
     prisma.venueResource.findMany({
       where: { venueId },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],

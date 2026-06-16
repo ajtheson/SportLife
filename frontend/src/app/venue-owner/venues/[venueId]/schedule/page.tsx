@@ -83,15 +83,16 @@ export default async function VenueSchedulePage({ params, searchParams }: VenueS
 
   const [{ venueId }, paramsValue] = await Promise.all([params, searchParams]);
   const selectedDate = firstParam(paramsValue.date) ?? todayInHanoi();
-  const [{ venue, resources, rules, slots }, message] = await Promise.all([
+  const [scheduleData, message] = await Promise.all([
     getOwnerVenueScheduleData(session.user.id, venueId, selectedDate),
     pageMessage(searchParams),
   ]);
 
-  if (!venue) {
+  if (!scheduleData) {
     notFound();
   }
 
+  const { venue, resources, rules, slots } = scheduleData;
   const slotsByResource = new Map(resources.map((resource) => [resource.id, slots.filter((slot) => slot.resourceId === resource.id)]));
 
   return (

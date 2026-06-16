@@ -102,7 +102,11 @@ export async function createBooking(playerId: string, input: CreateBookingInput)
   }
 
   const slot = await prisma.venueTimeSlot.findFirst({
-    where: { id: input.slotId, venueId: input.venueId },
+    where: {
+      id: input.slotId,
+      venueId: input.venueId,
+      resource: { status: VenueResourceStatus.ACTIVE },
+    },
     select: { id: true, resourceId: true, startAt: true, endAt: true, status: true },
   });
 
@@ -117,7 +121,11 @@ export async function createBooking(playerId: string, input: CreateBookingInput)
   return prisma.$transaction(async (tx) => {
     // Atomic claim: chỉ chiếm được slot khi vẫn còn AVAILABLE -> chống double-book.
     const claimed = await tx.venueTimeSlot.updateMany({
-      where: { id: slot.id, status: TimeSlotStatus.AVAILABLE },
+      where: {
+        id: slot.id,
+        status: TimeSlotStatus.AVAILABLE,
+        resource: { status: VenueResourceStatus.ACTIVE },
+      },
       data: { status: SLOT_STATUS_ON_REQUEST },
     });
 
