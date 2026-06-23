@@ -1,12 +1,16 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { UserRole } from "@prisma/client";
-import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
+import { parsePage, calcTotalPages } from "@/lib/pagination-utils";
+import { Pagination } from "@/components/ui/pagination";
 import { buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
+import Link from "next/link";
 import { UserTable } from "./user-table";
 
 export const metadata: Metadata = {
@@ -17,7 +21,7 @@ export const metadata: Metadata = {
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; role?: string }>;
+  searchParams: Promise<{ page?: string; role?: string; q?: string }>;
 }) {
   const session = await auth();
   if (!session?.user || session.user.role !== UserRole.ADMIN) {
@@ -25,19 +29,39 @@ export default async function AdminUsersPage({
   }
 
   const params = await searchParams;
-  const page = parseInt(params.page || "1", 10) || 1;
   const pageSize = 10;
+  const { page, skip, take } = parsePage(params, pageSize);
   const roleFilter = params.role as UserRole | undefined;
+  const q = params.q?.trim() || undefined;
 
-  const where = roleFilter ? { role: roleFilter } : {};
+  const where = {
+    role: roleFilter || undefined,
+    ...(q
+      ? {
+          OR: [
+            { email: { contains: q, mode: "insensitive" as const } },
+            {
+              playerProfile: {
+                displayName: { contains: q, mode: "insensitive" as const },
+              },
+            },
+            {
+              venueOwnerProfile: {
+                businessName: { contains: q, mode: "insensitive" as const },
+              },
+            },
+          ],
+        }
+      : {}),
+  };
 
   const [totalCount, users] = await Promise.all([
     prisma.user.count({ where }),
     prisma.user.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+      skip,
+      take,
       select: {
         id: true,
         role: true,
@@ -49,7 +73,7 @@ export default async function AdminUsersPage({
     }),
   ]);
 
-  const totalPages = Math.ceil(totalCount / pageSize);
+  const totalPagesCount = calcTotalPages(totalCount, pageSize);
 
   const data = users.map((u) => ({
     id: u.id,
@@ -58,6 +82,11 @@ export default async function AdminUsersPage({
     createdAt: u.createdAt,
     displayName: u.playerProfile?.displayName || u.venueOwnerProfile?.businessName || null,
   }));
+
+  const paginationSearchParams: Record<string, string | undefined> = {
+    role: roleFilter,
+    q,
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 lg:p-8">
@@ -95,40 +124,25 @@ export default async function AdminUsersPage({
         </Link>
       </div>
 
+      <form className="grid gap-3 rounded-lg border border-border bg-card p-4 md:grid-cols-[minmax(0,1fr)_auto]">
+        {roleFilter ? <input name="role" type="hidden" value={roleFilter} /> : null}
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input className="pl-9" name="q" defaultValue={q ?? ""} placeholder="Tìm theo email hoặc tên..." />
+        </div>
+        <Button type="submit">Tìm kiếm</Button>
+      </form>
+
       <UserTable users={data} currentUserId={session.user.id} />
 
-      {totalPages > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 rounded-lg border border-border p-4">
-          <p className="text-sm text-muted-foreground">
-            Hiển thị {(page - 1) * pageSize + 1} - {Math.min(page * pageSize, totalCount)} trên tổng số {totalCount}
-          </p>
-          <div className="flex items-center gap-4">
-            <Link
-              href={`/admin/users?page=${page - 1}${roleFilter ? `&role=${roleFilter}` : ""}`}
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: page <= 1 ? "pointer-events-none opacity-50" : "",
-              })}
-            >
-              <ChevronLeft className="mr-1 h-4 w-4" /> Trước
-            </Link>
-            <div className="text-sm font-medium">
-              Trang {page} / {totalPages}
-            </div>
-            <Link
-              href={`/admin/users?page=${page + 1}${roleFilter ? `&role=${roleFilter}` : ""}`}
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: page >= totalPages ? "pointer-events-none opacity-50" : "",
-              })}
-            >
-              Sau <ChevronRight className="ml-1 h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      )}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPagesCount}
+        totalCount={totalCount}
+        pageSize={pageSize}
+        searchParams={paginationSearchParams}
+        basePath="/admin/users"
+      />
     </div>
   );
 }

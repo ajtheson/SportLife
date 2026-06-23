@@ -6,6 +6,8 @@ import { auth } from "@/auth";
 import { listAreas, listSports } from "@/features/config/config-service";
 import type { MatchListTab } from "@/features/matches/match-service";
 import { listMatches } from "@/features/matches/match-service";
+import { parsePage, calcTotalPages, firstParam } from "@/lib/pagination-utils";
+import { Pagination } from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,10 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 type MatchesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
-
-function firstValue(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   OPEN: { label: "Đang mở", variant: "default" },
@@ -32,17 +30,31 @@ const requestStatusMap: Record<string, string> = {
   CANCELED: "Đã hủy",
 };
 
+const PAGE_SIZE = 12;
+
 export default async function MatchesPage({ searchParams }: MatchesPageProps) {
   const session = await auth();
   const params = await searchParams;
-  const selectedTab = parseTab(firstValue(params.tab));
+  const selectedTab = parseTab(firstParam(params.tab));
   const filters = {
     tab: selectedTab,
     viewerId: session?.user?.id,
-    sportId: firstValue(params.sportId) || undefined,
-    areaId: firstValue(params.areaId) || undefined,
+    sportId: firstParam(params.sportId) || undefined,
+    areaId: firstParam(params.areaId) || undefined,
   };
-  const [matches, sports, areas] = await Promise.all([listMatches(filters), listSports(), listAreas()]);
+  const { page, skip, take } = parsePage(params, PAGE_SIZE);
+  const [{ items: matches, totalCount }, sports, areas] = await Promise.all([
+    listMatches(filters, { skip, take }),
+    listSports(),
+    listAreas(),
+  ]);
+  const totalPagesCount = calcTotalPages(totalCount, PAGE_SIZE);
+
+  const paginationSearchParams: Record<string, string | undefined> = {
+    tab: selectedTab,
+    sportId: filters.sportId,
+    areaId: filters.areaId,
+  };
 
   return (
     <main className="min-h-screen px-4 py-6 text-foreground sm:px-6 lg:px-8">
@@ -162,6 +174,15 @@ export default async function MatchesPage({ searchParams }: MatchesPageProps) {
             </div>
           ) : null}
         </div>
+
+        <Pagination
+          currentPage={page}
+          totalPages={totalPagesCount}
+          totalCount={totalCount}
+          pageSize={PAGE_SIZE}
+          searchParams={paginationSearchParams}
+          basePath="/matches"
+        />
       </div>
     </main>
   );

@@ -11,6 +11,7 @@ import { markNotificationRead } from "./notification-service";
 
 const notificationIdSchema = z.object({
   notificationId: z.string().min(1),
+  redirectTo: z.string().optional(),
 });
 
 export async function markNotificationReadAction(formData: FormData) {
@@ -32,5 +33,5 @@ export async function markNotificationReadAction(formData: FormData) {
 
   await markNotificationRead(session.user.id, parsed.data.notificationId);
   revalidatePath("/notifications");
-  redirect("/notifications");
+  redirect(parsed.data.redirectTo || "/notifications");
 }

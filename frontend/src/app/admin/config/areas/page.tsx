@@ -1,9 +1,11 @@
 import { ConfigStatus } from "@prisma/client";
 import Link from "next/link";
+import { Search } from "lucide-react";
 
 import { createAreaAction, updateAreaAction, updateAreaStatusAction } from "@/features/config/config-actions";
 import { listAreas } from "@/features/config/config-service";
 import { configMessage, requireAdminPage } from "../config-page-utils";
+import { firstParam } from "@/lib/pagination-utils";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,14 +19,43 @@ type AreasPageProps = {
 
 export default async function AreasPage({ searchParams }: AreasPageProps) {
   await requireAdminPage();
-  const [areas, message] = await Promise.all([listAreas(), configMessage(searchParams)]);
+  const params = await searchParams;
+
+  const q = firstParam(params.q)?.trim() || undefined;
+  const status = firstParam(params.status) as ConfigStatus || undefined;
+
+  const filters = { q, status };
+
+  const [areas, message] = await Promise.all([listAreas(filters), configMessage(searchParams)]);
 
   return (
     <main className="min-h-screen bg-background px-6 py-10 text-foreground">
       <div className="mx-auto grid w-full max-w-6xl gap-6">
         <Header />
         
-        {message ? <div className={`rounded-md border p-4 text-sm ${message.includes("Không thể") || message.includes("Vui lòng") ? "border-destructive/50 bg-destructive/10 text-destructive" : "border-primary/50 bg-primary/10 text-primary"}`}>{message}</div> : null}
+        {message ? (
+          <div className={`rounded-md border p-4 text-sm ${message.includes("Không thể") || message.includes("Vui lòng") ? "border-destructive/50 bg-destructive/10 text-destructive" : "border-primary/50 bg-primary/10 text-primary"}`}>
+            {message}
+          </div>
+        ) : null}
+
+        {/* Search & Filter Form */}
+        <form className="grid gap-3 rounded-xl border border-border bg-card/95 p-4 shadow-sm sm:grid-cols-[minmax(0,1fr)_200px_auto]" action="/admin/config/areas">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Input name="q" defaultValue={filters.q ?? ""} placeholder="Tìm kiếm tên khu vực..." className="pl-9" />
+          </div>
+          <select
+            name="status"
+            defaultValue={filters.status ?? ""}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="ACTIVE">Hoạt động</option>
+            <option value="INACTIVE">Không hoạt động</option>
+          </select>
+          <Button type="submit">Lọc & Tìm</Button>
+        </form>
 
         <form action={createAreaAction} className="grid gap-3 rounded-xl border border-border bg-card p-5 shadow-sm md:grid-cols-[1fr_180px_auto]">
           <div className="grid gap-2">
@@ -107,7 +138,7 @@ export default async function AreasPage({ searchParams }: AreasPageProps) {
               {areas.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                    Chưa có khu vực nào.
+                    Không tìm thấy khu vực nào phù hợp bộ lọc.
                   </TableCell>
                 </TableRow>
               ) : null}

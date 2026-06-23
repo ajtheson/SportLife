@@ -30,23 +30,38 @@ export async function listCommunityPosts(filters: {
   postType?: CommunityPostType;
   tab?: "all" | "mine";
   viewerId?: string;
+  q?: string;
+  skip?: number;
+  take?: number;
 }) {
-  return prisma.communityPost.findMany({
-    where: {
-      status: filters.tab === "mine" ? { in: [ContentStatus.PENDING, ContentStatus.VISIBLE] } : ContentStatus.VISIBLE,
-      authorId: filters.tab === "mine" ? filters.viewerId : undefined,
-      sportId: filters.sportId || undefined,
-      areaId: filters.areaId || undefined,
-      postType: filters.postType,
-    },
-    include: {
-      author: { select: { email: true, playerProfile: true } },
-      sport: true,
-      area: true,
-      _count: { select: { comments: { where: { status: ContentStatus.VISIBLE } } } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const where: Prisma.CommunityPostWhereInput = {
+    status: filters.tab === "mine" ? { in: [ContentStatus.PENDING, ContentStatus.VISIBLE] } : ContentStatus.VISIBLE,
+    authorId: filters.tab === "mine" ? filters.viewerId : undefined,
+    sportId: filters.sportId || undefined,
+    areaId: filters.areaId || undefined,
+    postType: filters.postType,
+    ...(filters.q
+      ? { title: { contains: filters.q, mode: "insensitive" as const } }
+      : {}),
+  };
+
+  const [totalCount, items] = await Promise.all([
+    prisma.communityPost.count({ where }),
+    prisma.communityPost.findMany({
+      where,
+      include: {
+        author: { select: { email: true, playerProfile: true } },
+        sport: true,
+        area: true,
+        _count: { select: { comments: { where: { status: ContentStatus.VISIBLE } } } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: filters.skip,
+      take: filters.take,
+    }),
+  ]);
+
+  return { items, totalCount };
 }
 
 export async function getCommunityPost(postId: string, viewer?: { id: string; isAdmin: boolean }) {
@@ -214,23 +229,44 @@ export async function deleteComment(authorId: string, commentId: string) {
   });
 }
 
-export async function listAdminCommunityContent() {
-  const posts = await prisma.communityPost.findMany({
-    where: { status: { in: [ContentStatus.PENDING, ContentStatus.VISIBLE] } },
-    include: {
-      author: { select: { email: true, playerProfile: true } },
-      sport: true,
-      area: true,
-      comments: {
-        where: { status: { not: ContentStatus.DELETED } },
-        include: { author: { select: { email: true, playerProfile: true } } },
-        orderBy: { createdAt: "asc" },
-      },
-    },
-    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-  });
+export async function listAdminCommunityContent(filters: {
+  status?: ContentStatus;
+  sportId?: string;
+  q?: string;
+  skip?: number;
+  take?: number;
+} = {}) {
+  const where: Prisma.CommunityPostWhereInput = {
+    status: filters.status
+      ? filters.status
+      : { in: [ContentStatus.PENDING, ContentStatus.VISIBLE] },
+    sportId: filters.sportId || undefined,
+    ...(filters.q
+      ? { title: { contains: filters.q, mode: "insensitive" as const } }
+      : {}),
+  };
 
-  return { posts };
+  const [totalCount, items] = await Promise.all([
+    prisma.communityPost.count({ where }),
+    prisma.communityPost.findMany({
+      where,
+      include: {
+        author: { select: { email: true, playerProfile: true } },
+        sport: true,
+        area: true,
+        comments: {
+          where: { status: { not: ContentStatus.DELETED } },
+          include: { author: { select: { email: true, playerProfile: true } } },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      skip: filters.skip,
+      take: filters.take,
+    }),
+  ]);
+
+  return { items, totalCount };
 }
 
 export async function setContentStatus(targetType: ContentTargetType, targetId: string, status: ContentStatus) {

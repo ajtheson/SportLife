@@ -1,6 +1,7 @@
 import { BookingStatus, UserRole } from "@prisma/client";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Search } from "lucide-react";
 
 import { auth } from "@/auth";
 import { AutoRefresh } from "@/components/auto-refresh";
@@ -8,19 +9,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { decideOwnerBookingAction } from "@/features/bookings/booking-actions";
 import { listOwnerBookings, listOwnerVenuesForFilter } from "@/features/bookings/booking-service";
 import { ownerBookingFilterSchema } from "@/features/bookings/booking-schemas";
 import { ownerCanDecide } from "@/features/bookings/booking-transitions";
 import { userHasVenueOwnerProfile } from "@/features/venue-owner-profile/venue-owner-profile-service";
+import { parsePage, calcTotalPages, firstParam } from "@/lib/pagination-utils";
+import { Pagination } from "@/components/ui/pagination";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function firstParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
+const PAGE_SIZE = 15;
 
 const statusLabels: Record<BookingStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   PENDING: { label: "Chờ xác nhận", variant: "default" },
@@ -77,12 +79,27 @@ export default async function VenueOwnerBookingsPage({ searchParams }: PageProps
     venueId: firstParam(params.venueId) || undefined,
     status: firstParam(params.status) || undefined,
   });
-  const filters = filter.success ? filter.data : {};
+  const q = firstParam(params.q)?.trim() || undefined;
 
-  const [bookings, venues] = await Promise.all([
-    listOwnerBookings(session.user.id, filters),
+  const filters = {
+    ...(filter.success ? filter.data : {}),
+    q,
+  };
+
+  const { page, skip, take } = parsePage(params, PAGE_SIZE);
+
+  const [{ items: bookings, totalCount }, venues] = await Promise.all([
+    listOwnerBookings(session.user.id, { ...filters, skip, take }),
     listOwnerVenuesForFilter(session.user.id),
   ]);
+
+  const totalPagesCount = calcTotalPages(totalCount, PAGE_SIZE);
+
+  const paginationSearchParams: Record<string, string | undefined> = {
+    venueId: filters.venueId,
+    status: filters.status,
+    q: filters.q,
+  };
 
   const messageKey = firstParam(params.error) ?? firstParam(params.status);
   const message = messageKey ? messages[messageKey] : null;
@@ -113,25 +130,34 @@ export default async function VenueOwnerBookingsPage({ searchParams }: PageProps
           </div>
         ) : null}
 
-        <form className="flex flex-wrap items-end gap-3 rounded-md border border-border p-4" action="/venue-owner/bookings">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="venueId">Sân</label>
-            <select id="venueId" name="venueId" defaultValue={filters.venueId ?? ""} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+        <form className="grid gap-4 rounded-xl border border-border bg-card/95 p-4 shadow-sm md:grid-cols-[200px_200px_minmax(0,1fr)_auto]" action="/venue-owner/bookings">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="venueId">Sân</label>
+            <select id="venueId" name="venueId" defaultValue={filters.venueId ?? ""} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
               <option value="">Tất cả sân</option>
               {venues.map((venue) => (
                 <option key={venue.id} value={venue.id}>{venue.name}</option>
               ))}
             </select>
           </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="status">Trạng thái</label>
-            <select id="status" name="status" defaultValue={filters.status ?? ""} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="status">Trạng thái</label>
+            <select id="status" name="status" defaultValue={filters.status ?? ""} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
               {filterStatuses.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
           </div>
-          <Button type="submit" variant="outline">Lọc</Button>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="q">Người đặt</label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+              <Input id="q" className="pl-9 h-10" name="q" defaultValue={filters.q ?? ""} placeholder="Nhập tên người đặt..." />
+            </div>
+          </div>
+          <div className="flex items-end">
+            <Button type="submit" className="w-full md:w-auto h-10">Lọc & Tìm</Button>
+          </div>
         </form>
 
         <div className="grid gap-3">
@@ -198,6 +224,19 @@ export default async function VenueOwnerBookingsPage({ searchParams }: PageProps
             </div>
           ) : null}
         </div>
+
+        {totalPagesCount > 1 && (
+          <div className="mt-4">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPagesCount}
+              totalCount={totalCount}
+              pageSize={PAGE_SIZE}
+              searchParams={paginationSearchParams}
+              basePath="/venue-owner/bookings"
+            />
+          </div>
+        )}
       </div>
     </main>
   );

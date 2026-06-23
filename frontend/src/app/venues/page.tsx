@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { listAreas, listSports } from "@/features/config/config-service";
 import { listPublicVenues } from "@/features/venues/venue-service";
+import { parsePage, calcTotalPages, firstParam } from "@/lib/pagination-utils";
+import { Pagination } from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,18 +14,28 @@ type VenuesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function firstValue(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
+const PAGE_SIZE = 12;
 
 export default async function VenuesPage({ searchParams }: VenuesPageProps) {
   const params = await searchParams;
   const filters = {
-    q: firstValue(params.q)?.trim() || undefined,
-    sportId: firstValue(params.sportId) || undefined,
-    areaId: firstValue(params.areaId) || undefined,
+    q: firstParam(params.q)?.trim() || undefined,
+    sportId: firstParam(params.sportId) || undefined,
+    areaId: firstParam(params.areaId) || undefined,
   };
-  const [venues, sports, areas] = await Promise.all([listPublicVenues(filters), listSports(), listAreas()]);
+  const { page, skip, take } = parsePage(params, PAGE_SIZE);
+  const [{ items: venues, totalCount }, sports, areas] = await Promise.all([
+    listPublicVenues(filters, { skip, take }),
+    listSports(),
+    listAreas(),
+  ]);
+  const totalPagesCount = calcTotalPages(totalCount, PAGE_SIZE);
+
+  const paginationSearchParams: Record<string, string | undefined> = {
+    q: filters.q,
+    sportId: filters.sportId,
+    areaId: filters.areaId,
+  };
 
   return (
     <main className="min-h-screen px-4 py-6 text-foreground sm:px-6 lg:px-8">
@@ -40,7 +52,7 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm sm:min-w-64">
             <div className="rounded-xl border border-border bg-muted/40 p-3">
-              <div className="text-2xl font-bold text-primary">{venues.length}</div>
+              <div className="text-2xl font-bold text-primary">{totalCount}</div>
               <div className="text-muted-foreground">Sân phù hợp</div>
             </div>
             <div className="rounded-xl border border-border bg-muted/40 p-3">
@@ -126,6 +138,15 @@ export default async function VenuesPage({ searchParams }: VenuesPageProps) {
             </div>
           ) : null}
         </div>
+
+        <Pagination
+          currentPage={page}
+          totalPages={totalPagesCount}
+          totalCount={totalCount}
+          pageSize={PAGE_SIZE}
+          searchParams={paginationSearchParams}
+          basePath="/venues"
+        />
       </div>
     </main>
   );
