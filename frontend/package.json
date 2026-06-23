@@ -14,7 +14,8 @@
     "prisma:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "prisma:studio": "prisma studio",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "db:seed:reset": "SEED_RESET=true prisma db seed"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

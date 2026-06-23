@@ -553,9 +553,9 @@ Concurrency/race condition:
 | Notification | Thông báo booking mới/kết quả booking | Đã hoàn thành | Cao | In-app cho request/confirm/reject/cancel |
 
 | Chat | Chat gắn với booking | Đã hoàn thành | Cao | Mở chat từ trang chi tiết booking, hiện context sân/giờ qua `Conversation.bookingContextId` |
-| Availability | Polling trạng thái trống sân | Cần phát triển | Cao | Giai đoạn trước realtime |
+| Availability | Polling trạng thái trống sân | Đã hoàn thành | Cao | Giai đoạn trước realtime |
 | Availability | Realtime WebSocket/SSE | Cần phát triển sau | Trung bình | Làm sau khi booking ổn định |
-| Dashboard | Dashboard vận hành booking cho Chủ sân | Cần phát triển | Cao | Hôm nay, chờ xác nhận, slot trống |
+| Dashboard | Dashboard vận hành booking cho Chủ sân | Đã hoàn thành | Cao | Qua `/venue-owner/dashboard`: booking hôm nay, chờ xác nhận, slot trống |
 | Venue | Lọc/tìm kiếm/phân trang venue | Cải thiện sau | Trung bình | Không phải trọng tâm đầu tiên |
 | Venue | Lịch sử duyệt venue | Cải thiện sau | Trung bình | Hữu ích nhưng sau booking |
 | Ảnh | Xóa từng ảnh, sắp xếp ảnh, chọn ảnh đại diện | Cải thiện sau | Trung bình | Cải thiện trải nghiệm media |

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { savePlayerProfileAction } from "@/features/player-profile/player-profile-actions";
 import { getPlayerProfileFormData } from "@/features/player-profile/player-profile-service";
+import { prisma } from "@/lib/db/prisma";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,10 @@ type PlayerProfilePageProps = {
 function profileMessage(searchParams: Record<string, string | string[] | undefined>) {
   if (searchParams.status === "saved") {
     return "Đã lưu hồ sơ thành công.";
+  }
+
+  if (searchParams.status === "phone_verified") {
+    return "Xác thực số điện thoại thành công.";
   }
 
   if (searchParams.error === "phone_exists") {
@@ -45,10 +50,15 @@ export default async function PlayerProfilePage({ searchParams }: PlayerProfileP
     redirect("/");
   }
 
-  const [{ areas, sports, profile }, message] = await Promise.all([
+  const [{ areas, sports, profile }, message, userRecord] = await Promise.all([
     getPlayerProfileFormData(session.user.id),
     searchParams.then(profileMessage),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { phoneVerifiedAt: true },
+    }),
   ]);
+  const isPhoneVerified = !!userRecord?.phoneVerifiedAt;
   const selectedSportLevelBySport = new Map(profile?.sportLevels.map((item) => [item.sportId, item.skillLevelId]));
 
   return (
@@ -105,8 +115,23 @@ export default async function PlayerProfilePage({ searchParams }: PlayerProfileP
                 </div>
 
                 <div className="grid gap-2">
-                  <Label>Số điện thoại</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="phone">Số điện thoại</Label>
+                    {isPhoneVerified ? (
+                      <span className="inline-flex items-center gap-1 rounded bg-green-500/10 px-1.5 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
+                        <svg className="size-3 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Đã xác minh
+                      </span>
+                    ) : profile?.phone ? (
+                      <span className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                        Chưa xác minh
+                      </span>
+                    ) : null}
+                  </div>
                   <Input
+                    id="phone"
                     name="phone"
                     defaultValue={profile?.phone ?? ""}
                     inputMode="numeric"

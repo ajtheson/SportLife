@@ -7,6 +7,7 @@ import { getOwnerDashboardData } from "@/features/bookings/booking-service";
 import { OwnerOperationsDashboard } from "@/features/bookings/owner-operations-dashboard";
 import { listOwnerVenues } from "@/features/venues/venue-service";
 import { userHasVenueOwnerProfile } from "@/features/venue-owner-profile/venue-owner-profile-service";
+import { getPhoneGateRedirect } from "@/lib/authorization/phone-guard";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -49,6 +50,12 @@ export default async function VenueOwnerPage({ searchParams }: VenueOwnerPagePro
 
   if (!(await userHasVenueOwnerProfile(session.user.id))) {
     redirect("/venue-owner/profile");
+  }
+
+  const phoneRedirect = await getPhoneGateRedirect(session.user);
+
+  if (phoneRedirect) {
+    redirect(phoneRedirect);
   }
 
   const today = todayInHanoi();

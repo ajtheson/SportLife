@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { getPhoneGateRedirect } from "@/lib/authorization/phone-guard";
 
 import {
   createBookingSchema,
@@ -22,6 +23,12 @@ async function requireRole(role: UserRole) {
 
   if (session.user.role !== role) {
     redirect("/");
+  }
+
+  const phoneRedirect = await getPhoneGateRedirect(session.user);
+
+  if (phoneRedirect) {
+    redirect(phoneRedirect);
   }
 
   return session.user;
