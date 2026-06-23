@@ -40,7 +40,6 @@ export default async function AdminUsersPage({
       take: pageSize,
       select: {
         id: true,
-        email: true,
         role: true,
         status: true,
         createdAt: true,
@@ -54,7 +53,6 @@ export default async function AdminUsersPage({
 
   const data = users.map((u) => ({
     id: u.id,
-    email: u.email,
     role: u.role,
     status: u.status,
     createdAt: u.createdAt,

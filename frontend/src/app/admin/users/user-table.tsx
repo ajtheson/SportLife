@@ -12,7 +12,6 @@ import { toggleUserStatusAction } from "@/features/admin/admin-actions";
 
 type UserData = {
   id: string;
-  email: string;
   role: UserRole;
   status: UserStatus;
   createdAt: Date;
@@ -84,7 +83,6 @@ export function UserTable({ users, currentUserId }: { users: UserData[]; current
               <TableCell>
                 <div className="flex flex-col">
                   <span className="font-medium">{user.displayName || "Chưa cập nhật"}</span>
-                  <span className="text-xs text-muted-foreground">{user.email}</span>
                 </div>
               </TableCell>
               <TableCell>

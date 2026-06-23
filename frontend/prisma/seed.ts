@@ -1,5 +1,6 @@
 import {
   ApprovalStatus,
+  BookingStatus,
   CommunityPostType,
   ConfigStatus,
   ContentStatus,
@@ -7,11 +8,15 @@ import {
   MatchStatus,
   NotificationType,
   PrismaClient,
+  TimeSlotStatus,
   UserRole,
   UserStatus,
+  VenueResourceStatus,
   VisibilityStatus,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const prisma = new PrismaClient();
 
@@ -305,8 +310,120 @@ function addDays(days: number, hour: number, minute = 0) {
   return date;
 }
 
+function addMinutes(date: Date, minutes: number) {
+  return new Date(date.getTime() + minutes * 60_000);
+}
+
+function dayStart(days: number) {
+  return addDays(days, 0);
+}
+
 function orderedPair(userAId: string, userBId: string) {
   return [userAId, userBId].sort() as [string, string];
+}
+
+type UserDataRow = {
+  name: string;
+  email: string;
+  phone: string;
+};
+
+const userDataAreas = [
+  "Phường Cầu Giấy",
+  "Phường Láng",
+  "Phường Hà Đông",
+  "Phường Tây Hồ",
+  "Phường Thanh Xuân",
+  "Phường Long Biên",
+  "Phường Bồ Đề",
+  "Phường Hoàng Mai",
+  "Phường Đống Đa",
+  "Phường Hai Bà Trưng",
+] as const;
+
+const userDataSportProfiles = [
+  [
+    ["Cầu lông", "Mới chơi"],
+    ["Pickleball", "Mới chơi"],
+  ],
+  [
+    ["Cầu lông", "Trung bình"],
+    ["Bida", "Mới chơi"],
+  ],
+  [
+    ["Pickleball", "Trung bình"],
+    ["Cầu lông", "Mới chơi"],
+  ],
+  [
+    ["Bida", "Trung bình"],
+    ["Cầu lông", "Trung bình"],
+  ],
+  [
+    ["Pickleball", "Khá giỏi"],
+    ["Bida", "Trung bình"],
+  ],
+  [
+    ["Cầu lông", "Khá giỏi"],
+    ["Pickleball", "Trung bình"],
+  ],
+] as const;
+
+const userDataAvailability = [
+  "Tối thứ 2 và thứ 4 sau 19:00.",
+  "Cuối tuần buổi sáng, ưu tiên khu gần nhà.",
+  "Sau giờ làm các ngày trong tuần.",
+  "Tối thứ 6 hoặc chiều Chủ nhật.",
+  "Linh hoạt theo nhóm, báo trước một ngày.",
+  "Sáng sớm trước giờ làm.",
+] as const;
+
+function loadUserDataRows() {
+  const candidatePaths = [resolve(process.cwd(), "../user-data.txt"), resolve(process.cwd(), "user-data.txt")];
+  const filePath = candidatePaths.find((candidate) => existsSync(candidate));
+
+  if (!filePath) {
+    return [] satisfies UserDataRow[];
+  }
+
+  const rows = readFileSync(filePath, "utf8")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line, index) => {
+      const [name, email, phone, ...rest] = line.split("|").map((part) => part.trim());
+
+      if (!name || !email || !phone || rest.length > 0) {
+        throw new Error(`Invalid user-data row ${index + 1}: ${line}`);
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error(`Invalid user-data email at row ${index + 1}: ${email}`);
+      }
+
+      if (!/^\d{10}$/.test(phone)) {
+        throw new Error(`Invalid user-data phone at row ${index + 1}: ${phone}`);
+      }
+
+      return { name, email: email.toLowerCase(), phone };
+    });
+
+  const seenEmails = new Set<string>();
+  const seenPhones = new Set<string>();
+
+  for (const row of rows) {
+    if (seenEmails.has(row.email)) {
+      throw new Error(`Duplicate user-data email: ${row.email}`);
+    }
+
+    if (seenPhones.has(row.phone)) {
+      throw new Error(`Duplicate user-data phone: ${row.phone}`);
+    }
+
+    seenEmails.add(row.email);
+    seenPhones.add(row.phone);
+  }
+
+  return rows;
 }
 
 async function seedConfig() {
@@ -341,12 +458,23 @@ async function seedConfig() {
 }
 
 async function seedUsers(passwordHash: string) {
+  const userDataRows = loadUserDataRows();
+
   await prisma.user.deleteMany({
     where: {
       role: { in: [UserRole.PLAYER, UserRole.VENUE_OWNER] },
       email: { endsWith: "@sportlife.local" },
     },
   });
+
+  if (userDataRows.length > 0) {
+    await prisma.user.deleteMany({
+      where: {
+        role: UserRole.PLAYER,
+        email: { in: userDataRows.map((row) => row.email) },
+      },
+    });
+  }
 
   const areas = await prisma.area.findMany({ where: { city: "Hanoi", status: ConfigStatus.ACTIVE } });
   const sportRows = await prisma.sport.findMany({ include: { skillLevels: true } });
@@ -403,6 +531,38 @@ async function seedUsers(passwordHash: string) {
     });
 
     createdPlayers.set(player.email, user);
+  }
+
+  for (const [index, row] of userDataRows.entries()) {
+    const areaName = userDataAreas[index % userDataAreas.length];
+    const sportProfiles = userDataSportProfiles[index % userDataSportProfiles.length];
+    const availability = userDataAvailability[index % userDataAvailability.length];
+
+    const user = await prisma.user.create({
+      data: {
+        email: row.email,
+        emailVerified: new Date(),
+        passwordHash,
+        role: UserRole.PLAYER,
+        status: UserStatus.ACTIVE,
+        name: row.name,
+        playerProfile: {
+          create: {
+            displayName: row.name,
+            phone: row.phone,
+            areaId: findArea(areaName).id,
+            availability,
+            introduction: `Người chơi SportLife tại ${areaName}, muốn tìm nhóm phù hợp để chơi đều và đúng giờ.`,
+            contactInfo: { phone: row.phone },
+            sportLevels: {
+              create: sportProfiles.map(([sportName, levelName]) => findLevel(sportName, levelName)),
+            },
+          },
+        },
+      },
+    });
+
+    createdPlayers.set(row.email, user);
   }
 
   for (const owner of owners) {
@@ -831,6 +991,353 @@ async function seedCommunity(input: Awaited<ReturnType<typeof seedUsers>>) {
   }
 }
 
+async function seedVenueOperations(input: Awaited<ReturnType<typeof seedUsers>>, venues: Map<string, { id: string; ownerId: string }>) {
+  const resourceSeeds = [
+    {
+      venue: "Cầu lông Cầu Giấy Arena",
+      resources: [
+        ["Sân số 1", "Sân thảm xanh gần quầy lễ tân", VenueResourceStatus.ACTIVE, 1],
+        ["Sân số 2", "Sân giữa, ánh sáng mạnh", VenueResourceStatus.ACTIVE, 2],
+        ["Sân số 3", "Đang thay lưới và vệ sinh đèn", VenueResourceStatus.MAINTENANCE, 3],
+      ],
+      rules: [
+        [1, true, "17:00", "23:00", 60],
+        [2, true, "17:00", "23:00", 60],
+        [3, true, "17:00", "23:00", 60],
+        [4, true, "17:00", "23:00", 60],
+        [5, true, "17:00", "23:00", 60],
+        [6, true, "06:00", "12:00", 60],
+        [0, true, "06:00", "12:00", 60],
+      ],
+    },
+    {
+      venue: "Bida Láng 9 Ball Club",
+      resources: [
+        ["Bàn 9 bi số 1", "Bàn Hollywood mới thay nỉ", VenueResourceStatus.ACTIVE, 1],
+        ["Bàn 9 bi số 2", "Góc yên tĩnh, phù hợp luyện một mình", VenueResourceStatus.ACTIVE, 2],
+        ["Bàn 10 bi VIP", "Bàn riêng cạnh khu sofa", VenueResourceStatus.ACTIVE, 3],
+      ],
+      rules: [
+        [1, true, "14:00", "23:00", 60],
+        [2, true, "14:00", "23:00", 60],
+        [3, true, "14:00", "23:00", 60],
+        [4, true, "14:00", "23:00", 60],
+        [5, true, "14:00", "23:30", 60],
+        [6, true, "09:00", "23:30", 60],
+        [0, true, "09:00", "22:00", 60],
+      ],
+    },
+    {
+      venue: "Pickleball Hà Đông Club",
+      resources: [
+        ["Court A", "Sân ngoài trời gần khu gửi xe", VenueResourceStatus.ACTIVE, 1],
+        ["Court B", "Sân có mái che một phần", VenueResourceStatus.ACTIVE, 2],
+        ["Court C", "Tạm khóa để sơn lại vạch sân", VenueResourceStatus.INACTIVE, 3],
+      ],
+      rules: [
+        [1, true, "06:00", "10:00", 90],
+        [2, true, "06:00", "10:00", 90],
+        [3, true, "17:00", "21:30", 90],
+        [4, true, "17:00", "21:30", 90],
+        [5, true, "17:00", "21:30", 90],
+        [6, true, "06:00", "11:00", 90],
+        [0, true, "06:00", "11:00", 90],
+      ],
+    },
+    {
+      venue: "Long Biên Pickleball Yard",
+      resources: [
+        ["Yard 1", "Sân trung tâm, mặt sân mới", VenueResourceStatus.ACTIVE, 1],
+        ["Yard 2", "Sân sát khu nghỉ", VenueResourceStatus.ACTIVE, 2],
+      ],
+      rules: [
+        [1, true, "17:30", "21:30", 60],
+        [2, true, "17:30", "21:30", 60],
+        [3, true, "17:30", "21:30", 60],
+        [4, true, "17:30", "21:30", 60],
+        [5, true, "17:30", "21:30", 60],
+        [6, true, "07:00", "11:00", 60],
+        [0, false, "07:00", "11:00", 60],
+      ],
+    },
+  ] as const;
+
+  const resources = new Map<string, { id: string; venueId: string; name: string }>();
+
+  for (const seed of resourceSeeds) {
+    const venue = venues.get(seed.venue);
+
+    if (!venue) {
+      throw new Error(`Missing operation venue: ${seed.venue}`);
+    }
+
+    for (const [name, description, status, sortOrder] of seed.resources) {
+      const resource = await prisma.venueResource.create({
+        data: {
+          venueId: venue.id,
+          name,
+          description,
+          status,
+          sortOrder,
+        },
+      });
+
+      resources.set(`${seed.venue}/${name}`, resource);
+    }
+
+    await prisma.venueScheduleRule.createMany({
+      data: seed.rules.map(([dayOfWeek, isOpen, startTime, endTime, slotDurationMinutes]) => ({
+        venueId: venue.id,
+        dayOfWeek,
+        isOpen,
+        startTime,
+        endTime,
+        slotDurationMinutes,
+      })),
+    });
+  }
+
+  const slotSeeds = [
+    ["Cầu lông Cầu Giấy Arena", "Sân số 1", addDays(1, 18), 60, TimeSlotStatus.AVAILABLE, null],
+    ["Cầu lông Cầu Giấy Arena", "Sân số 1", addDays(1, 19), 60, TimeSlotStatus.PENDING_CONFIRMATION, null],
+    ["Cầu lông Cầu Giấy Arena", "Sân số 1", addDays(1, 20), 60, TimeSlotStatus.BOOKED, null],
+    ["Cầu lông Cầu Giấy Arena", "Sân số 2", addDays(1, 19), 60, TimeSlotStatus.AVAILABLE, null],
+    ["Cầu lông Cầu Giấy Arena", "Sân số 2", addDays(1, 20), 60, TimeSlotStatus.BLOCKED, "Dành cho lớp nội bộ của CLB."],
+    ["Cầu lông Cầu Giấy Arena", "Sân số 2", addDays(2, 18), 60, TimeSlotStatus.AVAILABLE, null],
+    ["Bida Láng 9 Ball Club", "Bàn 9 bi số 1", addDays(1, 19), 60, TimeSlotStatus.BOOKED, null],
+    ["Bida Láng 9 Ball Club", "Bàn 9 bi số 1", addDays(1, 20), 60, TimeSlotStatus.AVAILABLE, null],
+    ["Bida Láng 9 Ball Club", "Bàn 9 bi số 2", addDays(1, 20), 60, TimeSlotStatus.PENDING_CONFIRMATION, null],
+    ["Bida Láng 9 Ball Club", "Bàn 10 bi VIP", addDays(2, 21), 60, TimeSlotStatus.AVAILABLE, null],
+    ["Pickleball Hà Đông Club", "Court A", addDays(2, 7), 90, TimeSlotStatus.BOOKED, null],
+    ["Pickleball Hà Đông Club", "Court A", addDays(2, 8, 30), 90, TimeSlotStatus.AVAILABLE, null],
+    ["Pickleball Hà Đông Club", "Court B", addDays(2, 7), 90, TimeSlotStatus.PENDING_CONFIRMATION, null],
+    ["Pickleball Hà Đông Club", "Court B", addDays(3, 18), 90, TimeSlotStatus.AVAILABLE, null],
+    ["Long Biên Pickleball Yard", "Yard 1", addDays(3, 18), 60, TimeSlotStatus.AVAILABLE, null],
+    ["Long Biên Pickleball Yard", "Yard 1", addDays(3, 19), 60, TimeSlotStatus.BLOCKED, "Bảo trì đèn sân."],
+    ["Long Biên Pickleball Yard", "Yard 2", addDays(3, 18), 60, TimeSlotStatus.BOOKED, null],
+  ] as const;
+
+  const slots = new Map<string, { id: string; venueId: string; resourceId: string; startAt: Date; endAt: Date }>();
+
+  for (const [venueName, resourceName, startAt, durationMinutes, status, blockReason] of slotSeeds) {
+    const venue = venues.get(venueName);
+    const resource = resources.get(`${venueName}/${resourceName}`);
+
+    if (!venue || !resource) {
+      throw new Error(`Missing slot relation: ${venueName}/${resourceName}`);
+    }
+
+    const slot = await prisma.venueTimeSlot.create({
+      data: {
+        venueId: venue.id,
+        resourceId: resource.id,
+        startAt,
+        endAt: addMinutes(startAt, durationMinutes),
+        generatedDate: dayStart(Math.round((startAt.getTime() - Date.now()) / 86_400_000)),
+        status,
+        blockReason,
+      },
+    });
+
+    slots.set(`${venueName}/${resourceName}/${startAt.toISOString()}`, slot);
+  }
+
+  const bookingSeeds = [
+    {
+      venue: "Cầu lông Cầu Giấy Arena",
+      resource: "Sân số 1",
+      startAt: addDays(1, 19),
+      player: "player.ha@sportlife.local",
+      status: BookingStatus.PENDING,
+      note: "Nhóm mình có 4 người, muốn xác nhận sớm để đặt cầu.",
+    },
+    {
+      venue: "Cầu lông Cầu Giấy Arena",
+      resource: "Sân số 1",
+      startAt: addDays(1, 20),
+      player: "player.anh@sportlife.local",
+      status: BookingStatus.CONFIRMED,
+      note: "Đánh đôi sau giờ làm, nếu có sân cạnh quạt thì tốt.",
+    },
+    {
+      venue: "Bida Láng 9 Ball Club",
+      resource: "Bàn 9 bi số 1",
+      startAt: addDays(1, 19),
+      player: "player.binh@sportlife.local",
+      status: BookingStatus.CONFIRMED,
+      note: "Mình đến luyện 9 bi, cần bàn yên tĩnh.",
+    },
+    {
+      venue: "Bida Láng 9 Ball Club",
+      resource: "Bàn 9 bi số 2",
+      startAt: addDays(1, 20),
+      player: "player.khoa@sportlife.local",
+      status: BookingStatus.PENDING,
+      note: "Có thể đổi sang bàn khác nếu bàn này bận.",
+    },
+    {
+      venue: "Pickleball Hà Đông Club",
+      resource: "Court A",
+      startAt: addDays(2, 7),
+      player: "player.chi@sportlife.local",
+      status: BookingStatus.CONFIRMED,
+      note: "Nhóm mới chơi, cần thuê thêm 2 vợt.",
+    },
+    {
+      venue: "Pickleball Hà Đông Club",
+      resource: "Court B",
+      startAt: addDays(2, 7),
+      player: "player.duy@sportlife.local",
+      status: BookingStatus.PENDING,
+      note: "Nếu trời mưa cho mình chuyển sang court có mái che nhé.",
+    },
+    {
+      venue: "Long Biên Pickleball Yard",
+      resource: "Yard 2",
+      startAt: addDays(3, 18),
+      player: "player.linh@sportlife.local",
+      status: BookingStatus.CONFIRMED,
+      note: "Đặt cho nhóm 4 người, cần 1 bộ bóng mới.",
+    },
+  ] as const;
+
+  for (const seed of bookingSeeds) {
+    const venue = venues.get(seed.venue);
+    const resource = resources.get(`${seed.venue}/${seed.resource}`);
+    const slot = slots.get(`${seed.venue}/${seed.resource}/${seed.startAt.toISOString()}`);
+    const player = input.createdPlayers.get(seed.player);
+
+    if (!venue || !resource || !slot || !player) {
+      throw new Error(`Missing booking relation: ${seed.venue}/${seed.resource}/${seed.player}`);
+    }
+
+    const booking = await prisma.booking.create({
+      data: {
+        venueId: venue.id,
+        resourceId: resource.id,
+        slotId: slot.id,
+        playerId: player.id,
+        status: seed.status,
+        playerNote: seed.note,
+        startAt: slot.startAt,
+        endAt: slot.endAt,
+        statusHistory: {
+          create: [
+            {
+              fromStatus: null,
+              toStatus: BookingStatus.PENDING,
+              actorId: player.id,
+              actorRole: UserRole.PLAYER,
+            },
+            ...(seed.status === BookingStatus.CONFIRMED
+              ? [
+                  {
+                    fromStatus: BookingStatus.PENDING,
+                    toStatus: BookingStatus.CONFIRMED,
+                    actorId: venue.ownerId,
+                    actorRole: UserRole.VENUE_OWNER,
+                    reason: "Đã giữ sân theo yêu cầu.",
+                  },
+                ]
+              : []),
+          ],
+        },
+      },
+    });
+
+    await prisma.notification.create({
+      data: {
+        recipientId: venue.ownerId,
+        type: NotificationType.BOOKING_REQUESTED,
+        referenceId: booking.id,
+        readAt: seed.status === BookingStatus.CONFIRMED ? new Date() : null,
+      },
+    });
+
+    if (seed.status === BookingStatus.CONFIRMED) {
+      await prisma.notification.create({
+        data: {
+          recipientId: player.id,
+          type: NotificationType.BOOKING_CONFIRMED,
+          referenceId: booking.id,
+        },
+      });
+    }
+  }
+
+  const bookingChatSeeds = [
+    {
+      player: "player.ha@sportlife.local",
+      owner: "owner.caugiay@sportlife.local",
+      booking: ["Cầu lông Cầu Giấy Arena", "Sân số 1", addDays(1, 19)] as const,
+      messages: [
+        ["player.ha@sportlife.local", "Em vừa gửi yêu cầu đặt sân 19h mai, chủ sân kiểm tra giúp em nhé."],
+        ["owner.caugiay@sportlife.local", "Mình thấy rồi, lát nữa xác nhận sau khi kiểm tra lịch lớp."],
+      ],
+    },
+    {
+      player: "player.khoa@sportlife.local",
+      owner: "owner.caugiay@sportlife.local",
+      booking: ["Bida Láng 9 Ball Club", "Bàn 9 bi số 2", addDays(1, 20)] as const,
+      messages: [
+        ["player.khoa@sportlife.local", "Nếu bàn số 2 đang đông thì cho mình bàn yên tĩnh hơn cũng được."],
+        ["owner.caugiay@sportlife.local", "Ok bạn, mình sẽ ưu tiên bàn góc trong cùng."],
+      ],
+    },
+  ] as const;
+
+  for (const seed of bookingChatSeeds) {
+    const player = input.createdPlayers.get(seed.player);
+    const owner = input.createdOwners.get(seed.owner);
+    const [venueName, resourceName, startAt] = seed.booking;
+    const slot = slots.get(`${venueName}/${resourceName}/${startAt.toISOString()}`);
+
+    if (!player || !owner || !slot) {
+      throw new Error(`Missing booking chat relation: ${seed.player}/${seed.owner}`);
+    }
+
+    const booking = await prisma.booking.findFirst({
+      where: { slotId: slot.id, playerId: player.id },
+      select: { id: true },
+    });
+
+    if (!booking) {
+      throw new Error(`Missing booking chat booking: ${seed.player}/${venueName}`);
+    }
+
+    const [userAId, userBId] = orderedPair(player.id, owner.id);
+    const conversation = await prisma.conversation.create({
+      data: {
+        userAId,
+        userBId,
+        bookingContextId: booking.id,
+      },
+    });
+
+    for (const [senderEmail, content] of seed.messages) {
+      const sender = input.createdPlayers.get(senderEmail) ?? input.createdOwners.get(senderEmail);
+
+      if (!sender) {
+        throw new Error(`Missing booking chat sender: ${senderEmail}`);
+      }
+
+      const message = await prisma.chatMessage.create({
+        data: {
+          conversationId: conversation.id,
+          senderId: sender.id,
+          content,
+          readAt: sender.id === player.id ? new Date() : null,
+        },
+      });
+
+      await prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { lastMessageAt: message.createdAt },
+      });
+    }
+  }
+}
+
 async function seedChat(input: Awaited<ReturnType<typeof seedUsers>>, venues: Map<string, { id: string; ownerId: string }>) {
   const chatSeeds = [
     {
@@ -962,22 +1469,25 @@ async function main() {
     const venues = await seedVenues(userContext);
     await seedMatches(userContext);
     await seedCommunity(userContext);
+    await seedVenueOperations(userContext, venues);
     await seedChat(userContext, venues);
     console.log("Demo seed complete.");
   }
 
-  const [areaCount, userCount, venueCount, matchCount, postCount, conversationCount] = await Promise.all([
+  const [areaCount, userCount, venueCount, matchCount, postCount, bookingCount, slotCount, conversationCount] = await Promise.all([
     prisma.area.count({ where: { city: "Hanoi", status: ConfigStatus.ACTIVE } }),
     prisma.user.count(),
     prisma.venue.count(),
     prisma.match.count(),
     prisma.communityPost.count(),
+    prisma.booking.count(),
+    prisma.venueTimeSlot.count(),
     prisma.conversation.count(),
   ]);
 
   console.log("Seed data ready.");
   console.log(
-    `Counts: ${areaCount} active Hanoi areas, ${userCount} users, ${venueCount} venues, ${matchCount} matches, ${postCount} posts, ${conversationCount} conversations.`,
+    `Counts: ${areaCount} active Hanoi areas, ${userCount} users, ${venueCount} venues, ${matchCount} matches, ${postCount} posts, ${bookingCount} bookings, ${slotCount} slots, ${conversationCount} conversations.`,
   );
   console.log(`Admin: ${process.env.ADMIN_SEED_EMAIL ?? "admin@sportlife.local"} / ${process.env.ADMIN_SEED_PASSWORD ?? demoPassword}`);
   console.log(`Player: ${players[0].email} / ${demoPassword}`);

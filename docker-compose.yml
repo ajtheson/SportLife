@@ -51,6 +51,7 @@ services:
     command: sh -c "npm run prisma:generate && npm run db:push -- --accept-data-loss && npm run db:seed"
     volumes:
       - ./frontend:/app
+      - ./user-data.txt:/user-data.txt:ro
       - sportlife-frontend-node-modules:/app/node_modules
     restart: "no"
 
@@ -92,6 +93,7 @@ services:
     command: sh -c "npm run prisma:generate && node scripts/clean-next-dev-cache.mjs && npm run dev -- --hostname 0.0.0.0 --port 3000"
     volumes:
       - ./frontend:/app
+      - ./user-data.txt:/user-data.txt:ro
       - sportlife-frontend-node-modules:/app/node_modules
     healthcheck:
       test:
