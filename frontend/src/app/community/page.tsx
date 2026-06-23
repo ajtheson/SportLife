@@ -1,20 +1,20 @@
 import { CommunityPostType } from "@prisma/client";
+import { Search } from "lucide-react";
 import Link from "next/link";
 
 import { auth } from "@/auth";
 import { listAreas, listSports } from "@/features/config/config-service";
 import { listCommunityPosts } from "@/features/community/community-service";
+import { parsePage, calcTotalPages, firstParam } from "@/lib/pagination-utils";
+import { Pagination } from "@/components/ui/pagination";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 type CommunityPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
-
-function firstValue(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
 
 function parsePostType(value: string | undefined) {
   if (value && Object.values(CommunityPostType).includes(value as CommunityPostType)) {
@@ -35,18 +35,36 @@ export function postTypeLabel(postType: string) {
   return postTypeMap[postType] ?? postType;
 }
 
+const PAGE_SIZE = 10;
+
 export default async function CommunityPage({ searchParams }: CommunityPageProps) {
   const session = await auth();
   const params = await searchParams;
-  const selectedTab = firstValue(params.tab) === "mine" ? "mine" : "all";
+  const selectedTab = firstParam(params.tab) === "mine" ? "mine" : "all";
+  const q = firstParam(params.q)?.trim() || undefined;
   const filters = {
     tab: selectedTab as "all" | "mine",
     viewerId: session?.user?.id,
-    sportId: firstValue(params.sportId) || undefined,
-    areaId: firstValue(params.areaId) || undefined,
-    postType: parsePostType(firstValue(params.postType)),
+    sportId: firstParam(params.sportId) || undefined,
+    areaId: firstParam(params.areaId) || undefined,
+    postType: parsePostType(firstParam(params.postType)),
+    q,
   };
-  const [posts, sports, areas] = await Promise.all([listCommunityPosts(filters), listSports(), listAreas()]);
+  const { page, skip, take } = parsePage(params, PAGE_SIZE);
+  const [{ items: posts, totalCount }, sports, areas] = await Promise.all([
+    listCommunityPosts({ ...filters, skip, take }),
+    listSports(),
+    listAreas(),
+  ]);
+  const totalPagesCount = calcTotalPages(totalCount, PAGE_SIZE);
+
+  const paginationSearchParams: Record<string, string | undefined> = {
+    tab: selectedTab,
+    sportId: filters.sportId,
+    areaId: filters.areaId,
+    postType: filters.postType,
+    q,
+  };
 
   return (
     <main className="min-h-screen bg-background px-6 py-10 text-foreground">
@@ -84,8 +102,12 @@ export default async function CommunityPage({ searchParams }: CommunityPageProps
           </div>
         ) : null}
 
-        <form className="grid gap-3 rounded-xl border border-border bg-card p-5 shadow-sm md:grid-cols-[220px_220px_260px_auto]">
+        <form className="grid gap-3 rounded-xl border border-border bg-card p-5 shadow-sm md:grid-cols-[minmax(0,1fr)_180px_180px_220px_auto]">
           <input name="tab" type="hidden" value={filters.tab} />
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Input className="pl-9" name="q" defaultValue={q ?? ""} placeholder="Tìm theo tiêu đề..." />
+          </div>
           <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" name="sportId" defaultValue={filters.sportId ?? ""}>
             <option value="">Tất cả các môn</option>
             {sports.map((sport) => (
@@ -146,6 +168,15 @@ export default async function CommunityPage({ searchParams }: CommunityPageProps
             </div>
           ) : null}
         </div>
+
+        <Pagination
+          currentPage={page}
+          totalPages={totalPagesCount}
+          totalCount={totalCount}
+          pageSize={PAGE_SIZE}
+          searchParams={paginationSearchParams}
+          basePath="/community"
+        />
       </div>
     </main>
   );
@@ -156,12 +187,14 @@ function communityHref(input: {
   sportId?: string;
   areaId?: string;
   postType?: CommunityPostType;
+  q?: string;
 }) {
   const params = new URLSearchParams({ tab: input.tab });
 
   if (input.sportId) params.set("sportId", input.sportId);
   if (input.areaId) params.set("areaId", input.areaId);
   if (input.postType) params.set("postType", input.postType);
+  if (input.q) params.set("q", input.q);
 
   return `/community?${params.toString()}`;
 }

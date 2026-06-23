@@ -111,9 +111,13 @@ export async function updateSkillLevel(input: z.infer<typeof updateSkillLevelSch
   });
 }
 
-export async function listAreas() {
+export async function listAreas(filters: { q?: string; status?: ConfigStatus } = {}) {
   return prisma.area.findMany({
-    where: { city: "Hanoi" },
+    where: {
+      city: "Hanoi",
+      status: filters.status || undefined,
+      name: filters.q ? { contains: filters.q, mode: "insensitive" } : undefined,
+    },
     orderBy: [{ status: "asc" }, { type: "desc" }, { name: "asc" }],
     include: {
       _count: {

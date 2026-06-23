@@ -128,15 +128,42 @@ export async function saveOwnerVenue(ownerId: string, input: VenueFormInput) {
   });
 }
 
-export async function listAdminVenues() {
-  return prisma.venue.findMany({
-    include: {
-      owner: { select: { email: true, venueOwnerProfile: true } },
-      area: true,
-      sports: { include: { sport: true } },
-    },
-    orderBy: [{ approvalStatus: "desc" }, { updatedAt: "desc" }],
-  });
+export async function listAdminVenues(filters: {
+  approvalStatus?: ApprovalStatus;
+  visibilityStatus?: VisibilityStatus;
+  q?: string;
+  skip?: number;
+  take?: number;
+} = {}) {
+  const where: Prisma.VenueWhereInput = {
+    approvalStatus: filters.approvalStatus || undefined,
+    visibilityStatus: filters.visibilityStatus || undefined,
+    ...(filters.q
+      ? {
+          OR: [
+            { name: { contains: filters.q, mode: "insensitive" as const } },
+            { owner: { email: { contains: filters.q, mode: "insensitive" as const } } },
+          ],
+        }
+      : {}),
+  };
+
+  const [totalCount, items] = await Promise.all([
+    prisma.venue.count({ where }),
+    prisma.venue.findMany({
+      where,
+      include: {
+        owner: { select: { email: true, venueOwnerProfile: true } },
+        area: true,
+        sports: { include: { sport: true } },
+      },
+      orderBy: [{ approvalStatus: "desc" }, { updatedAt: "desc" }],
+      skip: filters.skip,
+      take: filters.take,
+    }),
+  ]);
+
+  return { items, totalCount };
 }
 
 export async function approveVenue(venueId: string) {
@@ -167,27 +194,39 @@ export async function setVenueVisibility(venueId: string, visibilityStatus: Visi
   });
 }
 
-export async function listPublicVenues(filters: { sportId?: string; areaId?: string; q?: string }) {
-  return prisma.venue.findMany({
-    where: {
-      approvalStatus: ApprovalStatus.APPROVED,
-      visibilityStatus: VisibilityStatus.ACTIVE,
-      areaId: filters.areaId || undefined,
-      sports: filters.sportId ? { some: { sportId: filters.sportId } } : undefined,
-      OR: filters.q
-        ? [
-            { name: { contains: filters.q, mode: "insensitive" } },
-            { address: { contains: filters.q, mode: "insensitive" } },
-          ]
-        : undefined,
-    },
-    include: {
-      area: true,
-      sports: { include: { sport: true } },
-      images: { orderBy: { sortOrder: "asc" }, take: 1 },
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+export async function listPublicVenues(
+  filters: { sportId?: string; areaId?: string; q?: string },
+  pagination?: { skip?: number; take?: number },
+) {
+  const where: Prisma.VenueWhereInput = {
+    approvalStatus: ApprovalStatus.APPROVED,
+    visibilityStatus: VisibilityStatus.ACTIVE,
+    areaId: filters.areaId || undefined,
+    sports: filters.sportId ? { some: { sportId: filters.sportId } } : undefined,
+    OR: filters.q
+      ? [
+          { name: { contains: filters.q, mode: "insensitive" } },
+          { address: { contains: filters.q, mode: "insensitive" } },
+        ]
+      : undefined,
+  };
+
+  const [totalCount, items] = await Promise.all([
+    prisma.venue.count({ where }),
+    prisma.venue.findMany({
+      where,
+      include: {
+        area: true,
+        sports: { include: { sport: true } },
+        images: { orderBy: { sortOrder: "asc" }, take: 1 },
+      },
+      orderBy: { updatedAt: "desc" },
+      skip: pagination?.skip,
+      take: pagination?.take,
+    }),
+  ]);
+
+  return { items, totalCount };
 }
 
 export async function getPublicVenue(venueId: string) {

@@ -1,24 +1,26 @@
 import { BookingStatus, UserRole } from "@prisma/client";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Search } from "lucide-react";
 
 import { auth } from "@/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { cancelPlayerBookingAction } from "@/features/bookings/booking-actions";
 import { listPlayerBookings } from "@/features/bookings/booking-service";
 import { playerCanCancel } from "@/features/bookings/booking-transitions";
 import { userHasPlayerProfile } from "@/features/player-profile/player-profile-service";
 import { getPhoneGateRedirect } from "@/lib/authorization/phone-guard";
+import { parsePage, calcTotalPages, firstParam } from "@/lib/pagination-utils";
+import { Pagination } from "@/components/ui/pagination";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function firstParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
+const PAGE_SIZE = 15;
 
 const statusLabels: Record<BookingStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   PENDING: { label: "Chờ xác nhận", variant: "default" },
@@ -65,7 +67,22 @@ export default async function PlayerBookingsPage({ searchParams }: PageProps) {
     redirect(phoneRedirect);
   }
 
-  const [bookings, params] = await Promise.all([listPlayerBookings(session.user.id), searchParams]);
+  const params = await searchParams;
+  const status = firstParam(params.status) as BookingStatus || undefined;
+  const q = firstParam(params.q)?.trim() || undefined;
+
+  const filters = { status, q };
+
+  const { page, skip, take } = parsePage(params, PAGE_SIZE);
+
+  const { items: bookings, totalCount } = await listPlayerBookings(session.user.id, { ...filters, skip, take });
+  const totalPagesCount = calcTotalPages(totalCount, PAGE_SIZE);
+
+  const paginationSearchParams: Record<string, string | undefined> = {
+    status: filters.status,
+    q: filters.q,
+  };
+
   const messageKey = firstParam(params.status) ?? firstParam(params.error);
   const message = messageKey ? messages[messageKey] : null;
 
@@ -88,6 +105,31 @@ export default async function PlayerBookingsPage({ searchParams }: PageProps) {
             {message.text}
           </div>
         ) : null}
+
+        <form className="grid gap-4 rounded-xl border border-border bg-card/95 p-4 shadow-sm sm:grid-cols-[200px_minmax(0,1fr)_auto]" action="/player/bookings">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="status">Trạng thái</label>
+            <select id="status" name="status" defaultValue={filters.status ?? ""} className="h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+              <option value="">Tất cả trạng thái</option>
+              <option value="PENDING">Chờ xác nhận</option>
+              <option value="CONFIRMED">Đã xác nhận</option>
+              <option value="REJECTED">Bị từ chối</option>
+              <option value="CANCELED_BY_PLAYER">Bạn đã hủy</option>
+              <option value="CANCELED_BY_OWNER">Chủ sân đã hủy</option>
+              <option value="COMPLETED">Hoàn thành</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="q">Tên sân</label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+              <Input id="q" className="pl-9 h-10" name="q" defaultValue={filters.q ?? ""} placeholder="Nhập tên sân..." />
+            </div>
+          </div>
+          <div className="flex items-end">
+            <Button type="submit" className="w-full sm:w-auto h-10">Lọc & Tìm</Button>
+          </div>
+        </form>
 
         <div className="grid gap-3">
           {bookings.map((booking) => {
@@ -130,10 +172,25 @@ export default async function PlayerBookingsPage({ searchParams }: PageProps) {
 
           {bookings.length === 0 ? (
             <div className="rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
-              Bạn chưa đặt sân nào. <Link className="text-primary underline" href="/venues">Tìm sân để đặt</Link>.
+              {filters.status || filters.q ? "Không tìm thấy yêu cầu đặt sân nào phù hợp bộ lọc." : (
+                <>Bạn chưa đặt sân nào. <Link className="text-primary underline" href="/venues">Tìm sân để đặt</Link>.</>
+              )}
             </div>
           ) : null}
         </div>
+
+        {totalPagesCount > 1 && (
+          <div className="mt-4">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPagesCount}
+              totalCount={totalCount}
+              pageSize={PAGE_SIZE}
+              searchParams={paginationSearchParams}
+              basePath="/player/bookings"
+            />
+          </div>
+        )}
       </div>
     </main>
   );

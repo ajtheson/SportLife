@@ -8,6 +8,7 @@ import {
   VenueResourceStatus,
   VisibilityStatus,
 } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
 import { hanoiDateEndUtc, hanoiDateStartUtc } from "@/features/venue-schedule/venue-schedule-service";
@@ -291,21 +292,39 @@ export async function cancelBookingByPlayer(playerId: string, input: PlayerCance
   });
 }
 
-export async function listOwnerBookings(ownerId: string, filters: OwnerBookingFilterInput) {
-  return prisma.booking.findMany({
-    where: {
-      venue: { ownerId },
-      venueId: filters.venueId || undefined,
-      status: filters.status || undefined,
-    },
-    include: {
-      venue: { select: { id: true, name: true } },
-      resource: { select: { id: true, name: true } },
-      player: { select: { id: true, email: true, playerProfile: { select: { displayName: true, phone: true } } } },
-    },
-    orderBy: [{ startAt: "asc" }, { createdAt: "desc" }],
-    take: 200,
-  });
+export async function listOwnerBookings(
+  ownerId: string,
+  filters: OwnerBookingFilterInput & { q?: string; skip?: number; take?: number }
+) {
+  const where: Prisma.BookingWhereInput = {
+    venue: { ownerId },
+    venueId: filters.venueId || undefined,
+    status: filters.status || undefined,
+    player: filters.q
+      ? {
+          playerProfile: {
+            displayName: { contains: filters.q, mode: "insensitive" },
+          },
+        }
+      : undefined,
+  };
+
+  const [totalCount, items] = await Promise.all([
+    prisma.booking.count({ where }),
+    prisma.booking.findMany({
+      where,
+      include: {
+        venue: { select: { id: true, name: true } },
+        resource: { select: { id: true, name: true } },
+        player: { select: { id: true, email: true, playerProfile: { select: { displayName: true, phone: true } } } },
+      },
+      orderBy: [{ startAt: "asc" }, { createdAt: "desc" }],
+      skip: filters.skip,
+      take: filters.take,
+    }),
+  ]);
+
+  return { items, totalCount };
 }
 
 export async function listOwnerVenuesForFilter(ownerId: string) {
@@ -322,16 +341,40 @@ export async function countOwnerPendingBookings(ownerId: string) {
   });
 }
 
-export async function listPlayerBookings(playerId: string) {
-  return prisma.booking.findMany({
-    where: { playerId },
-    include: {
-      venue: { select: { id: true, name: true, address: true } },
-      resource: { select: { id: true, name: true } },
-    },
-    orderBy: [{ startAt: "desc" }, { createdAt: "desc" }],
-    take: 200,
-  });
+export async function listPlayerBookings(
+  playerId: string,
+  filters: {
+    status?: BookingStatus;
+    q?: string;
+    skip?: number;
+    take?: number;
+  } = {}
+) {
+  const where: Prisma.BookingWhereInput = {
+    playerId,
+    status: filters.status || undefined,
+    venue: filters.q
+      ? {
+          name: { contains: filters.q, mode: "insensitive" },
+        }
+      : undefined,
+  };
+
+  const [totalCount, items] = await Promise.all([
+    prisma.booking.count({ where }),
+    prisma.booking.findMany({
+      where,
+      include: {
+        venue: { select: { id: true, name: true, address: true } },
+        resource: { select: { id: true, name: true } },
+      },
+      orderBy: [{ startAt: "desc" }, { createdAt: "desc" }],
+      skip: filters.skip,
+      take: filters.take,
+    }),
+  ]);
+
+  return { items, totalCount };
 }
 
 export async function getOwnerBookingDetail(ownerId: string, bookingId: string) {

@@ -194,40 +194,52 @@ export async function editMatch(ownerId: string, input: EditMatchInput) {
 
 export type MatchListTab = "open" | "full" | "mine" | "requests";
 
-export async function listMatches(filters: { sportId?: string; areaId?: string; tab?: MatchListTab; viewerId?: string }) {
+export async function listMatches(
+  filters: { sportId?: string; areaId?: string; tab?: MatchListTab; viewerId?: string },
+  pagination?: { skip?: number; take?: number },
+) {
   const tab = filters.tab ?? "open";
 
-  return prisma.match.findMany({
-    where: {
-      status:
-        tab === "open"
-          ? MatchStatus.OPEN
-          : tab === "full"
-            ? MatchStatus.FULL
-            : { in: [MatchStatus.OPEN, MatchStatus.FULL, MatchStatus.CLOSED, MatchStatus.CANCELED] },
-      ownerId: tab === "mine" ? filters.viewerId : undefined,
-      joinRequests:
-        tab === "requests" && filters.viewerId
-          ? {
-              some: {
-                requesterId: filters.viewerId,
-              },
-            }
-          : undefined,
-      sportId: filters.sportId || undefined,
-      areaId: filters.areaId || undefined,
-      time: { gte: new Date() },
-    },
-    include: {
-      owner: { select: { id: true, email: true, playerProfile: true } },
-      sport: true,
-      area: true,
-      expectedLevel: true,
-      expectedLevels: { include: { skillLevel: true } },
-      joinRequests: true,
-    },
-    orderBy: { time: "asc" },
-  });
+  const where: Prisma.MatchWhereInput = {
+    status:
+      tab === "open"
+        ? MatchStatus.OPEN
+        : tab === "full"
+          ? MatchStatus.FULL
+          : { in: [MatchStatus.OPEN, MatchStatus.FULL, MatchStatus.CLOSED, MatchStatus.CANCELED] },
+    ownerId: tab === "mine" ? filters.viewerId : undefined,
+    joinRequests:
+      tab === "requests" && filters.viewerId
+        ? {
+            some: {
+              requesterId: filters.viewerId,
+            },
+          }
+        : undefined,
+    sportId: filters.sportId || undefined,
+    areaId: filters.areaId || undefined,
+    time: { gte: new Date() },
+  };
+
+  const [totalCount, items] = await Promise.all([
+    prisma.match.count({ where }),
+    prisma.match.findMany({
+      where,
+      include: {
+        owner: { select: { id: true, email: true, playerProfile: true } },
+        sport: true,
+        area: true,
+        expectedLevel: true,
+        expectedLevels: { include: { skillLevel: true } },
+        joinRequests: true,
+      },
+      orderBy: { time: "asc" },
+      skip: pagination?.skip,
+      take: pagination?.take,
+    }),
+  ]);
+
+  return { items, totalCount };
 }
 
 export async function getMatchDetail(matchId: string, viewerId?: string) {
