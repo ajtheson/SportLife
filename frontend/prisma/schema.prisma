@@ -103,16 +103,17 @@ enum TimeSlotStatus {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified DateTime?
-  passwordHash  String?
-  name          String?
-  image         String?
-  role          UserRole
-  status        UserStatus @default(ACTIVE)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id              String    @id @default(cuid())
+  email           String    @unique
+  emailVerified   DateTime?
+  phoneVerifiedAt DateTime?
+  passwordHash    String?
+  name            String?
+  image           String?
+  role            UserRole
+  status          UserStatus @default(ACTIVE)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   accounts             Account[]
   sessions             Session[]
@@ -129,6 +130,7 @@ model User {
   chatMessages         ChatMessage[]
   verificationTokens   VerificationToken[]
   passwordResetTokens  PasswordResetToken[]
+  phoneOtps            PhoneVerificationOtp[]
   bookings             Booking[]
 }
 
@@ -184,6 +186,22 @@ model PasswordResetToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, expiresAt])
+}
+
+model PhoneVerificationOtp {
+  id           String    @id @default(cuid())
+  userId       String
+  phone        String
+  codeHash     String
+  expiresAt    DateTime
+  usedAt       DateTime?
+  attemptCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([userId, createdAt])
 }
 
 model PlayerProfile {

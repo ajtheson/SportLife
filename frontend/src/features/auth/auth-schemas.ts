@@ -35,6 +35,10 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const phoneOtpSchema = z.object({
+  code: z.string().trim().regex(/^\d{6}$/, "Mã xác thực gồm 6 chữ số."),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;

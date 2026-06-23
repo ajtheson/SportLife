@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { getPhoneGateRedirect } from "@/lib/authorization/phone-guard";
 
 import { editMatchSchema, joinRequestIdSchema, joinRequestSchema, matchFormSchema, matchStatusActionSchema } from "./match-schemas";
 import {
@@ -26,6 +27,12 @@ async function requirePlayer() {
 
   if (session.user.role !== UserRole.PLAYER) {
     redirect("/");
+  }
+
+  const phoneRedirect = await getPhoneGateRedirect(session.user);
+
+  if (phoneRedirect) {
+    redirect(phoneRedirect);
   }
 
   return session.user;

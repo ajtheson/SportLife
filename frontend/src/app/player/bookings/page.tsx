@@ -10,6 +10,7 @@ import { cancelPlayerBookingAction } from "@/features/bookings/booking-actions";
 import { listPlayerBookings } from "@/features/bookings/booking-service";
 import { playerCanCancel } from "@/features/bookings/booking-transitions";
 import { userHasPlayerProfile } from "@/features/player-profile/player-profile-service";
+import { getPhoneGateRedirect } from "@/lib/authorization/phone-guard";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -56,6 +57,12 @@ export default async function PlayerBookingsPage({ searchParams }: PageProps) {
 
   if (!(await userHasPlayerProfile(session.user.id))) {
     redirect("/player/profile");
+  }
+
+  const phoneRedirect = await getPhoneGateRedirect(session.user);
+
+  if (phoneRedirect) {
+    redirect(phoneRedirect);
   }
 
   const [bookings, params] = await Promise.all([listPlayerBookings(session.user.id), searchParams]);

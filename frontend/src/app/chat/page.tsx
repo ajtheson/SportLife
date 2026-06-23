@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { chatParticipantName, listConversations } from "@/features/chat/chat-service";
+import { getPhoneGateRedirect } from "@/lib/authorization/phone-guard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -11,6 +12,12 @@ export default async function ChatPage() {
 
   if (!session?.user) {
     redirect("/login");
+  }
+
+  const phoneRedirect = await getPhoneGateRedirect(session.user);
+
+  if (phoneRedirect) {
+    redirect(phoneRedirect);
   }
 
   let conversations: Awaited<ReturnType<typeof listConversations>>;

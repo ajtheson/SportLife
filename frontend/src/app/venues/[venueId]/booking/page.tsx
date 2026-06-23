@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createBookingAction } from "@/features/bookings/booking-actions";
 import { getPublicVenueAvailability } from "@/features/bookings/booking-service";
 import { userHasPlayerProfile } from "@/features/player-profile/player-profile-service";
+import { getPhoneGateRedirect } from "@/lib/authorization/phone-guard";
 
 type BookingPageProps = {
   params: Promise<{ venueId: string }>;
@@ -55,6 +56,12 @@ export default async function VenueBookingPage({ params, searchParams }: Booking
 
   if (!(await userHasPlayerProfile(session.user.id))) {
     redirect("/player/profile");
+  }
+
+  const phoneRedirect = await getPhoneGateRedirect(session.user);
+
+  if (phoneRedirect) {
+    redirect(phoneRedirect);
   }
 
   const [{ venueId }, paramsValue] = await Promise.all([params, searchParams]);

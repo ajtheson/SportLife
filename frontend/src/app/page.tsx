@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { userHasPlayerProfile } from "@/features/player-profile/player-profile-service";
 import { userHasVenueOwnerProfile } from "@/features/venue-owner-profile/venue-owner-profile-service";
+import { getPhoneGateRedirect } from "@/lib/authorization/phone-guard";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,12 @@ export default async function Home() {
   }
 
   if (session?.user) {
+    const phoneRedirect = await getPhoneGateRedirect(session.user);
+
+    if (phoneRedirect) {
+      redirect(phoneRedirect);
+    }
+
     redirect("/venues");
   }
 

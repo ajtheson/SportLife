@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { getPhoneGateRedirect } from "@/lib/authorization/phone-guard";
 
 import { sendChatMessageSchema, startBookingChatSchema, startMatchChatSchema, startVenueChatSchema } from "./chat-schemas";
 import {
@@ -29,6 +30,12 @@ async function requireUser() {
 
   if (!session?.user) {
     redirect("/login");
+  }
+
+  const phoneRedirect = await getPhoneGateRedirect(session.user);
+
+  if (phoneRedirect) {
+    redirect(phoneRedirect);
   }
 
   return session.user;

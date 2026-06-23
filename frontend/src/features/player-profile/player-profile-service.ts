@@ -66,7 +66,7 @@ export async function savePlayerProfile(userId: string, input: PlayerProfileInpu
     }),
     prisma.playerProfile.findUnique({
       where: { userId },
-      select: { id: true },
+      select: { id: true, phone: true },
     }),
   ]);
 
@@ -117,6 +117,13 @@ export async function savePlayerProfile(userId: string, input: PlayerProfileInpu
           },
           select: { id: true },
         });
+
+    if (existingProfile && existingProfile.phone !== input.phone) {
+      await tx.user.update({
+        where: { id: userId },
+        data: { phoneVerifiedAt: null },
+      });
+    }
 
     await tx.playerSportLevel.deleteMany({
       where: { playerProfileId: profile.id },

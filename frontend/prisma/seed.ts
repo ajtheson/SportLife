@@ -936,14 +936,35 @@ async function seedAdmin(passwordHash: string) {
 async function main() {
   const passwordHash = await bcrypt.hash(process.env.ADMIN_SEED_PASSWORD ?? demoPassword, 12);
 
+  // seedConfig and seedAdmin always run — they use upsert and are safe to repeat.
   await seedConfig();
   await seedAdmin(passwordHash);
 
-  const userContext = await seedUsers(await bcrypt.hash(demoPassword, 12));
-  const venues = await seedVenues(userContext);
-  await seedMatches(userContext);
-  await seedCommunity(userContext);
-  await seedChat(userContext, venues);
+  // Demo data (players, venues, matches, community, chat) is seeded only on a
+  // fresh database. On subsequent `docker compose up` / `db:seed` runs the
+  // existing rows are preserved so test data survives restarts.
+  const forceReset = process.env.SEED_RESET === "true";
+  const existingDemoUserCount = await prisma.user.count({
+    where: {
+      role: { in: [UserRole.PLAYER, UserRole.VENUE_OWNER] },
+      email: { endsWith: "@sportlife.local" },
+    },
+  });
+
+  if (existingDemoUserCount > 0 && !forceReset) {
+    console.log(`Seed skipped: found ${existingDemoUserCount} existing demo users — preserving test data.`);
+    console.log(`Tip: run \`npm run db:seed:reset\` to wipe and re-seed demo data.`);
+  } else {
+    if (forceReset && existingDemoUserCount > 0) {
+      console.log(`SEED_RESET=true — wiping ${existingDemoUserCount} demo users and re-seeding...`);
+    }
+    const userContext = await seedUsers(await bcrypt.hash(demoPassword, 12));
+    const venues = await seedVenues(userContext);
+    await seedMatches(userContext);
+    await seedCommunity(userContext);
+    await seedChat(userContext, venues);
+    console.log("Demo seed complete.");
+  }
 
   const [areaCount, userCount, venueCount, matchCount, postCount, conversationCount] = await Promise.all([
     prisma.area.count({ where: { city: "Hanoi", status: ConfigStatus.ACTIVE } }),
