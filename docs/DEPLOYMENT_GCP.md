@@ -85,8 +85,8 @@ Current agreed demo choices:
 
 ```text
 Region: asia-southeast1
-Domain: use Cloud Run URL first
-Cloud Run URL: https://sportlife-web-ip7lwpcbyq-as.a.run.app
+Custom domain: https://sportlife.io.vn
+Cloud Run URL: https://sportlife-web-670759466764.asia-southeast1.run.app
 Upload: move production uploads to Cloud Storage
 Production seed: run demo seed once only, not on every deploy
 Email: Gmail SMTP app password stored in Secret Manager
@@ -644,6 +644,8 @@ Project:
 Project ID: sport-life-497407
 Region: asia-southeast1
 Cloud Run service: sportlife-web
+Cloud Run URL: https://sportlife-web-670759466764.asia-southeast1.run.app
+Custom domain: https://sportlife.io.vn
 Cloud SQL instance: sportlife-postgres
 Database: sportlife
 DB user: sportlife
@@ -672,6 +674,12 @@ Cloud SQL schema applied with `cloudbuild.db-push.yaml`: complete
 Production demo seed applied with `cloudbuild.seed.yaml`: complete
 Production demo URL verified with seeded data: complete
 Cloud Storage upload adapter implemented for `STORAGE_PROVIDER=gcs`: complete
+Custom domain sportlife.io.vn purchased from PA Vietnam: complete
+NEXTAUTH_URL and APP_BASE_URL updated to https://sportlife.io.vn: complete
+Cloud Run domain-mappings create sportlife.io.vn: complete
+DNS A/AAAA records added to PA Vietnam: complete
+SSL certificate provisioned by GCP: complete
+Domain https://sportlife.io.vn live and verified: complete
 ```
 
 Secret creation was done from CMD. If this needs to be repeated, use:
@@ -737,13 +745,19 @@ gcloud builds submit --config=cloudbuild.yaml
 Production health check:
 
 ```cmd
-curl https://sportlife-web-ip7lwpcbyq-as.a.run.app/api/health
+curl https://sportlife.io.vn/api/health
 ```
 
 Open the production demo:
 
 ```text
-https://sportlife-web-ip7lwpcbyq-as.a.run.app
+https://sportlife.io.vn
+```
+
+Fallback Cloud Run URL (still active):
+
+```text
+https://sportlife-web-670759466764.asia-southeast1.run.app
 ```
 
 If Prisma schema changed, intentionally apply schema to Cloud SQL:

@@ -5,8 +5,8 @@ substitutions:
   _IMAGE_NAME: sportlife-web
   _CLOUD_SQL_INSTANCE: sportlife-postgres
   _GCS_BUCKET: sportlife-uploads-sport-life-497407
-  _NEXTAUTH_URL: https://sportlife-web-ip7lwpcbyq-as.a.run.app
-  _APP_BASE_URL: https://sportlife-web-ip7lwpcbyq-as.a.run.app
+  _NEXTAUTH_URL: https://sportlife.io.vn
+  _APP_BASE_URL: https://sportlife.io.vn
   _EMAIL_FROM: SportLife <thesondayne@gmail.com>
   _SMTP_HOST: smtp.gmail.com
   _SMTP_PORT: "465"
