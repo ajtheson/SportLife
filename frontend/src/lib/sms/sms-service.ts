@@ -3,89 +3,87 @@ type SendSmsInput = {
   text: string;
 };
 
-function normalizeVnPhone(phone: string) {
+/**
+ * Normalize a Vietnamese phone number to E.164 format (+84XXXXXXXXX).
+ * UniMatrix requires E.164 format.
+ */
+function normalizeVnPhoneE164(phone: string) {
   const trimmed = phone.trim();
 
-  if (trimmed.startsWith("+")) {
-    return trimmed.slice(1);
+  if (trimmed.startsWith("+84")) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("84")) {
+    return `+${trimmed}`;
   }
 
   if (trimmed.startsWith("0")) {
-    return `84${trimmed.slice(1)}`;
+    return `+84${trimmed.slice(1)}`;
   }
 
-  return trimmed;
+  return `+${trimmed}`;
 }
 
-async function sendEsmsSms(input: SendSmsInput) {
-  const apiKey = process.env.ESMS_API_KEY;
-  const secretKey = process.env.ESMS_SECRET_KEY;
-  const brandname = process.env.ESMS_BRANDNAME;
+/**
+ * Send SMS via UniMatrix (unimtx.com) REST API.
+ *
+ * API: POST https://api.unimtx.com/?action=sms.message.send&accessKeyId=...
+ * Docs: https://www.unimtx.com/docs/api/send
+ * Reference: D:\PRN222_Group5_ApartmentManagement\...\UniMatrixHelper.cs
+ *
+ * Only requires UNIMTX_ACCESS_KEY_ID (Simple Mode).
+ * Optionally uses UNIMTX_ACCESS_KEY_SECRET for HMAC signing.
+ */
+async function sendUnimtxSms(input: SendSmsInput) {
+  const accessKeyId = process.env.UNIMTX_ACCESS_KEY_ID;
 
-  if (!apiKey || !secretKey) {
-    throw new Error("eSMS provider requires ESMS_API_KEY and ESMS_SECRET_KEY.");
+  if (!accessKeyId) {
+    throw new Error("UniMatrix provider requires UNIMTX_ACCESS_KEY_ID.");
   }
 
-  // SmsType 2 = Brandname OTP (requires registered brandname)
-  // SmsType 8 = Random number OTP (no brandname needed, suitable for personal projects)
-  const useBrandname = !!brandname;
+  const url = new URL("https://api.unimtx.com/");
+  url.searchParams.set("action", "sms.message.send");
+  url.searchParams.set("accessKeyId", accessKeyId);
 
-  const response = await fetch("https://rest.esms.vn/MainService.svc/json/SendMultipleMessage_V4_post_json/", {
+  // Parse 6-digit OTP code to support public templates on trial/unverified accounts.
+  const otpMatch = input.text.match(/\b\d{6}\b/);
+  const otpCode = otpMatch ? otpMatch[0] : null;
+
+  const requestBody = otpCode
+    ? {
+        to: normalizeVnPhoneE164(input.to),
+        templateId: "pub_verif_en_basic2",
+        templateData: {
+          code: otpCode,
+        },
+      }
+    : {
+        to: normalizeVnPhoneE164(input.to),
+        text: input.text,
+      };
+
+  const response = await fetch(url.toString(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ApiKey: apiKey,
-      SecretKey: secretKey,
-      ...(useBrandname ? { Brandname: brandname } : {}),
-      SmsType: useBrandname ? "2" : "8",
-      Phone: normalizeVnPhone(input.to),
-      Content: input.text,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
-    throw new Error(`eSMS request failed with HTTP ${response.status}.`);
+    const errorText = await response.text().catch(() => "");
+    throw new Error(`UniMatrix request failed with HTTP ${response.status}. Response: ${errorText}`);
   }
 
-  const result = (await response.json()) as { CodeResult?: string; ErrorMessage?: string };
+  const result = (await response.json()) as {
+    code?: string;
+    message?: string;
+  };
 
-  if (result.CodeResult !== "100") {
-    throw new Error(`eSMS send failed: ${result.CodeResult ?? "unknown"} ${result.ErrorMessage ?? ""}`.trim());
-  }
-}
-
-async function sendSpeedSms(input: SendSmsInput) {
-  const accessToken = process.env.SPEEDSMS_ACCESS_TOKEN;
-  const sender = process.env.SPEEDSMS_SENDER;
-
-  if (!accessToken || !sender) {
-    throw new Error("SpeedSMS provider requires SPEEDSMS_ACCESS_TOKEN and SPEEDSMS_SENDER.");
-  }
-
-  const auth = Buffer.from(`${accessToken}:x`, "utf8").toString("base64");
-
-  const response = await fetch("https://api.speedsms.vn/index.php/sms/send", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Basic ${auth}`,
-    },
-    body: JSON.stringify({
-      to: [normalizeVnPhone(input.to)],
-      content: input.text,
-      sms_type: 2,
-      sender,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`SpeedSMS request failed with HTTP ${response.status}.`);
-  }
-
-  const result = (await response.json()) as { status?: string; message?: string };
-
-  if (result.status !== "success") {
-    throw new Error(`SpeedSMS send failed: ${result.message ?? "unknown error"}`);
+  // code "0" = success (same as C# reference: resp.Code == "0")
+  if (result.code !== "0") {
+    throw new Error(
+      `UniMatrix send failed: [${result.code ?? "unknown"}] ${result.message ?? ""}`.trim()
+    );
   }
 }
 
@@ -97,15 +95,13 @@ export async function sendSms(input: SendSmsInput) {
     return;
   }
 
-  if (provider === "esms") {
-    await sendEsmsSms(input);
+  if (provider === "unimtx") {
+    await sendUnimtxSms(input);
     return;
   }
 
-  if (provider === "speedsms") {
-    await sendSpeedSms(input);
-    return;
-  }
-
-  throw new Error("Selected SMS provider is not implemented yet.");
+  throw new Error(
+    `SMS provider "${provider}" is not configured. Set SMS_PROVIDER=unimtx or SMS_PROVIDER=console.`
+  );
 }
+

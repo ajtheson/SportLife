@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toggleUserStatusAction } from "@/features/admin/admin-actions";
+import { toggleUserStatusAction, toggleUserPhoneVerificationAction } from "@/features/admin/admin-actions";
 
 type UserData = {
   id: string;
@@ -16,6 +16,8 @@ type UserData = {
   status: UserStatus;
   createdAt: Date;
   displayName: string | null;
+  phone: string | null;
+  phoneVerifiedAt: Date | null;
 };
 
 const roleMap: Record<UserRole, { label: string; variant: "default" | "secondary" | "destructive" }> = {
@@ -56,6 +58,23 @@ export function UserTable({ users, currentUserId }: { users: UserData[]; current
     });
   }
 
+  function handleTogglePhoneVerification(userId: string, isVerified: boolean) {
+    const confirmMessage = isVerified
+      ? "Bạn có chắc chắn muốn hủy xác thực số điện thoại của tài khoản này?"
+      : "Bạn có chắc chắn muốn xác thực số điện thoại cho tài khoản này mà không cần gửi OTP?";
+
+    if (!confirm(confirmMessage)) return;
+
+    startTransition(async () => {
+      const result = await toggleUserPhoneVerificationAction(userId);
+      if (result.success) {
+        toast.success(isVerified ? "Đã hủy xác thực số điện thoại." : "Đã xác thực số điện thoại thành công.");
+      } else {
+        toast.error(result.error || "Đã xảy ra lỗi.");
+      }
+    });
+  }
+
   if (users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-border border-dashed p-12 text-center text-muted-foreground">
@@ -72,6 +91,7 @@ export function UserTable({ users, currentUserId }: { users: UserData[]; current
           <TableRow>
             <TableHead>Tài khoản</TableHead>
             <TableHead>Vai trò</TableHead>
+            <TableHead>Xác thực SĐT</TableHead>
             <TableHead>Trạng thái</TableHead>
             <TableHead>Ngày đăng ký</TableHead>
             <TableHead className="text-right">Thao tác</TableHead>
@@ -87,6 +107,41 @@ export function UserTable({ users, currentUserId }: { users: UserData[]; current
               </TableCell>
               <TableCell>
                 <Badge variant={roleMap[user.role].variant}>{roleMap[user.role].label}</Badge>
+              </TableCell>
+              <TableCell>
+                {user.role === UserRole.ADMIN ? (
+                  <span className="text-muted-foreground">-</span>
+                ) : user.phone ? (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-mono">{user.phone}</span>
+                    <div>
+                      <button
+                        onClick={() => handleTogglePhoneVerification(user.id, !!user.phoneVerifiedAt)}
+                        disabled={isPending}
+                        className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium cursor-pointer transition-colors ${
+                          user.phoneVerifiedAt
+                            ? "bg-green-500/10 text-green-600 hover:bg-green-500/20 dark:text-green-400"
+                            : "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
+                        }`}
+                        title="Nhấp để thay đổi trạng thái xác thực"
+                      >
+                        {user.phoneVerifiedAt ? (
+                          <>
+                            <span className="size-1.5 rounded-full bg-green-600 dark:bg-green-400" />
+                            Đã xác minh
+                          </>
+                        ) : (
+                          <>
+                            <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400" />
+                            Chưa xác minh
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground italic">Chưa cập nhật SĐT</span>
+                )}
               </TableCell>
               <TableCell>
                 <Badge variant={statusMap[user.status].variant}>{statusMap[user.status].label}</Badge>
