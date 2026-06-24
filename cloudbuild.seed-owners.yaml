@@ -1,0 +1,40 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - id: install
+    name: node:22
+    dir: frontend
+    entrypoint: npm
+    args: ["ci"]
+
+  - id: seed-venue-owners
+    name: node:22
+    dir: frontend
+    entrypoint: bash
+    secretEnv: ["DATABASE_URL"]
+    env:
+      - OWNER_SEED_PASSWORD=SportLife2024!
+    args:
+      - -lc
+      - |
+        apt-get update -qq
+        apt-get install -y curl ca-certificates
+        curl -fsSL -o /tmp/cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.20.0/cloud-sql-proxy.linux.amd64
+        chmod +x /tmp/cloud-sql-proxy
+        mkdir -p /cloudsql
+        /tmp/cloud-sql-proxy --unix-socket /cloudsql sport-life-497407:asia-southeast1:sportlife-postgres &
+        sleep 5
+        npm run prisma:generate
+        npx tsx prisma/seed-venue-owners.ts
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/${PROJECT_ID}/secrets/DATABASE_URL/versions/latest
+      env: DATABASE_URL
+
+# Dùng một lần để tạo 25 tài khoản chủ sân chưa onboard.
+# Chạy lại an toàn — các tài khoản đã tồn tại sẽ bị bỏ qua.
+#
+# Lệnh chạy:
+#   gcloud builds submit --config=cloudbuild.seed-owners.yaml
