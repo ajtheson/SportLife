@@ -45,3 +45,38 @@ export async function toggleUserStatusAction(userId: string) {
     return { success: false, error: "Đã xảy ra lỗi hệ thống." };
   }
 }
+
+export async function toggleUserPhoneVerificationAction(userId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== UserRole.ADMIN) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, phoneVerifiedAt: true },
+    });
+
+    if (!user) {
+      return { success: false, error: "Không tìm thấy người dùng." };
+    }
+
+    if (user.role === UserRole.ADMIN) {
+      return { success: false, error: "Không cần xác thực cho tài khoản Admin." };
+    }
+
+    const newPhoneVerifiedAt = user.phoneVerifiedAt ? null : new Date();
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { phoneVerifiedAt: newPhoneVerifiedAt },
+    });
+
+    revalidatePath("/admin/users");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to toggle user phone verification:", error);
+    return { success: false, error: "Đã xảy ra lỗi hệ thống." };
+  }
+}

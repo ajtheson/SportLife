@@ -67,8 +67,9 @@ export default async function AdminUsersPage({
         role: true,
         status: true,
         createdAt: true,
-        playerProfile: { select: { displayName: true } },
-        venueOwnerProfile: { select: { businessName: true } },
+        phoneVerifiedAt: true,
+        playerProfile: { select: { displayName: true, phone: true } },
+        venueOwnerProfile: { select: { businessName: true, phone: true } },
       },
     }),
   ]);
@@ -80,6 +81,8 @@ export default async function AdminUsersPage({
     role: u.role,
     status: u.status,
     createdAt: u.createdAt,
+    phoneVerifiedAt: u.phoneVerifiedAt,
+    phone: u.playerProfile?.phone || u.venueOwnerProfile?.phone || null,
     displayName: u.playerProfile?.displayName || u.venueOwnerProfile?.businessName || null,
   }));
 
