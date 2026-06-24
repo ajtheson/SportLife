@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toggleUserStatusAction, toggleUserPhoneVerificationAction } from "@/features/admin/admin-actions";
+import { toggleUserStatusAction, toggleUserPhoneVerificationAction, verifyAllPhonesAction } from "@/features/admin/admin-actions";
 
 type UserData = {
   id: string;
@@ -75,6 +75,20 @@ export function UserTable({ users, currentUserId }: { users: UserData[]; current
     });
   }
 
+  function handleVerifyAll() {
+    const confirmMessage = "Bạn có chắc chắn muốn xác minh số điện thoại cho TẤT CẢ người dùng trên hệ thống?";
+    if (!confirm(confirmMessage)) return;
+
+    startTransition(async () => {
+      const result = await verifyAllPhonesAction();
+      if (result.success) {
+        toast.success("Đã xác minh tất cả số điện thoại thành công.");
+      } else {
+        toast.error(result.error || "Đã xảy ra lỗi.");
+      }
+    });
+  }
+
   if (users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-border border-dashed p-12 text-center text-muted-foreground">
@@ -85,103 +99,111 @@ export function UserTable({ users, currentUserId }: { users: UserData[]; current
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Tài khoản</TableHead>
-            <TableHead>Vai trò</TableHead>
-            <TableHead>Xác thực SĐT</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead>Ngày đăng ký</TableHead>
-            <TableHead className="text-right">Thao tác</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell>
-                <div className="flex flex-col">
-                  <span className="font-medium">{user.displayName || "Chưa cập nhật"}</span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant={roleMap[user.role].variant}>{roleMap[user.role].label}</Badge>
-              </TableCell>
-              <TableCell>
-                {user.role === UserRole.ADMIN ? (
-                  <span className="text-muted-foreground">-</span>
-                ) : user.phone ? (
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-mono">{user.phone}</span>
-                    <div>
-                      <button
-                        onClick={() => handleTogglePhoneVerification(user.id, !!user.phoneVerifiedAt)}
-                        disabled={isPending}
-                        className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium cursor-pointer transition-colors ${
-                          user.phoneVerifiedAt
-                            ? "bg-green-500/10 text-green-600 hover:bg-green-500/20 dark:text-green-400"
-                            : "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
-                        }`}
-                        title="Nhấp để thay đổi trạng thái xác thực"
-                      >
-                        {user.phoneVerifiedAt ? (
-                          <>
-                            <span className="size-1.5 rounded-full bg-green-600 dark:bg-green-400" />
-                            Đã xác minh
-                          </>
-                        ) : (
-                          <>
-                            <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400" />
-                            Chưa xác minh
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground italic">Chưa cập nhật SĐT</span>
-                )}
-              </TableCell>
-              <TableCell>
-                <Badge variant={statusMap[user.status].variant}>{statusMap[user.status].label}</Badge>
-              </TableCell>
-              <TableCell className="text-muted-foreground text-sm" suppressHydrationWarning>
-                {user.createdAt.toLocaleDateString("vi-VN", {
-                  dateStyle: "short",
-                })}
-              </TableCell>
-              <TableCell className="text-right">
-                {user.id !== currentUserId && user.role !== UserRole.ADMIN ? (
-                  <Button
-                    variant={user.status === UserStatus.ACTIVE ? "outline" : "default"}
-                    size="sm"
-                    onClick={() => handleToggleStatus(user.id, user.status)}
-                    disabled={isPending || user.status === UserStatus.DELETED}
-                    title={user.status === UserStatus.ACTIVE ? "Khóa tài khoản" : "Mở khóa tài khoản"}
-                  >
-                    {user.status === UserStatus.ACTIVE ? (
-                      <>
-                        <Lock className="mr-2 h-4 w-4" /> Khóa
-                      </>
-                    ) : (
-                      <>
-                        <Unlock className="mr-2 h-4 w-4" /> Mở khóa
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  user.id === currentUserId && (
-                    <span className="text-xs text-muted-foreground italic flex items-center justify-end gap-1">
-                      <ShieldAlert className="h-3 w-3" /> Bạn
-                    </span>
-                  )
-                )}
-              </TableCell>
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleVerifyAll}
+          disabled={isPending}
+          className="text-amber-600 border-amber-500/30 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+        >
+          Xác minh tất cả SĐT
+        </Button>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Tài khoản</TableHead>
+              <TableHead>Vai trò</TableHead>
+              <TableHead>Xác thực SĐT</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead className="text-right">Thao tác</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{user.displayName || "Chưa cập nhật"}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={roleMap[user.role].variant}>{roleMap[user.role].label}</Badge>
+                </TableCell>
+                <TableCell>
+                  {user.role === UserRole.ADMIN ? (
+                    <span className="text-muted-foreground">-</span>
+                  ) : user.phone ? (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-mono">{user.phone}</span>
+                      <div>
+                        <button
+                          onClick={() => handleTogglePhoneVerification(user.id, !!user.phoneVerifiedAt)}
+                          disabled={isPending}
+                          className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium cursor-pointer transition-colors ${
+                            user.phoneVerifiedAt
+                              ? "bg-green-500/10 text-green-600 hover:bg-green-500/20 dark:text-green-400"
+                              : "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
+                          }`}
+                          title="Nhấp để thay đổi trạng thái xác thực"
+                        >
+                          {user.phoneVerifiedAt ? (
+                            <>
+                              <span className="size-1.5 rounded-full bg-green-600 dark:bg-green-400" />
+                              Đã xác minh
+                            </>
+                          ) : (
+                            <>
+                              <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400" />
+                              Chưa xác minh
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">Chưa cập nhật SĐT</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={statusMap[user.status].variant}>{statusMap[user.status].label}</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  {user.id !== currentUserId && user.role !== UserRole.ADMIN ? (
+                    <Button
+                      variant={user.status === UserStatus.ACTIVE ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => handleToggleStatus(user.id, user.status)}
+                      disabled={isPending || user.status === UserStatus.DELETED}
+                      title={user.status === UserStatus.ACTIVE ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+                    >
+                      {user.status === UserStatus.ACTIVE ? (
+                        <>
+                          <Lock className="mr-2 h-4 w-4" /> Khóa
+                        </>
+                      ) : (
+                        <>
+                          <Unlock className="mr-2 h-4 w-4" /> Mở khóa
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    user.id === currentUserId && (
+                      <span className="text-xs text-muted-foreground italic flex items-center justify-end gap-1">
+                        <ShieldAlert className="h-3 w-3" /> Bạn
+                      </span>
+                    )
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

@@ -80,3 +80,28 @@ export async function toggleUserPhoneVerificationAction(userId: string) {
     return { success: false, error: "Đã xảy ra lỗi hệ thống." };
   }
 }
+
+export async function verifyAllPhonesAction() {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== UserRole.ADMIN) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    await prisma.user.updateMany({
+      where: {
+        role: { not: UserRole.ADMIN },
+        phoneVerifiedAt: null,
+      },
+      data: {
+        phoneVerifiedAt: new Date(),
+      },
+    });
+
+    revalidatePath("/admin/users");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to verify all phone numbers:", error);
+    return { success: false, error: "Đã xảy ra lỗi hệ thống." };
+  }
+}
