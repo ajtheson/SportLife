@@ -7,11 +7,11 @@ substitutions:
   _GCS_BUCKET: sportlife-uploads-sport-life-497407
   _NEXTAUTH_URL: https://sportlife.io.vn
   _APP_BASE_URL: https://sportlife.io.vn
-  _EMAIL_FROM: SportLife <thesondayne@gmail.com>
+  _EMAIL_FROM: SportLife <sonthedayne@gmail.com>
   _SMTP_HOST: smtp.gmail.com
   _SMTP_PORT: "465"
   _SMTP_SECURE: "true"
-  _SMTP_USER: thesondayne@gmail.com
+  _SMTP_USER: sonthedayne@gmail.com
   _SMS_PROVIDER: unimtx
   _UNIMTX_ACCESS_KEY_ID: SkcEyh2hfSzEsM8pJDtvqM
 
